@@ -1,0 +1,386 @@
+// apps/web/src/components/Header.tsx
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  Phone, 
+  Calendar, 
+  Menu, 
+  X, 
+  Lock,
+  Search,
+  Accessibility,
+  Settings,
+  Plus,
+  Minus,
+  Contrast,
+  RotateCcw
+} from 'lucide-react';
+import { CompanyInfo } from '../services/store';
+import { UserProfile } from '@thai-dang/shared';
+
+interface HeaderProps {
+  currentView: 'customer' | 'admin' | 'customer_auth' | 'admin_auth';
+  onViewChange: (view: 'customer' | 'admin' | 'customer_auth' | 'admin_auth') => void;
+  currentUser: UserProfile;
+  authenticatedStaff: UserProfile | null;
+  authenticatedCustomer: any | null;
+  companyInfo?: CompanyInfo;
+}
+
+export const Header: React.FC<HeaderProps> = ({
+  currentView,
+  onViewChange,
+  companyInfo,
+}) => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'trang-chu' | 'mau-rap' | 'dich-vu' | 'thiep-cuoi' | 've-chung-toi' | 'lien-he'>('trang-chu');
+  const hotline = companyInfo?.hotline || '0988 112 233';
+
+  // --- TRỢ NĂNG (ACCESSIBILITY: CỠ CHỮ & TƯƠNG PHẢN CAO) ---
+  const [accessibilityOpen, setAccessibilityOpen] = useState(false);
+  const accessibilityRef = useRef<HTMLDivElement>(null);
+
+  const [fontScale, setFontScale] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('td_font_scale');
+      if (saved) return parseInt(saved, 10);
+    } catch {}
+    return 100;
+  });
+
+  const [highContrast, setHighContrast] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('td_high_contrast') === 'true';
+    } catch {}
+    return false;
+  });
+
+  // Áp dụng cỡ chữ và tương phản lên toàn bộ trang web
+  useEffect(() => {
+    document.documentElement.style.setProperty('--font-scale', `${fontScale / 100}`);
+    if (highContrast) {
+      document.documentElement.classList.add('high-contrast');
+    } else {
+      document.documentElement.classList.remove('high-contrast');
+    }
+  }, [fontScale, highContrast]);
+
+  // Click ra ngoài để tự động đóng popup trợ năng
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (accessibilityRef.current && !accessibilityRef.current.contains(event.target as Node)) {
+        setAccessibilityOpen(false);
+      }
+    };
+    if (accessibilityOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [accessibilityOpen]);
+
+  const handleIncreaseFont = () => {
+    const next = Math.min(fontScale + 10, 150);
+    setFontScale(next);
+    try { localStorage.setItem('td_font_scale', next.toString()); } catch {}
+  };
+
+  const handleDecreaseFont = () => {
+    const next = Math.max(fontScale - 10, 80);
+    setFontScale(next);
+    try { localStorage.setItem('td_font_scale', next.toString()); } catch {}
+  };
+
+  const handleToggleContrast = () => {
+    const next = !highContrast;
+    setHighContrast(next);
+    try { localStorage.setItem('td_high_contrast', next.toString()); } catch {}
+  };
+
+  const handleResetDefault = () => {
+    setFontScale(100);
+    setHighContrast(false);
+    try {
+      localStorage.setItem('td_font_scale', '100');
+      localStorage.setItem('td_high_contrast', 'false');
+    } catch {}
+  };
+
+  const handleNavClick = (tabKey: any, hash: string) => {
+    setActiveTab(tabKey);
+    setMobileMenuOpen(false);
+    if (currentView !== 'customer') {
+      onViewChange('customer');
+    }
+    const elem = document.querySelector(hash);
+    if (elem) {
+      elem.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  return (
+    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-stone-200/70 shadow-xs transition-all">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        
+        {/* LOGO: ĐỒNG BỘ CHUẨN XÁC VỚI LOGO NHÀ RẠP THÁI ĐĂNG */}
+        <div 
+          onClick={() => { setActiveTab('trang-chu'); onViewChange('customer'); }}
+          className="flex items-center gap-3 cursor-pointer select-none group shrink-0"
+        >
+          <img 
+            src="/logo_thai_dang.png" 
+            alt="Nhà Rạp Thái Đăng" 
+            className="h-14 sm:h-16 w-auto object-contain transform group-hover:scale-102 transition-transform drop-shadow-2xs" 
+          />
+        </div>
+
+        {/* MENU TRUNG TÂM TRÊN 1 HÀNG DUY NHẤT (CHUẨN ẢNH) */}
+        <nav className="hidden md:flex items-center gap-4 lg:gap-6 text-sm font-semibold text-stone-700 whitespace-nowrap shrink-0">
+          <button
+            onClick={() => handleNavClick('trang-chu', '#top')}
+            className={`py-2 relative transition-colors cursor-pointer whitespace-nowrap ${
+              activeTab === 'trang-chu' ? 'text-stone-900 font-bold' : 'hover:text-[#ee5a45]'
+            }`}
+          >
+            Trang chủ
+            {activeTab === 'trang-chu' && (
+              <span className="absolute bottom-0 left-0 w-full h-[2.5px] bg-[#ee5a45] rounded-full" />
+            )}
+          </button>
+
+          <button
+            onClick={() => handleNavClick('mau-rap', '#mau-rap')}
+            className={`py-2 relative transition-colors cursor-pointer whitespace-nowrap ${
+              activeTab === 'mau-rap' ? 'text-stone-900 font-bold' : 'hover:text-[#ee5a45]'
+            }`}
+          >
+            Mẫu rạp
+            {activeTab === 'mau-rap' && (
+              <span className="absolute bottom-0 left-0 w-full h-[2.5px] bg-[#ee5a45] rounded-full" />
+            )}
+          </button>
+
+          <button
+            onClick={() => handleNavClick('dich-vu', '#dich-vu')}
+            className={`py-2 relative transition-colors cursor-pointer whitespace-nowrap ${
+              activeTab === 'dich-vu' ? 'text-stone-900 font-bold' : 'hover:text-[#ee5a45]'
+            }`}
+          >
+            Dịch vụ
+            {activeTab === 'dich-vu' && (
+              <span className="absolute bottom-0 left-0 w-full h-[2.5px] bg-[#ee5a45] rounded-full" />
+            )}
+          </button>
+
+          <button
+            onClick={() => handleNavClick('thiep-cuoi', '#thiep-cuoi')}
+            className={`py-2 relative transition-colors cursor-pointer whitespace-nowrap ${
+              activeTab === 'thiep-cuoi' ? 'text-stone-900 font-bold' : 'hover:text-[#ee5a45]'
+            }`}
+          >
+            Thiệp cưới
+            {activeTab === 'thiep-cuoi' && (
+              <span className="absolute bottom-0 left-0 w-full h-[2.5px] bg-[#ee5a45] rounded-full" />
+            )}
+          </button>
+
+          <button
+            onClick={() => handleNavClick('ve-chung-toi', '#ve-chung-toi')}
+            className={`py-2 relative transition-colors cursor-pointer whitespace-nowrap ${
+              activeTab === 've-chung-toi' ? 'text-stone-900 font-bold' : 'hover:text-[#ee5a45]'
+            }`}
+          >
+            Về chúng tôi
+            {activeTab === 've-chung-toi' && (
+              <span className="absolute bottom-0 left-0 w-full h-[2.5px] bg-[#ee5a45] rounded-full" />
+            )}
+          </button>
+
+          <button
+            onClick={() => handleNavClick('lien-he', '#lien-he')}
+            className={`py-2 relative transition-colors cursor-pointer whitespace-nowrap ${
+              activeTab === 'lien-he' ? 'text-stone-900 font-bold' : 'hover:text-[#ee5a45]'
+            }`}
+          >
+            Liên hệ – Chỉ đường
+            {activeTab === 'lien-he' && (
+              <span className="absolute bottom-0 left-0 w-full h-[2.5px] bg-[#ee5a45] rounded-full" />
+            )}
+          </button>
+
+          {/* CỤM 3 ICON TIỆN ÍCH: TÌM KIẾM, TRỢ NĂNG, CÀI ĐẶT (CHUẨN ẢNH) */}
+          <div className="flex items-center gap-1.5 pl-2 border-l border-stone-200">
+            {/* 1. Nút Tìm kiếm */}
+            <button
+              type="button"
+              onClick={() => {
+                const target = document.getElementById('mau-rap') || document.getElementById('tin-tuc');
+                target?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-[#ee5a45] flex items-center justify-center transition-colors cursor-pointer shadow-2xs"
+              title="Tìm kiếm không gian & dịch vụ"
+            >
+              <Search className="w-4 h-4" />
+            </button>
+
+            {/* 2. Nút Trợ năng Accessibility (Kèm Menu Popover Chuẩn Ảnh) */}
+            <div className="relative" ref={accessibilityRef}>
+              <button
+                type="button"
+                onClick={() => setAccessibilityOpen(!accessibilityOpen)}
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-2xs ${
+                  accessibilityOpen || fontScale !== 100 || highContrast
+                    ? 'bg-[#0e4b44] text-white ring-2 ring-emerald-300'
+                    : 'bg-stone-100 hover:bg-stone-200 text-stone-700'
+                }`}
+                title="Cấu hình trợ năng (Cỡ chữ & tương phản)"
+              >
+                <Accessibility className="w-4 h-4" />
+              </button>
+
+              {/* MENU TRỢ NĂNG THEO ĐÚNG ẢNH MẪU */}
+              {accessibilityOpen && (
+                <div className="absolute right-0 top-full mt-2.5 w-56 sm:w-60 bg-white rounded-2xl border border-stone-300/90 shadow-2xl p-3 z-50 animate-fade-in text-stone-800">
+                  <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider px-2 pb-2 border-b border-stone-100">
+                    CỠ CHỮ: {fontScale}%
+                  </div>
+
+                  <div className="space-y-1 pt-2 text-xs">
+                    {/* Tăng cỡ chữ */}
+                    <button
+                      type="button"
+                      onClick={handleIncreaseFont}
+                      className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-stone-100 font-semibold transition-colors text-left cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4 text-stone-600 shrink-0" />
+                      <span>Tăng cỡ chữ</span>
+                    </button>
+
+                    {/* Giảm cỡ chữ */}
+                    <button
+                      type="button"
+                      onClick={handleDecreaseFont}
+                      className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-stone-100 font-semibold transition-colors text-left cursor-pointer"
+                    >
+                      <Minus className="w-4 h-4 text-stone-600 shrink-0" />
+                      <span>Giảm cỡ chữ</span>
+                    </button>
+
+                    {/* Tương phản cao */}
+                    <button
+                      type="button"
+                      onClick={handleToggleContrast}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl font-semibold transition-colors text-left cursor-pointer ${
+                        highContrast ? 'bg-emerald-50 text-[#0e4b44] font-bold' : 'hover:bg-stone-100'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Contrast className="w-4 h-4 text-stone-600 shrink-0" />
+                        <span>Tương phản cao</span>
+                      </div>
+                      {highContrast && <span className="text-[10px] text-emerald-700 font-bold">✓ Bật</span>}
+                    </button>
+
+                    {/* Mặc định */}
+                    <button
+                      type="button"
+                      onClick={handleResetDefault}
+                      className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-stone-100 font-semibold transition-colors text-left text-stone-600 hover:text-stone-900 border-t border-stone-100 mt-1 pt-2 cursor-pointer"
+                    >
+                      <RotateCcw className="w-4 h-4 text-stone-500 shrink-0" />
+                      <span>Mặc định</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 3. Nút Cài đặt / Quản trị */}
+            <button
+              type="button"
+              onClick={() => onViewChange('admin_auth')}
+              className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 flex items-center justify-center transition-colors cursor-pointer shadow-2xs"
+              title="Cài đặt quản trị hệ thống"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+          </div>
+        </nav>
+
+        {/* CỤM BÊN PHẢI: HOTLINE + ĐẶT LỊCH NGAY + NÚT ĐĂNG NHẬP ADMIN */}
+        <div className="flex items-center gap-3 sm:gap-4">
+          
+          {/* Hotline */}
+          <a
+            href={`tel:${hotline.replace(/\D/g, '')}`}
+            className="hidden xl:flex items-center gap-2 text-stone-800 hover:text-[#ee5a45] transition-colors py-1.5 px-2 font-bold text-sm"
+          >
+            <div className="w-7 h-7 rounded-full bg-stone-100 flex items-center justify-center text-[#ee5a45]">
+              <Phone className="w-3.5 h-3.5 fill-[#ee5a45]" />
+            </div>
+            <span>{hotline}</span>
+          </a>
+
+          {/* Nút "ĐẶT LỊCH NGAY" màu cam đỏ bo tròn */}
+          <button
+            onClick={() => handleNavClick('dich-vu', '#dat-lich')}
+            className="px-5 py-2.5 rounded-full bg-[#ee5a45] hover:bg-[#e04530] text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all flex items-center gap-2 transform hover:-translate-y-0.5 cursor-pointer"
+          >
+            <Calendar className="w-3.5 h-3.5" />
+            <span>ĐẶT LỊCH NGAY</span>
+          </button>
+
+          {/* Nút Đăng Nhập Quản Trị */}
+          <button
+            onClick={() => onViewChange('admin_auth')}
+            className="p-2 sm:px-3 sm:py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold text-xs flex items-center gap-1.5 transition-colors cursor-pointer border border-stone-200"
+            title="Đăng nhập tài khoản quản trị (admin / 123456)"
+          >
+            <Lock className="w-3.5 h-3.5 text-amber-600" />
+            <span className="hidden lg:inline">Đăng nhập</span>
+          </button>
+
+          {/* Nút Menu Mobile */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2 text-stone-700 hover:text-stone-900"
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+
+        </div>
+
+      </div>
+
+      {/* MOBILE DROPDOWN */}
+      {mobileMenuOpen && (
+        <div className="md:hidden bg-white border-b border-stone-200 px-5 py-4 space-y-3 text-sm font-semibold animate-fade-in">
+          <button onClick={() => handleNavClick('trang-chu', '#top')} className="block w-full text-left py-2 text-stone-800">Trang chủ</button>
+          <button onClick={() => handleNavClick('mau-rap', '#mau-rap')} className="block w-full text-left py-2 text-stone-800">Mẫu rạp</button>
+          <button onClick={() => handleNavClick('dich-vu', '#dich-vu')} className="block w-full text-left py-2 text-stone-800">Dịch vụ</button>
+          <button onClick={() => handleNavClick('thiep-cuoi', '#thiep-cuoi')} className="block w-full text-left py-2 text-stone-800">Thiệp cưới</button>
+          <button onClick={() => handleNavClick('ve-chung-toi', '#ve-chung-toi')} className="block w-full text-left py-2 text-stone-800">Về chúng tôi</button>
+          <button onClick={() => handleNavClick('lien-he', '#lien-he')} className="block w-full text-left py-2 text-stone-800">Liên hệ – Chỉ đường</button>
+
+          {/* Cụm Trợ Năng trên Mobile */}
+          <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200 space-y-2 text-xs">
+            <div className="font-bold text-stone-700 flex items-center justify-between">
+              <span>TRỢ NĂNG (CỠ CHỮ: {fontScale}%)</span>
+              <button onClick={handleResetDefault} className="text-[#ee5a45] underline">Mặc định</button>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <button onClick={handleIncreaseFont} className="p-2 bg-white rounded-xl border border-stone-200 font-bold text-center">+ Tăng</button>
+              <button onClick={handleDecreaseFont} className="p-2 bg-white rounded-xl border border-stone-200 font-bold text-center">− Giảm</button>
+              <button onClick={handleToggleContrast} className={`p-2 rounded-xl border font-bold text-center ${highContrast ? 'bg-emerald-600 text-white' : 'bg-white border-stone-200'}`}>Tương phản</button>
+            </div>
+          </div>
+
+          <div className="pt-2 border-t border-stone-100 flex items-center justify-between text-xs">
+            <a href={`tel:${hotline.replace(/\D/g, '')}`} className="text-[#ee5a45] font-bold">Hotline: {hotline}</a>
+            <button onClick={() => { setMobileMenuOpen(false); onViewChange('admin_auth'); }} className="text-amber-800 font-bold underline">Đăng nhập quản trị</button>
+          </div>
+        </div>
+      )}
+    </header>
+  );
+};

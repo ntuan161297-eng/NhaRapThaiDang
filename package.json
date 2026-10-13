@@ -1,0 +1,23 @@
+{
+  "name": "thai-dang-events-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "test": "node --experimental-strip-types packages/shared/test/business-rules.test.ts",
+    "dev": "npm run dev --workspace=web",
+    "build": "npm run build --workspace=web",
+    "preview": "npm run preview --workspace=web"
+  },
+  "keywords": [
+    "thai-dang",
+    "event-management",
+    "wedding-tent-rental",
+    "inventory-scheduling"
+  ],
+  "author": "Thái Đăng Engineering Team",
+  "license": "UNLICENSED"
+}
