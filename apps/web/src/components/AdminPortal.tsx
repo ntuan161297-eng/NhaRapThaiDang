@@ -88,6 +88,8 @@ import {
 } from '../services/store';
 import { RBAC, ROLE_LABELS } from '@thai-dang/shared';
 import { toast, showConfirm } from '../services/notification';
+import { AdminGreetingBanner } from './AdminGreetingBanner';
+import { NotificationBell } from './NotificationBell';
 
 interface AdminPortalProps {
   currentUser: UserProfile;
@@ -898,78 +900,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
       {/* ======================================================== */}
       <aside className="w-64 bg-[#fbfaf8] text-slate-700 flex flex-col shrink-0 border-r border-[#ece8df] shadow-xs select-none">
         
-        {/* TOP-LEFT ACCOUNT BAR CHUẨN ẢNH 1: TONE MẶC ĐỊNH, NÚT AVATAR BẬT CHỨC NĂNG */}
-        <div className="relative bg-[#0e4b44] text-white p-3.5 flex items-center justify-between border-b border-[#0a3833] shadow-xs" ref={topUserMenuRef}>
-          <div className="overflow-hidden pr-2">
-            <div className="text-xs font-bold truncate tracking-wide text-white flex items-center gap-1.5">
-              <span>Quản trị hệ thống</span>
-              <span className="text-emerald-200 font-normal">({currentUser.username || 'admin'})</span>
-            </div>
-            <div className="text-[11px] text-emerald-200/80 truncate font-medium mt-0.5">
-              {currentUser.fullName}
-            </div>
-          </div>
-
-          {/* Biểu tượng nút Avatar chuẩn Ảnh 1 (ấn vào hiện ra menu chức năng) */}
-          <button
-            type="button"
-            onClick={() => setShowTopUserMenu(!showTopUserMenu)}
-            className="w-9 h-9 rounded-xl bg-white/15 hover:bg-white/25 active:bg-white/30 text-white flex items-center justify-center transition-all cursor-pointer shadow-2xs shrink-0 ring-1 ring-white/20"
-            title="Menu tài khoản quản trị"
-            aria-label="Menu tài khoản quản trị"
-          >
-            <User className="w-5 h-5 text-white" />
-          </button>
-
-          {/* MENU POPUP NỔI CHUẨN XÁC ẢNH 1 */}
-          {showTopUserMenu && (
-            <div className="absolute top-full left-2 right-2 mt-2 bg-white rounded-2xl shadow-2xl border border-stone-200 p-3 z-50 text-slate-800 animate-fade-in">
-              {/* Avatar to ở trên chuẩn ảnh */}
-              <div className="flex flex-col items-center p-3 pb-3 border-b border-stone-100">
-                <div className="w-16 h-16 rounded-2xl bg-stone-100 border border-stone-200 flex items-center justify-center shadow-inner mb-2 text-stone-400">
-                  <User className="w-9 h-9" />
-                </div>
-                <div className="font-bold text-sm text-stone-900 text-center leading-snug">{currentUser.fullName}</div>
-                <div className="text-xs text-stone-500 text-center">{currentUser.email}</div>
-                <span className="mt-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-[#0e4b44] border border-emerald-200 uppercase tracking-wider">
-                  {ROLE_LABELS[currentUser.role]}
-                </span>
-              </div>
-
-              {/* Danh sách chức năng chuẩn ảnh 1 */}
-              <div className="pt-2 space-y-1">
-                {/* 1. Thông tin cá nhân */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowTopUserMenu(false);
-                    setShowProfileModal(true);
-                  }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-stone-100 text-stone-700 hover:text-stone-900 font-semibold text-xs transition-colors text-left cursor-pointer"
-                >
-                  <UserCircle className="w-4.5 h-4.5 text-stone-500 shrink-0" />
-                  <span>Thông tin cá nhân</span>
-                </button>
-
-                {/* 2. Đăng xuất */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowTopUserMenu(false);
-                    handleLogout();
-                  }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-rose-50 text-rose-700 font-semibold text-xs transition-colors text-left cursor-pointer border-t border-stone-100 mt-1 pt-2"
-                >
-                  <LogOut className="w-4.5 h-4.5 text-rose-600 shrink-0" />
-                  <span>Đăng xuất</span>
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
         {/* Brand Header có Logo Nhà Rạp Thái Đăng (Chuẩn Ảnh 2) */}
-        <div className="pt-4 pb-3 px-4 text-center border-b border-[#ece8df]/60">
+        <div className="pt-5 pb-4 px-4 text-center border-b border-[#ece8df]/60">
           <img 
             src="/logo_thai_dang.png" 
             alt="Nhà Rạp Thái Đăng" 
@@ -1135,86 +1067,168 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
       {/* ======================================================== */}
       <main className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6">
         
-        {/* Header trên thanh công cụ cho các mục khác ngoài dashboard */}
-        {activeMenu !== 'dashboard' && (
-          <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[#e2d9cb]">
-            <div>
-              <div className="flex items-center gap-2 text-xs text-slate-500">
-                <span>Hệ Thống Quản Trị</span>
-                <span>/</span>
-                <span className="font-bold text-slate-800 uppercase tracking-wider">{activeMenu}</span>
-              </div>
-              <h2 className="text-2xl font-bold text-stone-900 mt-0.5">
-                {activeMenu === 'intake' && 'Quản Lý Hồ Sơ Tiếp Nhận & Khảo Sát'}
-                {activeMenu === 'jobs' && 'Sự Kiện / Hợp Đồng (Jobs & 7 Đầu Việc)'}
-                {activeMenu === 'inventory' && 'Quản Lý Danh Mục Kho Thiết Bị'}
-                {activeMenu === 'timeline' && 'Kiểm Tra Khả Dụng Thiết Bị Theo Giờ'}
-                {activeMenu === 'calendar' && 'Lịch Biểu Sự Kiện & Điều Phối'}
-                {activeMenu === 'finance' && 'Doanh Thu, Chi Phí, Báo Giá & Thu Cọc'}
-                {activeMenu === 'customers' && 'Quản Lý Khách Hàng (Customer CRM)'}
-                {activeMenu === 'staff' && 'Quản Lý Nhân Sự & Phân Quyền'}
-                {activeMenu === 'audit' && 'Nhật Ký Hoạt Động & Kiểm Toán'}
-                {activeMenu === 'settings' && 'Cấu Hình Hệ Thống & Quản Trị CMS'}
-              </h2>
+        {/* ======================================================== */}
+        {/* TOP HEADER BAR: CHUÔNG NHẮC VIỆC, VỀ WEBSITE, TÀI KHOẢN  */}
+        {/* ======================================================== */}
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[#e2d9cb]">
+          
+          {/* Bên trái: Breadcrumb phân cấp */}
+          <div>
+            <div className="flex items-center gap-2 text-xs text-slate-500">
+              <span>Hệ Thống Quản Trị</span>
+              <span>/</span>
+              <span className="font-bold text-[#0e4b44] uppercase tracking-wider">
+                {activeMenu === 'dashboard' ? 'Tổng quan' : activeMenu}
+              </span>
             </div>
-
-            <div className="flex items-center gap-3">
-              <div className="px-3 py-1.5 rounded-xl bg-white border border-[#ede8de] text-xs font-semibold text-slate-700 shadow-2xs">
-                Múi giờ: <strong>Asia/Ho_Chi_Minh</strong>
-              </div>
-              <button
-                onClick={() => {
-                  showConfirm({
-                    title: 'Khôi phục dữ liệu mẫu',
-                    message: 'Bạn có chắc chắn muốn khôi phục lại toàn bộ dữ liệu mẫu ban đầu không? Các thiết lập và dữ liệu gần nhất có thể được hoàn tác.',
-                    confirmText: 'Đồng ý khôi phục',
-                    cancelText: 'Hủy bỏ',
-                    isDanger: true,
-                    onConfirm: () => {
-                      appStore.resetToDefaultSeed();
-                      toast.success('Đã khôi phục dữ liệu mẫu ban đầu thành công!');
-                    }
-                  });
-                }}
-                className="p-2 rounded-xl bg-white border border-[#ede8de] hover:bg-amber-50 text-slate-600 hover:text-amber-800 transition-colors"
-                title="Khôi phục dữ liệu mẫu ban đầu"
-              >
-                <RotateCcw className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
-                title="Đăng xuất khỏi hệ thống quản trị"
-              >
-                <LogOut className="w-3.5 h-3.5 text-rose-600" />
-                <span>Đăng xuất</span>
-              </button>
-            </div>
+            <h2 className="text-xl sm:text-2xl font-bold text-stone-900 mt-0.5">
+              {activeMenu === 'dashboard' && 'Bảng Điều Khiển & Hoạt Động Sự Kiện'}
+              {activeMenu === 'intake' && 'Quản Lý Hồ Sơ Tiếp Nhận & Khảo Sát'}
+              {activeMenu === 'jobs' && 'Sự Kiện / Hợp Đồng (Jobs & 7 Đầu Việc)'}
+              {activeMenu === 'inventory' && 'Quản Lý Danh Mục Kho Thiết Bị'}
+              {activeMenu === 'timeline' && 'Kiểm Tra Khả Dụng Thiết Bị Theo Giờ'}
+              {activeMenu === 'calendar' && 'Lịch Biểu Sự Kiện & Điều Phối'}
+              {activeMenu === 'finance' && 'Doanh Thu, Chi Phí, Báo Giá & Thu Cọc'}
+              {activeMenu === 'customers' && 'Quản Lý Khách Hàng (Customer CRM)'}
+              {activeMenu === 'staff' && 'Quản Lý Nhân Sự & Phân Quyền'}
+              {activeMenu === 'audit' && 'Nhật Ký Hoạt Động & Kiểm Toán'}
+              {activeMenu === 'settings' && 'Cấu Hình Hệ Thống & Quản Trị CMS'}
+            </h2>
           </div>
-        )}
 
-        {/* --- MODULE 1: DASHBOARD (CHUẨN XÁC ẢNH 2) --- */}
+          {/* GÓC PHẢI TRÊN: TỪ NGOÀI VÀO: [THÔNG TIN TÀI KHOẢN] [NÚT VỀ WEBSITE] [QUẢ CHUÔNG THÔNG BÁO] */}
+          <div className="flex items-center gap-2.5 sm:gap-3.5 ml-auto">
+            
+            {/* 1. QUẢ CHUÔNG THÔNG BÁO NHẮC VIỆC (ĐẶT LỊCH, GẦN TỚI 1 TUẦN, CHƯA THANH TOÁN 1-2 TUẦN) */}
+            <NotificationBell
+              intakes={intakes}
+              jobs={jobs}
+              quotes={quotes}
+              onNavigateMenu={(menu) => setActiveMenu(menu)}
+            />
+
+            {/* 2. NÚT VỀ WEBSITES NẰM KẾ BÊN TỪ NGOÀI VÀO */}
+            <button
+              type="button"
+              onClick={onBackToCustomerSite}
+              className="px-3 sm:px-4 py-2 rounded-xl bg-white hover:bg-stone-50 active:bg-stone-100 text-slate-700 font-bold text-xs flex items-center gap-2 border border-[#dcd7cd] transition-all cursor-pointer shadow-2xs hover:shadow-xs shrink-0"
+              title="Quay lại giao diện website khách hàng"
+            >
+              <Globe className="w-4 h-4 text-[#0e4b44]" />
+              <span className="hidden sm:inline">Về Website</span>
+            </button>
+
+            {/* 3. KHỐI THÔNG TIN TÀI KHOẢN GÓC PHẢI TRÊN (CHUẨN ẢNH 1: QUẢN TRỊ HỆ THỐNG + AVATAR) */}
+            <div className="relative" ref={topUserMenuRef}>
+              <div className="bg-[#0e4b44] text-white pl-3.5 pr-2 py-1.5 sm:py-2 rounded-2xl flex items-center gap-3 border border-[#0a3833] shadow-xs">
+                <div className="text-left hidden md:block">
+                  <div className="text-xs font-bold truncate tracking-wide text-white flex items-center gap-1.5">
+                    <span>Quản trị hệ thống</span>
+                    <span className="text-emerald-200 font-normal">({currentUser.username || 'admin'})</span>
+                  </div>
+                  <div className="text-[11px] text-emerald-200/90 truncate font-medium">
+                    {currentUser.fullName}
+                  </div>
+                </div>
+
+                {/* Biểu tượng nút Avatar chuẩn Ảnh 1 (ấn vào hiện ra menu chức năng) */}
+                <button
+                  type="button"
+                  onClick={() => setShowTopUserMenu(!showTopUserMenu)}
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/15 hover:bg-white/25 active:bg-white/30 text-white flex items-center justify-center transition-all cursor-pointer shadow-2xs shrink-0 ring-1 ring-white/20"
+                  title="Menu chức năng tài khoản"
+                  aria-label="Menu chức năng tài khoản"
+                >
+                  <User className="w-4.5 h-4.5 text-white" />
+                </button>
+              </div>
+
+              {/* MENU POPUP NỔI CHUẨN XÁC ẢNH 1 */}
+              {showTopUserMenu && (
+                <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-stone-200 p-3 z-50 text-slate-800 animate-fade-in">
+                  {/* Avatar to ở trên chuẩn ảnh */}
+                  <div className="flex flex-col items-center p-3 pb-3 border-b border-stone-100">
+                    <div className="w-16 h-16 rounded-2xl bg-stone-100 border border-stone-200 flex items-center justify-center shadow-inner mb-2 text-stone-400">
+                      <User className="w-9 h-9" />
+                    </div>
+                    <div className="font-bold text-sm text-stone-900 text-center leading-snug">{currentUser.fullName}</div>
+                    <div className="text-xs text-stone-500 text-center">{currentUser.email}</div>
+                    <span className="mt-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-[#0e4b44] border border-emerald-200 uppercase tracking-wider">
+                      {ROLE_LABELS[currentUser.role]}
+                    </span>
+                  </div>
+
+                  {/* Danh sách chức năng chuẩn ảnh 1 */}
+                  <div className="pt-2 space-y-1">
+                    {/* 1. Thông tin cá nhân */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowTopUserMenu(false);
+                        setShowProfileModal(true);
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-stone-100 text-stone-700 hover:text-stone-900 font-semibold text-xs transition-colors text-left cursor-pointer"
+                    >
+                      <UserCircle className="w-4.5 h-4.5 text-stone-500 shrink-0" />
+                      <span>Thông tin cá nhân</span>
+                    </button>
+
+                    {/* 2. Đăng xuất */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowTopUserMenu(false);
+                        handleLogout();
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-rose-50 text-rose-700 font-semibold text-xs transition-colors text-left cursor-pointer border-t border-stone-100 mt-1 pt-2"
+                    >
+                      <LogOut className="w-4.5 h-4.5 text-rose-600 shrink-0" />
+                      <span>Đăng xuất</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+          </div>
+        </div>
+
+        {/* WIDGET CHÀO MỪNG: LỜI CHÀO, CÂU CHÂM NGÔN, THỜI TIẾT, ĐỒNG HỒ & ÂM LỊCH (CHUẨN XÁC ẢNH 2) */}
+        <AdminGreetingBanner userName={currentUser.fullName || 'Admin'} roleLabel={ROLE_LABELS[currentUser.role]} />
+
+        {/* --- MODULE 1: DASHBOARD (TỔNG QUAN) --- */}
         {activeMenu === 'dashboard' && (
           <div className="space-y-6">
             
-            {/* 1. Header Lời chào & Nút Tạo sự kiện (Chuẩn Ảnh 2) */}
+            {/* Thanh tác vụ nhanh của Dashboard */}
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-extrabold text-[#111827] tracking-tight">
-                  Xin chào, anh Thái
-                </h1>
-                <div className="w-12 h-1 bg-[#c59239] rounded-full mt-2 mb-1" />
                 <p className="text-xs text-slate-500 font-medium">
-                  Đây là tình hình hoạt động Nhà rạp Thái Đăng hôm nay.
+                  Tổng hợp số liệu tiến độ sự kiện, công nợ và tình hình vận hành kho hôm nay.
                 </p>
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="px-4 py-2.5 rounded-xl bg-white border border-[#e5e7eb] text-xs font-semibold text-slate-700 shadow-2xs flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-slate-500" />
-                  <span>Thứ Hai, 12 tháng 10 năm 2025</span>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    showConfirm({
+                      title: 'Khôi phục dữ liệu mẫu',
+                      message: 'Bạn có chắc chắn muốn khôi phục lại toàn bộ dữ liệu mẫu ban đầu không? Các thiết lập và dữ liệu gần nhất có thể được hoàn tác.',
+                      confirmText: 'Đồng ý khôi phục',
+                      cancelText: 'Hủy bỏ',
+                      isDanger: true,
+                      onConfirm: () => {
+                        appStore.resetToDefaultSeed();
+                        toast.success('Đã khôi phục dữ liệu mẫu ban đầu thành công!');
+                      }
+                    });
+                  }}
+                  className="p-2.5 rounded-xl bg-white border border-[#ede8de] hover:bg-amber-50 text-slate-600 hover:text-amber-800 transition-colors shadow-2xs"
+                  title="Khôi phục dữ liệu mẫu ban đầu"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
 
                 <button
                   type="button"
@@ -1222,17 +1236,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                   className="px-5 py-2.5 rounded-xl bg-[#0e4b44] hover:bg-[#093530] text-white font-bold text-xs flex items-center gap-2 shadow-sm transition-all cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Tạo sự kiện</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="px-3.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
-                  title="Đăng xuất khỏi hệ thống quản trị"
-                >
-                  <LogOut className="w-4 h-4 text-rose-600" />
-                  <span className="hidden sm:inline">Đăng xuất</span>
+                  <span>Tạo sự kiện mới</span>
                 </button>
               </div>
             </div>
