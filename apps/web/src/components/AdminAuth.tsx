@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, User, Lock, Eye, EyeOff, KeyRound } from 'lucide-react';
 import { appStore } from '../services/store';
 import { toast } from '../services/notification';
+import { getOfficialContactHotline } from '../config/contact';
 
 interface AdminAuthProps {
   onBack: () => void;
@@ -148,7 +149,7 @@ export const AdminAuth: React.FC<AdminAuthProps> = ({ onBack, onSuccess }) => {
             <div className="text-right mt-1.5">
               <button
                 type="button"
-                onClick={() => toast.info('Vui lòng liên hệ quản trị viên chính hoặc gọi Hotline 0988 112 233 để cấp lại quyền truy cập.')}
+                onClick={() => toast.info(`Vui lòng liên hệ quản trị viên chính hoặc gọi Hotline ${getOfficialContactHotline()} để cấp lại quyền truy cập.`)}
                 className="text-[11px] font-semibold text-[#0e4b44] hover:underline cursor-pointer"
               >
                 Quên mật khẩu?

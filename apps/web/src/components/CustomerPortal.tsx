@@ -48,6 +48,7 @@ import {
 } from '@thai-dang/shared';
 import { convertTableChairConfigs } from '@thai-dang/shared';
 import { appStore, ArticleRecord, PromotionBanner, CompanyInfo, ThemeModel, CmsBannerSlide } from '../services/store';
+import { CONTACT_CONFIG, getOfficialContactHotline } from '../config/contact';
 
 export interface CustomerPortalProps {
   articles: ArticleRecord[];
@@ -1607,12 +1608,12 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                   Tư vấn báo giá, giải đáp thắc mắc và hỗ trợ trực tiếp về dịch vụ nhà rạp.
                 </p>
                 <div className="text-2xl font-extrabold text-[#ee5a45] font-sans tracking-tight pt-1 text-center">
-                  {companyInfo.hotline || '0988 112 233'}
+                  {getOfficialContactHotline(companyInfo.hotline)}
                 </div>
               </div>
               <div className="mt-4 pt-2">
                 <a
-                  href={`tel:${(companyInfo.hotline || '0988 112 233').replace(/[^0-9]/g, '')}`}
+                  href={`tel:${getOfficialContactHotline(companyInfo.hotline).replace(/[^0-9]/g, '')}`}
                   className="w-full py-2.5 rounded-xl bg-[#ee5a45] hover:bg-[#e04530] text-white font-bold text-xs uppercase tracking-wider text-center flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
                 >
                   <Phone className="w-3.5 h-3.5" />
@@ -1870,7 +1871,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
               Trụ sở kho bãi &amp; văn phòng: {companyInfo.address || 'Thôn Trực Đông, xã Cổ Lễ, tỉnh Ninh Bình'}
             </p>
             <p className="text-stone-800 font-medium">
-              Hotline 24/7: <strong className="text-[#ee5a45] font-bold text-base">{companyInfo.hotline || '0988 112 233'}</strong>
+              Hotline 24/7: <strong className="text-[#ee5a45] font-bold text-base">{getOfficialContactHotline(companyInfo.hotline)}</strong>
             </p>
             <p className="text-stone-600 font-medium">
               Email: {companyInfo.email || 'sukien@nharapthaidang.vn'}
