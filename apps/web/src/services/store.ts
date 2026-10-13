@@ -1179,8 +1179,29 @@ class AppStateStore {
       if (sLogs) this.auditLogs = JSON.parse(sLogs);
       const sCustomers = localStorage.getItem('td_customers');
       if (sCustomers) this.customers = JSON.parse(sCustomers);
+
+      // ĐỒNG BỘ THÔNG TIN LIÊN HỆ TỪ NGUỒN DUY NHẤT (SINGLE SOURCE OF TRUTH)
+      // Dọn sạch giá trị rác trong localStorage của các trình duyệt cũ để mọi máy/trình duyệt đều hiển thị 1 số duy nhất
       const sComp = localStorage.getItem('td_company_info');
-      if (sComp) this.companyInfo = JSON.parse(sComp);
+      if (sComp) {
+        try {
+          const parsed = JSON.parse(sComp);
+          this.companyInfo = {
+            ...parsed,
+            brandName: CONTACT_CONFIG.BRAND_NAME,
+            hotline: CONTACT_CONFIG.DEFAULT_HOTLINE,
+            zaloPhone: CONTACT_CONFIG.DEFAULT_ZALO,
+            address: CONTACT_CONFIG.ADDRESS,
+            email: CONTACT_CONFIG.EMAIL,
+          };
+          localStorage.setItem('td_company_info', JSON.stringify(this.companyInfo));
+        } catch {
+          this.companyInfo = JSON.parse(JSON.stringify(INITIAL_COMPANY_INFO));
+        }
+      } else {
+        this.companyInfo = JSON.parse(JSON.stringify(INITIAL_COMPANY_INFO));
+      }
+
       const sThemes = localStorage.getItem('td_cms_themes');
       if (sThemes) this.cmsThemes = JSON.parse(sThemes);
       const sSlides = localStorage.getItem('td_cms_banner_slides');

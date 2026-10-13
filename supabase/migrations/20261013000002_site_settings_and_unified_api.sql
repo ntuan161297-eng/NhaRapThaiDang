@@ -27,17 +27,17 @@ CREATE POLICY "Managers can update site settings" ON site_settings
   FOR ALL TO authenticated
   USING (get_current_user_role() IN ('chu_don_vi', 'quan_ly'));
 
--- Nạp cấu hình liên hệ mặc định (Chờ chủ đơn vị xác nhận số điện thoại chính thức)
+-- Nạp cấu hình liên hệ chính thức (Đã được Chủ đơn vị Thái Đăng xác nhận)
 INSERT INTO site_settings (key, value, is_public, description)
 VALUES (
   'contact_info',
   jsonb_build_object(
     'brandName', 'NHÀ RẠP THÁI ĐĂNG',
     'slogan', 'SỰ KIỆN TRỌN NIỀM VUI',
-    'hotline', '0988 112 233',
-    'officialHotlineStatus', '[CHỦ ĐƠN VỊ XÁC NHẬN SỐ NÀY]',
-    'isHotlineConfirmed', false,
-    'zaloPhone', '0988 112 233',
+    'hotline', '0349.481.256',
+    'officialHotlineStatus', '0349.481.256 (Đã xác nhận)',
+    'isHotlineConfirmed', true,
+    'zaloPhone', '0349.481.256',
     'facebookFanpageUrl', 'https://facebook.com/nharapthaidang.ninhbinh',
     'tiktokUrl', 'https://tiktok.com/@nharapthaidang',
     'youtubeUrl', 'https://youtube.com/@nharapthaidang',
