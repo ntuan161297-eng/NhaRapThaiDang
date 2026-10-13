@@ -49,6 +49,7 @@ import {
 import { convertTableChairConfigs } from '@thai-dang/shared';
 import { appStore, ArticleRecord, PromotionBanner, CompanyInfo, ThemeModel, CmsBannerSlide } from '../services/store';
 import { CONTACT_CONFIG, getOfficialContactHotline } from '../config/contact';
+import { DragonPhoenixBackground } from './DragonPhoenixBackground';
 
 export interface CustomerPortalProps {
   articles: ArticleRecord[];
@@ -372,7 +373,9 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
   };
 
   return (
-    <div className="bg-[#faf8f5] text-[#1a1f2c] overflow-x-hidden w-full max-w-full">
+    <div className="relative bg-[#f7f3ec] text-[#1a1f2c] overflow-x-hidden w-full max-w-full">
+      {/* Họa tiết rồng phượng ẩn chìm phía sau nền theo yêu cầu người dùng */}
+      <DragonPhoenixBackground />
       
       {/* ======================================================== */}
       {/* 1. HERO BANNER SLIDESHOW (CHẠY TỰ ĐỘNG THEO CMS, CHỈ CÓ DẤU CHẤM MỜ, HỖ TRỢ VUỐT TRÊN MOBILE) */}
@@ -459,7 +462,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
       {/* ======================================================== */}
       {/* 2. DỊCH VỤ CỦA THÁI ĐĂNG (CHUẨN XÁC ẢNH 1)                 */}
       {/* ======================================================== */}
-      <section id="dich-vu" className="bg-[#faf8f5] py-16 px-4 sm:px-6 lg:px-8 border-b border-[#ece7de]">
+      <section id="dich-vu" className="relative z-10 bg-[#faf8f5]/60 py-16 px-4 sm:px-6 lg:px-8 border-b border-[#ece7de]/70">
         <div className="max-w-7xl mx-auto space-y-9">
           
           {/* Tiêu đề mục hoa sen vàng (Chuẩn Ảnh 1) */}
@@ -629,7 +632,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
       </section>
 
       {/* 3. SHOWCASE MẪU PHÔNG RẠP HOÀNG GIA & TƯ VẤN PHONG THỦY */}
-      <section id="mau-rap" className="bg-[#f5f1e8] py-20 px-4 sm:px-6 lg:px-8 border-y border-[#ede4d4]">
+      <section id="mau-rap" className="relative z-10 bg-[#f5f1e8]/60 py-20 px-4 sm:px-6 lg:px-8 border-y border-[#ede4d4]/70">
         <div className="max-w-7xl mx-auto space-y-12">
           
           <div className="text-center space-y-2">
