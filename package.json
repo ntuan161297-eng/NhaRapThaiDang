@@ -9,7 +9,7 @@
   "scripts": {
     "test": "node --experimental-strip-types packages/shared/test/business-rules.test.ts",
     "dev": "npm run dev --workspace=web",
-    "build": "npm run build --workspace=web",
+    "build": "npm run build --workspace=web && node -e \"const fs=require('fs'); if(fs.existsSync('apps/web/dist')){fs.cpSync('apps/web/dist', 'dist', {recursive:true});}\"",
     "preview": "npm run preview --workspace=web"
   },
   "keywords": [

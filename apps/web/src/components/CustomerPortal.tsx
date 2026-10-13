@@ -1839,55 +1839,58 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
       </footer>
 
       {/* ======================================================== */}
-      {/* FLOATING ACTION WIDGETS (HOTLINE, ZALO, FANPAGE, LÊN ĐẦU TRANG) */}
+      {/* PHẦN LIÊN HỆ CỐ ĐỊNH CHÍNH GIỮA BÊN PHẢI (CHUẨN HÌNH ẢNH) */}
       {/* ======================================================== */}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 pointer-events-auto">
+      <div className="fixed right-3 sm:right-5 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-3 pointer-events-auto animate-fade-in">
         
-        {/* Fanpage Facebook button */}
-        <a
-          href={companyInfo.facebookFanpage}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-xl flex items-center justify-center hover:scale-110 transition-all group relative"
-          title="Kết nối Facebook Fanpage"
-        >
-          <Share2 className="w-5 h-5" />
-          <span className="absolute right-14 bg-slate-900 text-white text-[11px] font-bold px-3 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-md pointer-events-none">
-            Facebook Fanpage
-          </span>
-        </a>
-
-        {/* Zalo chat button */}
-        <a
-          href={companyInfo.zaloChat}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-12 h-12 rounded-full bg-cyan-600 hover:bg-cyan-700 text-white shadow-xl flex items-center justify-center hover:scale-110 transition-all group relative"
-          title="Chat qua Zalo"
-        >
-          <MessageCircle className="w-5 h-5" />
-          <span className="absolute right-14 bg-slate-900 text-white text-[11px] font-bold px-3 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-md pointer-events-none">
-            Chat Zalo Trực Tiếp
-          </span>
-        </a>
-
-        {/* Hotline Call button with Pulse */}
+        {/* 1. NÚT GỌI HOTLINE: TRÒN MÀU VÀNG GOLD, ICON ĐIỆN THOẠI ĐEN (CHUẨN ẢNH) */}
         <a
           href={`tel:${companyInfo.hotline.replace(/[^0-9]/g, '')}`}
-          className="w-12 h-12 rounded-full gold-gradient text-[#121722] shadow-2xl flex items-center justify-center hover:scale-110 transition-all group relative animate-bounce"
-          title="Gọi Hotline Ngay"
+          className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-b from-[#e8c676] to-[#cba048] text-stone-900 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all group relative border-2 border-white/40 cursor-pointer"
+          title={`Hotline: ${companyInfo.hotline}`}
         >
-          <Phone className="w-5 h-5" />
-          <span className="absolute right-14 bg-[#121722] text-[#dfba73] text-[11px] font-bold px-3 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-md pointer-events-none border border-[#dfba73]/30">
+          <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-stone-900 stroke-[2.3]" />
+          <span className="absolute right-16 bg-[#161c2b] text-[#dfba73] text-[11px] font-bold px-3 py-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap shadow-2xl pointer-events-none border border-[#dfba73]/30">
             Hotline: {companyInfo.hotline}
           </span>
         </a>
 
-        {/* LÊN ĐẦU TRANG (SCROLL TO TOP) */}
+        {/* 2. NÚT CHAT ZALO: TRÒN MÀU XANH NGỌC/CYAN, ICON BONG BÓNG CHAT TRẮNG (CHUẨN ẢNH) */}
+        <a
+          href={companyInfo.zaloChat}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#0098b9] hover:bg-[#008ba9] text-white shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all group relative border-2 border-white/40 cursor-pointer"
+          title="Chat Zalo Trực Tiếp"
+        >
+          <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 text-white stroke-[2.3]" />
+          <span className="absolute right-16 bg-slate-900 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap shadow-2xl pointer-events-none border border-white/10">
+            Chat Zalo Trực Tiếp
+          </span>
+        </a>
+
+        {/* 3. NÚT FACEBOOK FANPAGE: TRÒN MÀU XANH DƯƠNG, ICON CHIA SẺ TRẮNG (CHUẨN ẢNH) */}
+        <a
+          href={companyInfo.facebookFanpage}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#1877F2] hover:bg-[#166fe5] text-white shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all group relative border-2 border-white/40 cursor-pointer"
+          title="Kết nối Facebook Fanpage"
+        >
+          <Share2 className="w-5 h-5 sm:w-6 sm:h-6 text-white stroke-[2.3]" />
+          <span className="absolute right-16 bg-slate-900 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap shadow-2xl pointer-events-none border border-white/10">
+            Facebook Fanpage
+          </span>
+        </a>
+
+      </div>
+
+      {/* LÊN ĐẦU TRANG (SCROLL TO TOP) */}
+      <div className="fixed bottom-6 right-6 z-40 pointer-events-auto">
         <button
           type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="w-12 h-12 rounded-full bg-[#121722] hover:bg-[#1a2233] text-[#dfba73] border border-[#dfba73]/40 shadow-2xl flex items-center justify-center hover:scale-110 transition-all group relative cursor-pointer"
+          className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#121722]/90 hover:bg-[#1a2233] text-[#dfba73] border border-[#dfba73]/40 shadow-xl flex items-center justify-center hover:scale-108 transition-all group relative cursor-pointer"
           title="Lên đầu trang"
         >
           <ChevronUp className="w-6 h-6" />
@@ -1895,7 +1898,6 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
             Lên đầu trang
           </span>
         </button>
-
       </div>
 
       {/* ======================================================== */}

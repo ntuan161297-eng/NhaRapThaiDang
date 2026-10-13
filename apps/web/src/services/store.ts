@@ -1113,9 +1113,9 @@ class AppStateStore {
   private cmsPartnerPhotos: CmsPartnerPhoto[] = JSON.parse(JSON.stringify(INITIAL_CMS_PARTNER_PHOTOS));
   private cmsBannerSlides: CmsBannerSlide[] = JSON.parse(JSON.stringify(INITIAL_CMS_BANNER_SLIDES));
   private cmsThemes: ThemeModel[] = JSON.parse(JSON.stringify(INITIAL_THEMES));
-  private currentUser: UserProfile = MOCK_USERS[0]; // Mặc định: Chủ đơn vị
-  private authenticatedStaff: UserProfile | null = MOCK_USERS[0]; // Mặc định đã đăng nhập Chủ đơn vị khi vào Quản trị
-  private authenticatedCustomer: CustomerAccount | null = null; // Khách hàng đăng nhập cổng ngoài
+  private currentUser: UserProfile = MOCK_USERS[0]; // Thông tin phiên hoạt động
+  private authenticatedStaff: UserProfile | null = null; // Phiên đăng nhập quản trị viên (được lưu vào localStorage)
+  private authenticatedCustomer: CustomerAccount | null = null; // Phiên đăng nhập khách hàng (được lưu vào localStorage)
 
   private listeners: (() => void)[] = [];
 
@@ -1133,10 +1133,26 @@ class AppStateStore {
       localStorage.setItem('td_payments', JSON.stringify(this.payments));
       localStorage.setItem('td_notifications', JSON.stringify(this.notifications));
       localStorage.setItem('td_audit_logs', JSON.stringify(this.auditLogs));
-      localStorage.setItem('td_current_user', JSON.stringify(this.currentUser));
+      localStorage.setItem('td_customers', JSON.stringify(this.customers));
       localStorage.setItem('td_company_info', JSON.stringify(this.companyInfo));
       localStorage.setItem('td_cms_themes', JSON.stringify(this.cmsThemes));
       localStorage.setItem('td_cms_banner_slides', JSON.stringify(this.cmsBannerSlides));
+
+      // Lưu phiên đăng nhập Quản Trị Viên (Staff Session)
+      if (this.authenticatedStaff) {
+        localStorage.setItem('td_authenticated_staff', JSON.stringify(this.authenticatedStaff));
+        localStorage.setItem('td_current_user', JSON.stringify(this.authenticatedStaff));
+      } else {
+        localStorage.removeItem('td_authenticated_staff');
+        localStorage.removeItem('td_current_user');
+      }
+
+      // Lưu phiên đăng nhập Khách Hàng (Customer Session)
+      if (this.authenticatedCustomer) {
+        localStorage.setItem('td_authenticated_customer', JSON.stringify(this.authenticatedCustomer));
+      } else {
+        localStorage.removeItem('td_authenticated_customer');
+      }
     } catch (e) {
       console.warn('LocalStorage save failed:', e);
     }
@@ -1160,14 +1176,41 @@ class AppStateStore {
       if (sNotifs) this.notifications = JSON.parse(sNotifs);
       const sLogs = localStorage.getItem('td_audit_logs');
       if (sLogs) this.auditLogs = JSON.parse(sLogs);
-      const sUser = localStorage.getItem('td_current_user');
-      if (sUser) this.currentUser = JSON.parse(sUser);
+      const sCustomers = localStorage.getItem('td_customers');
+      if (sCustomers) this.customers = JSON.parse(sCustomers);
       const sComp = localStorage.getItem('td_company_info');
       if (sComp) this.companyInfo = JSON.parse(sComp);
       const sThemes = localStorage.getItem('td_cms_themes');
       if (sThemes) this.cmsThemes = JSON.parse(sThemes);
       const sSlides = localStorage.getItem('td_cms_banner_slides');
       if (sSlides) this.cmsBannerSlides = JSON.parse(sSlides);
+
+      // Phục hồi phiên đăng nhập Quản Trị Viên
+      const sAuthStaff = localStorage.getItem('td_authenticated_staff');
+      if (sAuthStaff) {
+        try {
+          const parsed = JSON.parse(sAuthStaff);
+          if (parsed && parsed.id) {
+            this.authenticatedStaff = parsed;
+            this.currentUser = parsed;
+          }
+        } catch {}
+      } else {
+        this.authenticatedStaff = null;
+      }
+
+      // Phục hồi phiên đăng nhập Khách Hàng
+      const sAuthCustomer = localStorage.getItem('td_authenticated_customer');
+      if (sAuthCustomer) {
+        try {
+          const parsed = JSON.parse(sAuthCustomer);
+          if (parsed && parsed.id) {
+            this.authenticatedCustomer = parsed;
+          }
+        } catch {}
+      } else {
+        this.authenticatedCustomer = null;
+      }
     } catch (e) {
       console.warn('LocalStorage load failed:', e);
     }
@@ -1311,6 +1354,7 @@ class AppStateStore {
     if (found) {
       this.currentUser = found;
       this.authenticatedStaff = found;
+      this.saveToLocalStorage();
       this.notify();
       return { success: true, user: found, message: `Đăng nhập thành công! Chào mừng ${found.fullName}` };
     }
@@ -1319,6 +1363,7 @@ class AppStateStore {
       const adminUser = this.staffMembers[0];
       this.currentUser = adminUser;
       this.authenticatedStaff = adminUser;
+      this.saveToLocalStorage();
       this.notify();
       return { success: true, user: adminUser, message: `Đăng nhập thành công! Chào mừng ${adminUser.fullName}` };
     }
@@ -1329,6 +1374,7 @@ class AppStateStore {
   public setCurrentUser(user: UserProfile) {
     this.currentUser = user;
     this.authenticatedStaff = user;
+    this.saveToLocalStorage();
     this.notify();
   }
 
@@ -1400,16 +1446,18 @@ class AppStateStore {
 
     this.authenticatedStaff = staff;
     this.currentUser = staff;
+    this.saveToLocalStorage();
     this.notify();
     return { success: true, staff, message: `Đăng nhập thành công với vai trò ${staff.fullName}.` };
   }
 
   public logoutStaff() {
     this.authenticatedStaff = null;
+    this.saveToLocalStorage();
     this.notify();
   }
 
-  // --- XÁC THỰC & ĐĂNG KÝ KHÁCH HÀNG ---
+  // --- XÁC THỰC & ĐĂNG KÝ KHÁCH HÀNG (SỐ ĐIỆN THOẠI, GOOGLE / GMAIL, FACEBOOK) ---
   public loginCustomer(phone: string): { success: boolean; customer?: CustomerAccount; message: string } {
     const cleanPhone = phone.replace(/\D/g, '');
     const found = this.customers.find(c => c.phone.replace(/\D/g, '') === cleanPhone);
@@ -1417,8 +1465,49 @@ class AppStateStore {
       return { success: false, message: 'Không tìm thấy số điện thoại trong hệ thống. Quý khách vui lòng đăng ký tài khoản mới!' };
     }
     this.authenticatedCustomer = found;
+    this.saveToLocalStorage();
     this.notify();
     return { success: true, customer: found, message: `Xin chào ${found.fullName}, bạn đã đăng nhập thành công!` };
+  }
+
+  public loginCustomerWithOAuth(
+    provider: 'google' | 'facebook',
+    profile?: { name?: string; email?: string; phone?: string; avatarUrl?: string }
+  ): { success: boolean; customer: CustomerAccount; message: string } {
+    const isGoogle = provider === 'google';
+    const defaultEmail = profile?.email || (isGoogle ? 'khachhang.google@gmail.com' : 'khachhang.fb@facebook.com');
+    const defaultName = profile?.name || (isGoogle ? 'Khách Hàng Google' : 'Khách Hàng Facebook');
+    const defaultPhone = profile?.phone || (isGoogle ? '0912 888 999' : '0988 777 666');
+
+    // Tìm khách hàng đã liên kết email hoặc điện thoại
+    let found = this.customers.find(
+      c => (profile?.email && c.email?.toLowerCase() === profile.email.toLowerCase()) || 
+           (c.phone === defaultPhone)
+    );
+
+    if (!found) {
+      found = {
+        id: `CUST-${provider.toUpperCase()}-${Date.now()}`,
+        fullName: defaultName,
+        phone: defaultPhone,
+        email: defaultEmail,
+        address: 'Hà Nội & Bắc Ninh (Đăng nhập qua ' + (isGoogle ? 'Google / Gmail' : 'Facebook') + ')',
+        createdAt: new Date().toISOString(),
+        totalBookings: 0,
+        isVip: false,
+        notes: `Tài khoản xác thực liên kết ${isGoogle ? 'Google/Gmail' : 'Facebook'}`,
+      };
+      this.customers.unshift(found);
+    }
+
+    this.authenticatedCustomer = found;
+    this.saveToLocalStorage();
+    this.notify();
+    return {
+      success: true,
+      customer: found,
+      message: `Đăng nhập thành công qua ${isGoogle ? 'Google / Gmail' : 'Facebook'}! Xin chào ${found.fullName}.`,
+    };
   }
 
   public registerCustomer(data: { fullName: string; phone: string; email?: string; address?: string }): { success: boolean; customer?: CustomerAccount; message: string } {
@@ -1429,6 +1518,7 @@ class AppStateStore {
     const exists = this.customers.find(c => c.phone.replace(/\D/g, '') === cleanPhone);
     if (exists) {
       this.authenticatedCustomer = exists;
+      this.saveToLocalStorage();
       this.notify();
       return { success: true, customer: exists, message: 'Số điện thoại đã tồn tại. Đã tự động đăng nhập vào tài khoản của bạn!' };
     }
@@ -1446,12 +1536,14 @@ class AppStateStore {
 
     this.customers.unshift(newCustomer);
     this.authenticatedCustomer = newCustomer;
+    this.saveToLocalStorage();
     this.notify();
     return { success: true, customer: newCustomer, message: 'Đăng ký tài khoản khách hàng thành công!' };
   }
 
   public logoutCustomer() {
     this.authenticatedCustomer = null;
+    this.saveToLocalStorage();
     this.notify();
   }
 

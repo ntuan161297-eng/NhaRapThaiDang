@@ -102,6 +102,7 @@ interface AdminPortalProps {
   promotions: PromotionBanner[];
   companyInfo: CompanyInfo;
   onBackToCustomerSite: () => void;
+  onLogout?: () => void;
 }
 
 export const AdminPortal: React.FC<AdminPortalProps> = ({
@@ -119,7 +120,19 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   promotions,
   companyInfo,
   onBackToCustomerSite,
+  onLogout,
 }) => {
+  const handleLogout = () => {
+    if (window.confirm('Bạn có chắc chắn muốn đăng xuất khỏi hệ thống quản trị Thái Đăng?')) {
+      appStore.logoutStaff();
+      if (onLogout) {
+        onLogout();
+      } else {
+        window.location.hash = '#login';
+      }
+    }
+  };
+
   // Navigation Menu Left
   const [activeMenu, setActiveMenu] = useState<
     'dashboard' | 'intake' | 'jobs' | 'inventory' | 'timeline' | 'calendar' | 'finance' | 'customers' | 'staff' | 'audit' | 'articles' | 'promotions' | 'settings'
@@ -956,6 +969,15 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
             <Globe className="w-3.5 h-3.5 text-slate-500" />
             <span>Về Website Khách Hàng</span>
           </button>
+
+          <button
+            onClick={handleLogout}
+            className="w-full py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs flex items-center justify-center gap-2 border border-rose-200 transition-all cursor-pointer shadow-2xs"
+            title="Đăng xuất khỏi hệ thống quản trị"
+          >
+            <LogOut className="w-3.5 h-3.5 text-rose-600" />
+            <span>Đăng Xuất Quản Trị</span>
+          </button>
         </div>
 
       </aside>
@@ -1004,6 +1026,15 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
               >
                 <RotateCcw className="w-4 h-4" />
               </button>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+                title="Đăng xuất khỏi hệ thống quản trị"
+              >
+                <LogOut className="w-3.5 h-3.5 text-rose-600" />
+                <span>Đăng xuất</span>
+              </button>
             </div>
           </div>
         )}
@@ -1037,6 +1068,16 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                 >
                   <Plus className="w-4 h-4" />
                   <span>Tạo sự kiện</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="px-3.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+                  title="Đăng xuất khỏi hệ thống quản trị"
+                >
+                  <LogOut className="w-4 h-4 text-rose-600" />
+                  <span className="hidden sm:inline">Đăng xuất</span>
                 </button>
               </div>
             </div>

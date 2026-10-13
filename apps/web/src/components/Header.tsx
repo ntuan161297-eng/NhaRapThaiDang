@@ -12,14 +12,18 @@ import {
   Plus,
   Minus,
   Contrast,
-  RotateCcw
+  RotateCcw,
+  User,
+  LogOut,
+  ChevronDown,
+  CheckCircle,
 } from 'lucide-react';
-import { CompanyInfo } from '../services/store';
+import { CompanyInfo, appStore } from '../services/store';
 import { UserProfile } from '@thai-dang/shared';
 
 interface HeaderProps {
-  currentView: 'customer' | 'admin' | 'customer_auth' | 'admin_auth';
-  onViewChange: (view: 'customer' | 'admin' | 'customer_auth' | 'admin_auth') => void;
+  currentView: 'customer' | 'admin' | 'login' | 'customer_auth' | 'admin_auth';
+  onViewChange: (view: 'customer' | 'admin' | 'login') => void;
   currentUser: UserProfile;
   authenticatedStaff: UserProfile | null;
   authenticatedCustomer: any | null;
@@ -29,10 +33,14 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   currentView,
   onViewChange,
+  currentUser,
+  authenticatedStaff,
+  authenticatedCustomer,
   companyInfo,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'trang-chu' | 'mau-rap' | 'dich-vu' | 'thiep-cuoi' | 've-chung-toi' | 'lien-he'>('trang-chu');
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const hotline = companyInfo?.hotline || '0988 112 233';
 
   // --- TRỢ NĂNG (ACCESSIBILITY: CỠ CHỮ & TƯƠNG PHẢN CAO) ---
@@ -208,22 +216,8 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </button>
 
-          {/* CỤM 3 ICON TIỆN ÍCH: TÌM KIẾM, TRỢ NĂNG, CÀI ĐẶT (CHUẨN ẢNH) */}
-          <div className="flex items-center gap-1.5 pl-2 border-l border-stone-200">
-            {/* 1. Nút Tìm kiếm */}
-            <button
-              type="button"
-              onClick={() => {
-                const target = document.getElementById('mau-rap') || document.getElementById('tin-tuc');
-                target?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-[#ee5a45] flex items-center justify-center transition-colors cursor-pointer shadow-2xs"
-              title="Tìm kiếm không gian & dịch vụ"
-            >
-              <Search className="w-4 h-4" />
-            </button>
-
-            {/* 2. Nút Trợ năng Accessibility (Kèm Menu Popover Chuẩn Ảnh) */}
+          {/* Nút Trợ năng Accessibility (Kèm Menu Popover Chuẩn Ảnh) */}
+          <div className="flex items-center pl-2 border-l border-stone-200">
             <div className="relative" ref={accessibilityRef}>
               <button
                 type="button"
@@ -294,16 +288,6 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
               )}
             </div>
-
-            {/* 3. Nút Cài đặt / Quản trị */}
-            <button
-              type="button"
-              onClick={() => onViewChange('admin_auth')}
-              className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 flex items-center justify-center transition-colors cursor-pointer shadow-2xs"
-              title="Cài đặt quản trị hệ thống"
-            >
-              <Settings className="w-4 h-4" />
-            </button>
           </div>
         </nav>
 
@@ -324,21 +308,73 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Nút "ĐẶT LỊCH NGAY" màu cam đỏ bo tròn */}
           <button
             onClick={() => handleNavClick('dich-vu', '#dat-lich')}
-            className="px-5 py-2.5 rounded-full bg-[#ee5a45] hover:bg-[#e04530] text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all flex items-center gap-2 transform hover:-translate-y-0.5 cursor-pointer"
+            className="px-4 lg:px-5 py-2.5 rounded-full bg-[#ee5a45] hover:bg-[#e04530] text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 transform hover:-translate-y-0.5 cursor-pointer shrink-0"
           >
             <Calendar className="w-3.5 h-3.5" />
-            <span>ĐẶT LỊCH NGAY</span>
+            <span className="hidden sm:inline">ĐẶT LỊCH NGAY</span>
+            <span className="sm:hidden">ĐẶT LỊCH</span>
           </button>
 
-          {/* Nút Đăng Nhập Quản Trị */}
-          <button
-            onClick={() => onViewChange('admin_auth')}
-            className="p-2 sm:px-3 sm:py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold text-xs flex items-center gap-1.5 transition-colors cursor-pointer border border-stone-200"
-            title="Đăng nhập tài khoản quản trị (admin / 123456)"
-          >
-            <Lock className="w-3.5 h-3.5 text-amber-600" />
-            <span className="hidden lg:inline">Đăng nhập</span>
-          </button>
+          {/* NÚT ĐĂNG NHẬP GỘP CHUNG (HOẶC HIỂN THỊ THÔNG TIN PHIÊN KÈM ĐĂNG XUẤT) */}
+          {authenticatedStaff ? (
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => {
+                  window.location.hash = '#admin';
+                  onViewChange('admin');
+                }}
+                className="p-2 sm:px-3 sm:py-2 rounded-xl bg-[#0e4b44] hover:bg-[#093530] text-white font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                title={`Vào trang quản trị (${authenticatedStaff.fullName})`}
+              >
+                <Lock className="w-3.5 h-3.5 text-amber-300" />
+                <span className="hidden sm:inline">Quản trị ({authenticatedStaff.fullName.split(' ').pop()})</span>
+              </button>
+              <button
+                onClick={() => {
+                  if (window.confirm('Bạn có chắc chắn muốn đăng xuất tài khoản quản trị?')) {
+                    appStore.logoutStaff();
+                    window.location.hash = '';
+                    onViewChange('customer');
+                  }
+                }}
+                className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-colors cursor-pointer"
+                title="Đăng xuất quản trị"
+              >
+                <LogOut className="w-3.5 h-3.5 text-rose-600" />
+              </button>
+            </div>
+          ) : authenticatedCustomer ? (
+            <div className="flex items-center gap-1.5">
+              <div 
+                className="px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-stone-800 text-xs font-bold flex items-center gap-1.5 shadow-2xs"
+                title="Khách hàng đã đăng nhập"
+              >
+                <User className="w-3.5 h-3.5 text-amber-700" />
+                <span className="max-w-[100px] truncate">{authenticatedCustomer.fullName}</span>
+              </div>
+              <button
+                onClick={() => {
+                  appStore.logoutCustomer();
+                }}
+                className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-colors cursor-pointer"
+                title="Đăng xuất khách hàng"
+              >
+                <LogOut className="w-3.5 h-3.5 text-rose-600" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => {
+                window.location.hash = '#login';
+                onViewChange('login');
+              }}
+              className="px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer border border-stone-200 shadow-2xs"
+              title="Đăng nhập hệ thống (Khách hàng & Quản trị)"
+            >
+              <Lock className="w-3.5 h-3.5 text-amber-600" />
+              <span>Đăng nhập</span>
+            </button>
+          )}
 
           {/* Nút Menu Mobile */}
           <button
@@ -375,9 +411,60 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
+          {/* Hàng Đăng Nhập & Đăng Xuất trên Mobile */}
           <div className="pt-2 border-t border-stone-100 flex items-center justify-between text-xs">
             <a href={`tel:${hotline.replace(/\D/g, '')}`} className="text-[#ee5a45] font-bold">Hotline: {hotline}</a>
-            <button onClick={() => { setMobileMenuOpen(false); onViewChange('admin_auth'); }} className="text-amber-800 font-bold underline">Đăng nhập quản trị</button>
+            
+            {authenticatedStaff ? (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    window.location.hash = '#admin';
+                    onViewChange('admin');
+                  }}
+                  className="text-[#0e4b44] font-bold underline"
+                >
+                  Quản trị
+                </button>
+                <button
+                  onClick={() => {
+                    appStore.logoutStaff();
+                    setMobileMenuOpen(false);
+                    window.location.hash = '';
+                    onViewChange('customer');
+                  }}
+                  className="text-rose-600 font-bold"
+                >
+                  Đăng xuất
+                </button>
+              </div>
+            ) : authenticatedCustomer ? (
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-stone-700">{authenticatedCustomer.fullName}</span>
+                <button
+                  onClick={() => {
+                    appStore.logoutCustomer();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="text-rose-600 font-bold"
+                >
+                  Đăng xuất
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  window.location.hash = '#login';
+                  onViewChange('login');
+                }}
+                className="text-amber-800 font-bold underline flex items-center gap-1"
+              >
+                <Lock className="w-3.5 h-3.5 text-amber-600" />
+                <span>Đăng nhập hệ thống</span>
+              </button>
+            )}
           </div>
         </div>
       )}

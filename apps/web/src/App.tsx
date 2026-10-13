@@ -4,23 +4,34 @@ import { appStore } from './services/store';
 import { Header } from './components/Header';
 import { CustomerPortal } from './components/CustomerPortal';
 import { AdminPortal } from './components/AdminPortal';
-import { CustomerAuth } from './components/CustomerAuth';
-import { AdminAuth } from './components/AdminAuth';
+import { UnifiedAuth } from './components/UnifiedAuth';
 
 export const App: React.FC = () => {
   // Mặc định giao diện ngoài cổng (Customer Website) là trang đầu tiên
-  const [currentView, setCurrentView] = useState<'customer' | 'admin' | 'customer_auth' | 'admin_auth'>('customer');
+  const [currentView, setCurrentView] = useState<'customer' | 'admin' | 'login'>('customer');
   const [, setTick] = useState(0);
 
   useEffect(() => {
     const handleHash = () => {
       const hash = window.location.hash;
-      if (hash === '#login' || hash === '#admin-login' || hash === '#dang-nhap') {
-        setCurrentView('admin_auth');
+      const staff = appStore.getAuthenticatedStaff();
+      if (
+        hash === '#login' || 
+        hash === '#admin-login' || 
+        hash === '#dang-nhap' || 
+        hash === '#customer-auth' || 
+        hash === '#auth-khach-hang'
+      ) {
+        setCurrentView('login');
       } else if (hash === '#admin') {
-        setCurrentView('admin');
+        if (staff) {
+          setCurrentView('admin');
+        } else {
+          // Chưa đăng nhập quản trị -> Chuyển hướng sang màn hình đăng nhập chung
+          window.location.hash = '#login';
+          setCurrentView('login');
+        }
       } else if (hash === '#customer' || hash === '#home' || hash === '' || hash === '#top') {
-        // Chỉ về customer nếu đang ở admin_auth hoặc admin
         if (window.location.hash === '#customer') {
           setCurrentView('customer');
         }
@@ -56,13 +67,17 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#faf8f5] font-sans text-[#1a1f2c] flex flex-col">
-      {/* Header chỉ hiển thị khi ở website công khai của khách hàng, KHÔNG hiển thị trên trang Đăng nhập quản trị hoặc trang Admin */}
+      {/* Header chỉ hiển thị khi ở website công khai của khách hàng */}
       {currentView === 'customer' && (
         <Header
           currentView={currentView}
           onViewChange={(view) => {
-            if (view === 'admin_auth') {
+            if (view === 'login') {
               window.location.hash = '#login';
+            } else if (view === 'admin') {
+              window.location.hash = '#admin';
+            } else if (view === 'customer') {
+              window.location.hash = '';
             }
             setCurrentView(view);
           }}
@@ -84,29 +99,26 @@ export const App: React.FC = () => {
           />
         )}
 
-        {/* 2. Đăng Ký / Đăng Nhập Khách Hàng */}
-        {currentView === 'customer_auth' && (
-          <CustomerAuth
-            onBack={() => setCurrentView('customer')}
-            onSuccess={() => setCurrentView('customer')}
-          />
-        )}
-
-        {/* 3. Đăng Nhập Quản Trị Viên */}
-        {currentView === 'admin_auth' && (
-          <AdminAuth
+        {/* 2. Cổng Đăng Nhập Gộp Chung (Khách hàng & Quản trị) */}
+        {currentView === 'login' && (
+          <UnifiedAuth
             onBack={() => {
               window.location.hash = '';
               setCurrentView('customer');
             }}
-            onSuccess={() => {
-              window.location.hash = '#admin';
-              setCurrentView('admin');
+            onSuccess={(role) => {
+              if (role === 'admin') {
+                window.location.hash = '#admin';
+                setCurrentView('admin');
+              } else {
+                window.location.hash = '';
+                setCurrentView('customer');
+              }
             }}
           />
         )}
 
-        {/* 4. Web Quản Lý Điều Hành (Admin Portal với Left Menu hoàn chỉnh) */}
+        {/* 3. Web Quản Lý Điều Hành (Admin Portal với Left Menu hoàn chỉnh & Đăng xuất) */}
         {currentView === 'admin' && (
           <AdminPortal
             currentUser={currentUser}
@@ -122,7 +134,14 @@ export const App: React.FC = () => {
             articles={articles}
             promotions={promotions}
             companyInfo={companyInfo}
-            onBackToCustomerSite={() => setCurrentView('customer')}
+            onBackToCustomerSite={() => {
+              window.location.hash = '';
+              setCurrentView('customer');
+            }}
+            onLogout={() => {
+              window.location.hash = '#login';
+              setCurrentView('login');
+            }}
           />
         )}
       </div>
