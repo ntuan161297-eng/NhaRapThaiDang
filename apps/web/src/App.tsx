@@ -5,6 +5,7 @@ import { Header } from './components/Header';
 import { CustomerPortal } from './components/CustomerPortal';
 import { AdminPortal } from './components/AdminPortal';
 import { UnifiedAuth } from './components/UnifiedAuth';
+import { ToastContainer, ConfirmModal } from './services/notification';
 
 export const App: React.FC = () => {
   // Mặc định giao diện ngoài cổng (Customer Website) là trang đầu tiên
@@ -67,6 +68,12 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#faf8f5] font-sans text-[#1a1f2c] flex flex-col">
+      {/* Toast thông báo toàn cục */}
+      <ToastContainer />
+
+      {/* Modal Popup xác nhận toàn cục */}
+      <ConfirmModal />
+
       {/* Header chỉ hiển thị khi ở website công khai của khách hàng */}
       {currentView === 'customer' && (
         <Header
@@ -150,3 +157,4 @@ export const App: React.FC = () => {
 };
 
 export default App;
+

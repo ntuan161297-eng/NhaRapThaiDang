@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { CompanyInfo, appStore } from '../services/store';
 import { UserProfile } from '@thai-dang/shared';
+import { toast, showConfirm } from '../services/notification';
 
 interface HeaderProps {
   currentView: 'customer' | 'admin' | 'login' | 'customer_auth' | 'admin_auth';
@@ -331,11 +332,19 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
               <button
                 onClick={() => {
-                  if (window.confirm('Bạn có chắc chắn muốn đăng xuất tài khoản quản trị?')) {
-                    appStore.logoutStaff();
-                    window.location.hash = '';
-                    onViewChange('customer');
-                  }
+                  showConfirm({
+                    title: 'Xác nhận đăng xuất',
+                    message: `Bạn có chắc chắn muốn đăng xuất tài khoản quản trị viên (${authenticatedStaff.fullName})?`,
+                    confirmText: 'Đăng xuất',
+                    cancelText: 'Hủy bỏ',
+                    isDanger: true,
+                    onConfirm: () => {
+                      appStore.logoutStaff();
+                      window.location.hash = '';
+                      onViewChange('customer');
+                      toast.success('Đã đăng xuất tài khoản quản trị thành công!');
+                    }
+                  });
                 }}
                 className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-colors cursor-pointer"
                 title="Đăng xuất quản trị"
@@ -354,7 +363,17 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
               <button
                 onClick={() => {
-                  appStore.logoutCustomer();
+                  showConfirm({
+                    title: 'Xác nhận đăng xuất',
+                    message: `Quý khách có chắc chắn muốn đăng xuất tài khoản (${authenticatedCustomer.fullName})?`,
+                    confirmText: 'Đăng xuất',
+                    cancelText: 'Hủy bỏ',
+                    isDanger: false,
+                    onConfirm: () => {
+                      appStore.logoutCustomer();
+                      toast.success('Đã đăng xuất tài khoản khách hàng thành công!');
+                    }
+                  });
                 }}
                 className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-colors cursor-pointer"
                 title="Đăng xuất khách hàng"

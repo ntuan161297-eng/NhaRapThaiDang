@@ -86,6 +86,7 @@ import {
   ThemeModel
 } from '../services/store';
 import { RBAC, ROLE_LABELS } from '@thai-dang/shared';
+import { toast, showConfirm } from '../services/notification';
 
 interface AdminPortalProps {
   currentUser: UserProfile;
@@ -123,14 +124,22 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   onLogout,
 }) => {
   const handleLogout = () => {
-    if (window.confirm('Bạn có chắc chắn muốn đăng xuất khỏi hệ thống quản trị Thái Đăng?')) {
-      appStore.logoutStaff();
-      if (onLogout) {
-        onLogout();
-      } else {
-        window.location.hash = '#login';
+    showConfirm({
+      title: 'Đăng xuất khỏi hệ thống',
+      message: 'Bạn có chắc chắn muốn đăng xuất khỏi hệ thống quản trị Thái Đăng?',
+      confirmText: 'Đăng xuất',
+      cancelText: 'Hủy bỏ',
+      isDanger: true,
+      onConfirm: () => {
+        appStore.logoutStaff();
+        toast.success('Đã đăng xuất khỏi hệ thống quản trị thành công!');
+        if (onLogout) {
+          onLogout();
+        } else {
+          window.location.hash = '#login';
+        }
       }
-    }
+    });
   };
 
   // Navigation Menu Left
@@ -291,7 +300,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     );
 
     setShowSurveyModal(false);
-    alert('Đã lưu thông tin khảo sát mặt bằng và chuyển trạng thái sang "Đã khảo sát"!');
+    toast.success('Đã lưu thông tin khảo sát mặt bằng và chuyển trạng thái sang "Đã khảo sát"!');
   };
 
   // Mở modal Xác nhận thành Job
@@ -307,37 +316,67 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
 
     const res = appStore.confirmIntake(selectedIntake.id, skipSurveyChecked);
     if (!res.success) {
-      alert(`KHÔNG THỂ XÁC NHẬN:\n${res.message}`);
+      toast.error(`Không thể xác nhận: ${res.message}`);
       return;
     }
 
     setShowConfirmModal(false);
-    alert(res.message);
+    toast.success(res.message);
   };
 
   // Xuất kho dụng cụ
   const handleDispatch = (jobId: string) => {
-    if (window.confirm('Xác nhận xuất kho các thiết bị lên xe chuyển đến công trình?')) {
-      const res = appStore.dispatchJobItems(jobId);
-      alert(res.message);
-    }
+    showConfirm({
+      title: 'Xác nhận xuất kho',
+      message: `Xác nhận xuất kho các thiết bị cho Job ${jobId} lên xe chuyển đến công trình?`,
+      confirmText: 'Xuất kho ngay',
+      cancelText: 'Hủy bỏ',
+      onConfirm: () => {
+        const res = appStore.dispatchJobItems(jobId);
+        if (res.success) {
+          toast.success(res.message);
+        } else {
+          toast.error(res.message);
+        }
+      }
+    });
   };
 
   // Hoàn trả dụng cụ nhập kho
   const handleReturn = (jobId: string) => {
-    if (window.confirm('Xác nhận kiểm đếm đủ thiết bị và hoàn trả về kho?')) {
-      const res = appStore.returnJobItems(jobId);
-      alert(res.message);
-    }
+    showConfirm({
+      title: 'Xác nhận hoàn trả thiết bị',
+      message: `Xác nhận đã kiểm đếm đủ thiết bị từ Job ${jobId} và hoàn trả về kho lưu trữ?`,
+      confirmText: 'Hoàn trả kho',
+      cancelText: 'Hủy bỏ',
+      onConfirm: () => {
+        const res = appStore.returnJobItems(jobId);
+        if (res.success) {
+          toast.success(res.message);
+        } else {
+          toast.error(res.message);
+        }
+      }
+    });
   };
 
   // Hủy Job
   const handleCancelJob = (jobId: string) => {
-    const reason = prompt('Nhập lý do hủy Job:');
-    if (reason !== null) {
-      const res = appStore.cancelJob(jobId, reason);
-      alert(res.message);
-    }
+    showConfirm({
+      title: 'Xác nhận hủy Job',
+      message: `Bạn có chắc chắn muốn hủy Job ${jobId}? Hành động này sẽ cập nhật trạng thái hủy sự kiện.`,
+      confirmText: 'Hủy Job',
+      cancelText: 'Đóng',
+      isDanger: true,
+      onConfirm: () => {
+        const res = appStore.cancelJob(jobId, 'Hủy theo yêu cầu của ban quản trị');
+        if (res.success) {
+          toast.success(res.message);
+        } else {
+          toast.error(res.message);
+        }
+      }
+    });
   };
 
   // Mở modal thu tiền
@@ -365,9 +404,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
 
     if (res.success) {
       setShowPaymentModal(false);
-      alert(res.message);
+      toast.success(res.message);
     } else {
-      alert(res.message);
+      toast.error(res.message);
     }
   };
 
@@ -389,7 +428,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
       setNewStaffPhone('');
       setNewStaffUsername('');
       setNewStaffPassword('123456');
-      alert(res.message);
+      toast.success(res.message);
+    } else {
+      toast.error(res.message);
     }
   };
 
@@ -416,23 +457,34 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     const slug = catSlug.trim() || catName.toLowerCase().replace(/[^a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ\s]/g, '').replace(/\s+/g, '-');
     if (editingCatId) {
       appStore.updateCmsCategory(editingCatId, { name: catName, slug, description: catDesc });
+      toast.success('Đã cập nhật chuyên mục thành công!');
     } else {
       appStore.addCmsCategory({ name: catName, slug, description: catDesc, iconName: 'Sparkles', itemCount: 0, isActive: true });
+      toast.success('Đã thêm chuyên mục mới thành công!');
     }
     setCmsCategoriesList(appStore.getCmsCategories());
     setShowCatModal(false);
   };
 
   const handleDeleteCategory = (id: string) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa chuyên mục này?')) {
-      appStore.deleteCmsCategory(id);
-      setCmsCategoriesList(appStore.getCmsCategories());
-    }
+    showConfirm({
+      title: 'Xác nhận xóa chuyên mục',
+      message: 'Bạn có chắc chắn muốn xóa chuyên mục này? Các bài viết thuộc chuyên mục này có thể bị ảnh hưởng.',
+      confirmText: 'Xác nhận xóa',
+      cancelText: 'Hủy bỏ',
+      isDanger: true,
+      onConfirm: () => {
+        appStore.deleteCmsCategory(id);
+        setCmsCategoriesList(appStore.getCmsCategories());
+        toast.success('Đã xóa chuyên mục thành công!');
+      }
+    });
   };
 
   const handleToggleCategoryActive = (id: string, current: boolean) => {
     appStore.updateCmsCategory(id, { isActive: !current });
     setCmsCategoriesList(appStore.getCmsCategories());
+    toast.success(current ? 'Đã tạm ẩn chuyên mục.' : 'Đã hiển thị chuyên mục.');
   };
 
   // CMS Partner Photo Handlers
@@ -456,13 +508,22 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     });
     setCmsPartnerPhotosList(appStore.getCmsPartnerPhotos());
     setShowPhotoModal(false);
+    toast.success('Đã thêm ảnh liên kết thành công!');
   };
 
   const handleDeletePhoto = (id: string) => {
-    if (window.confirm('Xóa ảnh liên kết này?')) {
-      appStore.deleteCmsPartnerPhoto(id);
-      setCmsPartnerPhotosList(appStore.getCmsPartnerPhotos());
-    }
+    showConfirm({
+      title: 'Xác nhận xóa ảnh',
+      message: 'Bạn có chắc chắn muốn xóa ảnh liên kết này khỏi website?',
+      confirmText: 'Xóa ảnh',
+      cancelText: 'Hủy',
+      isDanger: true,
+      onConfirm: () => {
+        appStore.deleteCmsPartnerPhoto(id);
+        setCmsPartnerPhotosList(appStore.getCmsPartnerPhotos());
+        toast.success('Đã xóa ảnh liên kết thành công!');
+      }
+    });
   };
 
   // CMS Banner Slide Handlers
@@ -500,17 +561,26 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   // Đổi vai trò nhân viên
   const handleChangeRole = (userId: string, newRole: UserRole) => {
     const res = appStore.updateStaffRole(userId, newRole);
-    alert(res.message);
+    if (res.success) {
+      toast.success(res.message);
+    } else {
+      toast.error(res.message);
+    }
   };
 
   const handleToggleStaff = (userId: string) => {
     const res = appStore.toggleStaffStatus(userId);
-    alert(res.message);
+    if (res.success) {
+      toast.success(res.message);
+    } else {
+      toast.error(res.message);
+    }
   };
 
   const handleSelectRoleInDropdown = (user: UserProfile) => {
     appStore.setCurrentUser(user);
     setShowRoleDropdown(false);
+    toast.success(`Đã chuyển phiên làm việc sang: ${user.fullName}`);
   };
 
   // Tính khả dụng cho Timeline Lookup Tool
@@ -561,7 +631,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         author: articleAuthor,
         isPublished: articleIsPublished,
       });
-      alert(res.message);
+      if (res.success) toast.success(res.message);
+      else toast.error(res.message);
     } else {
       const slug = articleTitle.toLowerCase().replace(/[^a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ\s]/g, '').replace(/\s+/g, '-');
       const res = appStore.addArticle({
@@ -574,21 +645,31 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         author: articleAuthor,
         isPublished: articleIsPublished,
       });
-      alert(res.message);
+      if (res.success) toast.success(res.message);
+      else toast.error(res.message);
     }
     setShowArticleModal(false);
   };
 
   const handleDeleteArticle = (id: string) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa bài viết này không?')) {
-      const res = appStore.deleteArticle(id);
-      alert(res.message);
-    }
+    showConfirm({
+      title: 'Xác nhận xóa bài viết',
+      message: 'Bạn có chắc chắn muốn xóa bài viết này khỏi hệ thống tin tức / cẩm nang?',
+      confirmText: 'Xác nhận xóa',
+      cancelText: 'Hủy bỏ',
+      isDanger: true,
+      onConfirm: () => {
+        const res = appStore.deleteArticle(id);
+        if (res.success) toast.success(res.message);
+        else toast.error(res.message);
+      }
+    });
   };
 
   const handleToggleArticlePublish = (art: ArticleRecord) => {
     const res = appStore.updateArticle(art.id, { isPublished: !art.isPublished });
-    alert(res.message);
+    if (res.success) toast.success(res.message);
+    else toast.error(res.message);
   };
 
   // Promotion CMS Handlers
@@ -630,7 +711,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         badge: promoBadge,
         isActive: promoIsActive,
       });
-      alert(res.message);
+      if (res.success) toast.success(res.message);
+      else toast.error(res.message);
     } else {
       const res = appStore.addPromotion({
         title: promoTitle,
@@ -641,21 +723,31 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         badge: promoBadge,
         isActive: promoIsActive,
       });
-      alert(res.message);
+      if (res.success) toast.success(res.message);
+      else toast.error(res.message);
     }
     setShowPromoModal(false);
   };
 
   const handleDeletePromo = (id: string) => {
-    if (window.confirm('Xóa chương trình ưu đãi này?')) {
-      const res = appStore.deletePromotion(id);
-      alert(res.message);
-    }
+    showConfirm({
+      title: 'Xác nhận xóa ưu đãi',
+      message: 'Bạn có chắc chắn muốn xóa chương trình ưu đãi này khỏi website?',
+      confirmText: 'Xác nhận xóa',
+      cancelText: 'Hủy bỏ',
+      isDanger: true,
+      onConfirm: () => {
+        const res = appStore.deletePromotion(id);
+        if (res.success) toast.success(res.message);
+        else toast.error(res.message);
+      }
+    });
   };
 
   const handleTogglePromoActive = (p: PromotionBanner) => {
     const res = appStore.updatePromotion(p.id, { isActive: !p.isActive });
-    alert(res.message);
+    if (res.success) toast.success(res.message);
+    else toast.error(res.message);
   };
 
   // Theme & Feng Shui CMS Handlers
@@ -720,7 +812,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         fengShuiFlowers: themeFengShuiFlowers.trim(),
         isActive: themeIsActive,
       });
-      alert('Đã cập nhật mẫu rạp & tư vấn phong thủy thành công!');
+      toast.success('Đã cập nhật mẫu rạp & tư vấn phong thủy thành công!');
     } else {
       appStore.addCmsTheme({
         name: themeName.trim(),
@@ -737,7 +829,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         fengShuiFlowers: themeFengShuiFlowers.trim(),
         isActive: themeIsActive,
       });
-      alert('Đã thêm mẫu rạp cưới mới vào hệ thống thành công!');
+      toast.success('Đã thêm mẫu rạp cưới mới vào hệ thống thành công!');
     }
 
     setCmsThemesList(appStore.getCmsThemes());
@@ -747,13 +839,22 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   const handleToggleThemeActive = (th: ThemeModel) => {
     appStore.updateCmsTheme(th.id, { isActive: !th.isActive });
     setCmsThemesList(appStore.getCmsThemes());
+    toast.success(th.isActive ? 'Đã tạm ẩn mẫu rạp.' : 'Đã hiển thị mẫu rạp trên web.');
   };
 
   const handleDeleteTheme = (id: string) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa mẫu rạp này không?')) {
-      appStore.deleteCmsTheme(id);
-      setCmsThemesList(appStore.getCmsThemes());
-    }
+    showConfirm({
+      title: 'Xác nhận xóa mẫu rạp',
+      message: 'Bạn có chắc chắn muốn xóa mẫu rạp cưới này khỏi bộ sưu tập?',
+      confirmText: 'Xóa mẫu rạp',
+      cancelText: 'Hủy bỏ',
+      isDanger: true,
+      onConfirm: () => {
+        appStore.deleteCmsTheme(id);
+        setCmsThemesList(appStore.getCmsThemes());
+        toast.success('Đã xóa mẫu rạp thành công!');
+      }
+    });
   };
 
   // Settings Handlers
@@ -762,7 +863,11 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     const res = appStore.updateCompanyInfo(settingsForm);
     setSettingsSavedAlert(true);
     setTimeout(() => setSettingsSavedAlert(false), 3000);
-    alert(res.message);
+    if (res.success) {
+      toast.success(res.message);
+    } else {
+      toast.error(res.message);
+    }
   };
 
   return (
@@ -1016,10 +1121,17 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
               </div>
               <button
                 onClick={() => {
-                  if (window.confirm('Khôi phục lại dữ liệu mẫu ban đầu?')) {
-                    appStore.resetToDefaultSeed();
-                    alert('Đã khôi phục dữ liệu mẫu thành công!');
-                  }
+                  showConfirm({
+                    title: 'Khôi phục dữ liệu mẫu',
+                    message: 'Bạn có chắc chắn muốn khôi phục lại toàn bộ dữ liệu mẫu ban đầu không? Các thiết lập và dữ liệu gần nhất có thể được hoàn tác.',
+                    confirmText: 'Đồng ý khôi phục',
+                    cancelText: 'Hủy bỏ',
+                    isDanger: true,
+                    onConfirm: () => {
+                      appStore.resetToDefaultSeed();
+                      toast.success('Đã khôi phục dữ liệu mẫu ban đầu thành công!');
+                    }
+                  });
                 }}
                 className="p-2 rounded-xl bg-white border border-[#ede8de] hover:bg-amber-50 text-slate-600 hover:text-amber-800 transition-colors"
                 title="Khôi phục dữ liệu mẫu ban đầu"
@@ -3142,7 +3254,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                               <button
                                 onClick={() => {
                                   appStore.setCurrentUser(staff);
-                                  alert(`Đã chuyển phiên đăng nhập sang: ${staff.fullName} (${ROLE_LABELS[staff.role]})`);
+                                  toast.success(`Đã chuyển phiên đăng nhập sang: ${staff.fullName} (${ROLE_LABELS[staff.role]})`);
                                 }}
                                 className="px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 text-slate-700 text-[11px] font-bold cursor-pointer"
                               >

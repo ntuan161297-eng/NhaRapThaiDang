@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, User, Lock, Eye, EyeOff, KeyRound } from 'lucide-react';
 import { appStore } from '../services/store';
+import { toast } from '../services/notification';
 
 interface AdminAuthProps {
   onBack: () => void;
@@ -26,6 +27,7 @@ export const AdminAuth: React.FC<AdminAuthProps> = ({ onBack, onSuccess }) => {
 
     const res = appStore.loginWithCredentials(username.trim(), password);
     if (res.success) {
+      toast.success('Đăng nhập hệ thống thành công!');
       onSuccess();
     } else {
       setErrorMessage(res.message || 'Tên đăng nhập hoặc mật khẩu không chính xác.');
@@ -146,7 +148,7 @@ export const AdminAuth: React.FC<AdminAuthProps> = ({ onBack, onSuccess }) => {
             <div className="text-right mt-1.5">
               <button
                 type="button"
-                onClick={() => alert('Vui lòng liên hệ quản trị viên chính hoặc gọi Hotline 0988 112 233 để cấp lại quyền truy cập.')}
+                onClick={() => toast.info('Vui lòng liên hệ quản trị viên chính hoặc gọi Hotline 0988 112 233 để cấp lại quyền truy cập.')}
                 className="text-[11px] font-semibold text-[#0e4b44] hover:underline cursor-pointer"
               >
                 Quên mật khẩu?
