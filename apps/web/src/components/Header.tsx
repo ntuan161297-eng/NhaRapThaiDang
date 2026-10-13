@@ -21,6 +21,7 @@ import {
 import { CompanyInfo, appStore } from '../services/store';
 import { UserProfile } from '@thai-dang/shared';
 import { toast, showConfirm } from '../services/notification';
+import { CONTACT_CONFIG, getOfficialContactHotline } from '../config/contact';
 
 interface HeaderProps {
   currentView: 'customer' | 'admin' | 'login' | 'customer_auth' | 'admin_auth';
@@ -42,7 +43,26 @@ export const Header: React.FC<HeaderProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'trang-chu' | 'mau-rap' | 'dich-vu' | 'thiep-cuoi' | 've-chung-toi' | 'lien-he'>('trang-chu');
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
-  const hotline = companyInfo?.hotline || '0988 112 233';
+  const hotline = getOfficialContactHotline(companyInfo?.hotline);
+
+  // Khóa cuộn trang trên mobile khi Menu mở & hỗ trợ phím Escape
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          setMobileMenuOpen(false);
+        }
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.body.style.overflow = '';
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    } else {
+      document.body.style.overflow = '';
+    }
+  }, [mobileMenuOpen]);
 
   // --- TRỢ NĂNG (ACCESSIBILITY: CỠ CHỮ & TƯƠNG PHẢN CAO) ---
   const [accessibilityOpen, setAccessibilityOpen] = useState(false);
@@ -411,161 +431,223 @@ export const Header: React.FC<HeaderProps> = ({
 
       </div>
 
-      {/* MOBILE DROPDOWN DRAWER DẠNG DỌC TIỆN DỤNG */}
+      {/* MOBILE SLIDE-OVER DRAWER VỚI BACKDROP VÀ NÚT ĐÓNG RÕ RÀNG (KHÔNG TRẮNG MÀN HÌNH) */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white border-b border-stone-200 px-5 py-4 space-y-2.5 text-sm font-semibold animate-fade-in shadow-xl">
-          <button 
-            onClick={() => handleNavClick('trang-chu', '#top')} 
-            className="w-full text-left py-2.5 px-3 rounded-xl hover:bg-stone-100 text-stone-800 flex items-center justify-between"
-          >
-            <span>Trang chủ</span>
-            <ChevronRight className="w-4 h-4 text-stone-400" />
-          </button>
-          
-          <button 
-            onClick={() => handleNavClick('mau-rap', '#mau-rap')} 
-            className="w-full text-left py-2.5 px-3 rounded-xl hover:bg-stone-100 text-stone-800 flex items-center justify-between"
-          >
-            <span>Mẫu rạp</span>
-            <ChevronRight className="w-4 h-4 text-stone-400" />
-          </button>
-          
-          <button 
-            onClick={() => handleNavClick('dich-vu', '#dich-vu')} 
-            className="w-full text-left py-2.5 px-3 rounded-xl hover:bg-stone-100 text-stone-800 flex items-center justify-between"
-          >
-            <span>Dịch vụ</span>
-            <ChevronRight className="w-4 h-4 text-stone-400" />
-          </button>
-          
-          <button 
-            onClick={() => handleNavClick('thiep-cuoi', '#thiep-cuoi')} 
-            className="w-full text-left py-2.5 px-3 rounded-xl hover:bg-stone-100 text-stone-800 flex items-center justify-between"
-          >
-            <span>Thiệp cưới</span>
-            <ChevronRight className="w-4 h-4 text-stone-400" />
-          </button>
-          
-          <button 
-            onClick={() => handleNavClick('ve-chung-toi', '#ve-chung-toi')} 
-            className="w-full text-left py-2.5 px-3 rounded-xl hover:bg-stone-100 text-stone-800 flex items-center justify-between"
-          >
-            <span>Về chúng tôi</span>
-            <ChevronRight className="w-4 h-4 text-stone-400" />
-          </button>
-          
-          <button 
-            onClick={() => handleNavClick('lien-he', '#lien-he')} 
-            className="w-full text-left py-2.5 px-3 rounded-xl hover:bg-stone-100 text-stone-800 flex items-center justify-between"
-          >
-            <span>Liên hệ – Chỉ đường</span>
-            <ChevronRight className="w-4 h-4 text-stone-400" />
-          </button>
+        <>
+          {/* Lớp nền đen bán trong suốt (Backdrop) */}
+          <div 
+            className="fixed inset-0 bg-black/60 z-[9998] transition-opacity duration-300 backdrop-blur-xs"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-hidden="true"
+          />
 
-          {/* MỤC ĐĂNG NHẬP / PHIÊN LÀM VIỆC TRÊN MOBILE: RỘNG RÃI, DỄ CHẠM, KHÔNG CHEN LẤN */}
-          <div className="pt-2">
-            {authenticatedStaff ? (
-              <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-2.5">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#0e4b44]">
-                  <Crown className="w-4 h-4 text-amber-500" />
-                  <span>Quản trị viên: {authenticatedStaff.fullName}</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      window.location.hash = '#admin';
-                      onViewChange('admin');
-                    }}
-                    className="py-2.5 px-3 rounded-xl bg-[#0e4b44] text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
-                  >
-                    Vào Quản trị
-                  </button>
-                  <button
-                    onClick={() => {
-                      showConfirm({
-                        title: 'Xác nhận đăng xuất',
-                        message: `Bạn có chắc chắn muốn đăng xuất tài khoản quản trị viên (${authenticatedStaff.fullName})?`,
-                        confirmText: 'Đăng xuất',
-                        cancelText: 'Hủy bỏ',
-                        isDanger: true,
-                        onConfirm: () => {
-                          appStore.logoutStaff();
-                          setMobileMenuOpen(false);
-                          window.location.hash = '';
-                          onViewChange('customer');
-                          toast.success('Đã đăng xuất tài khoản quản trị thành công!');
-                        }
-                      });
-                    }}
-                    className="py-2.5 px-3 rounded-xl bg-white border border-rose-200 text-rose-700 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    Đăng xuất
-                  </button>
-                </div>
-              </div>
-            ) : authenticatedCustomer ? (
-              <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 space-y-2.5">
-                <div className="flex items-center gap-2 text-xs font-bold text-stone-800">
-                  <User className="w-4 h-4 text-amber-700" />
-                  <span>Khách hàng: {authenticatedCustomer.fullName}</span>
+          {/* Drawer trượt từ bên phải */}
+          <div 
+            className="fixed inset-y-0 right-0 w-[320px] max-w-[88vw] bg-white z-[9999] shadow-2xl flex flex-col justify-between overflow-y-auto text-stone-800"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menu điều hướng di động"
+          >
+            {/* Header Drawer có logo + NÚT ĐÓNG RÕ RÀNG */}
+            <div>
+              <div className="p-4 border-b border-stone-200 flex items-center justify-between bg-stone-50/90 sticky top-0 z-10">
+                <div className="flex items-center gap-2.5">
+                  <img src="/logo_thai_dang.png" alt="Nhà Rạp Thái Đăng" className="h-8 w-auto object-contain" />
+                  <span className="font-bold text-stone-900 text-sm">Danh Mục Menu</span>
                 </div>
                 <button
-                  onClick={() => {
-                    showConfirm({
-                      title: 'Xác nhận đăng xuất',
-                      message: `Quý khách có chắc chắn muốn đăng xuất tài khoản (${authenticatedCustomer.fullName})?`,
-                      confirmText: 'Đăng xuất',
-                      cancelText: 'Hủy bỏ',
-                      isDanger: false,
-                      onConfirm: () => {
-                        appStore.logoutCustomer();
-                        setMobileMenuOpen(false);
-                        toast.success('Đã đăng xuất tài khoản khách hàng thành công!');
-                      }
-                    });
-                  }}
-                  className="w-full py-2.5 px-3 rounded-xl bg-white border border-rose-200 text-rose-700 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                  type="button"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-9 h-9 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 flex items-center justify-center transition-colors cursor-pointer border border-stone-200"
+                  aria-label="Đóng menu điều hướng"
                 >
-                  Đăng xuất tài khoản
+                  <X className="w-5 h-5 stroke-[2.5]" />
                 </button>
               </div>
-            ) : (
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  window.location.hash = '#login';
-                  onViewChange('login');
-                }}
-                className="w-full py-3 px-4 rounded-xl bg-[#0e4b44] hover:bg-[#093530] text-white font-bold text-sm flex items-center justify-center gap-2 cursor-pointer shadow-sm transition-colors"
+
+              {/* Danh sách các liên kết menu */}
+              <div className="p-4 space-y-1 text-sm font-semibold">
+                <button 
+                  onClick={() => handleNavClick('trang-chu', '#top')} 
+                  className={`w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between transition-colors ${
+                    activeTab === 'trang-chu' ? 'bg-[#0e4b44]/10 text-[#0e4b44] font-bold' : 'hover:bg-stone-100 text-stone-800'
+                  }`}
+                >
+                  <span>Trang chủ</span>
+                  <ChevronRight className="w-4 h-4 text-stone-400" />
+                </button>
+                
+                <button 
+                  onClick={() => handleNavClick('mau-rap', '#mau-rap')} 
+                  className={`w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between transition-colors ${
+                    activeTab === 'mau-rap' ? 'bg-[#0e4b44]/10 text-[#0e4b44] font-bold' : 'hover:bg-stone-100 text-stone-800'
+                  }`}
+                >
+                  <span>Mẫu rạp</span>
+                  <ChevronRight className="w-4 h-4 text-stone-400" />
+                </button>
+                
+                <button 
+                  onClick={() => handleNavClick('dich-vu', '#dich-vu')} 
+                  className={`w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between transition-colors ${
+                    activeTab === 'dich-vu' ? 'bg-[#0e4b44]/10 text-[#0e4b44] font-bold' : 'hover:bg-stone-100 text-stone-800'
+                  }`}
+                >
+                  <span>Dịch vụ trọn gói</span>
+                  <ChevronRight className="w-4 h-4 text-stone-400" />
+                </button>
+                
+                <button 
+                  onClick={() => handleNavClick('thiep-cuoi', '#thiep-cuoi')} 
+                  className={`w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between transition-colors ${
+                    activeTab === 'thiep-cuoi' ? 'bg-[#0e4b44]/10 text-[#0e4b44] font-bold' : 'hover:bg-stone-100 text-stone-800'
+                  }`}
+                >
+                  <span>Thiệp cưới trực tuyến</span>
+                  <ChevronRight className="w-4 h-4 text-stone-400" />
+                </button>
+                
+                <button 
+                  onClick={() => handleNavClick('ve-chung-toi', '#ve-chung-toi')} 
+                  className={`w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between transition-colors ${
+                    activeTab === 've-chung-toi' ? 'bg-[#0e4b44]/10 text-[#0e4b44] font-bold' : 'hover:bg-stone-100 text-stone-800'
+                  }`}
+                >
+                  <span>Về chúng tôi</span>
+                  <ChevronRight className="w-4 h-4 text-stone-400" />
+                </button>
+                
+                <button 
+                  onClick={() => handleNavClick('lien-he', '#lien-he')} 
+                  className={`w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between transition-colors ${
+                    activeTab === 'lien-he' ? 'bg-[#0e4b44]/10 text-[#0e4b44] font-bold' : 'hover:bg-stone-100 text-stone-800'
+                  }`}
+                >
+                  <span>Liên hệ – Chỉ đường</span>
+                  <ChevronRight className="w-4 h-4 text-stone-400" />
+                </button>
+
+                {/* NÚT ĐẶT LỊCH NỔI BẬT TRONG MENU */}
+                <div className="pt-2">
+                  <button
+                    onClick={() => handleNavClick('dich-vu', '#dat-lich')}
+                    className="w-full py-3 px-4 rounded-xl bg-[#ee5a45] hover:bg-[#e04530] text-white font-bold text-sm flex items-center justify-center gap-2 cursor-pointer shadow-sm transition-colors"
+                  >
+                    <Calendar className="w-4 h-4" />
+                    <span>ĐẶT LỊCH KHẢO SÁT NGAY</span>
+                  </button>
+                </div>
+
+                {/* MỤC ĐĂNG NHẬP / PHIÊN LÀM VIỆC TRÊN MOBILE */}
+                <div className="pt-2">
+                  {authenticatedStaff ? (
+                    <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-2.5">
+                      <div className="flex items-center gap-2 text-xs font-bold text-[#0e4b44]">
+                        <Crown className="w-4 h-4 text-amber-500" />
+                        <span>Quản trị viên: {authenticatedStaff.fullName}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            window.location.hash = '#admin';
+                            onViewChange('admin');
+                          }}
+                          className="py-2.5 px-3 rounded-xl bg-[#0e4b44] text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                        >
+                          Vào Quản trị
+                        </button>
+                        <button
+                          onClick={() => {
+                            showConfirm({
+                              title: 'Xác nhận đăng xuất',
+                              message: `Bạn có chắc chắn muốn đăng xuất tài khoản quản trị viên (${authenticatedStaff.fullName})?`,
+                              confirmText: 'Đăng xuất',
+                              cancelText: 'Hủy bỏ',
+                              isDanger: true,
+                              onConfirm: () => {
+                                appStore.logoutStaff();
+                                setMobileMenuOpen(false);
+                                window.location.hash = '';
+                                onViewChange('customer');
+                                toast.success('Đã đăng xuất tài khoản quản trị thành công!');
+                              }
+                            });
+                          }}
+                          className="py-2.5 px-3 rounded-xl bg-white border border-rose-200 text-rose-700 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          Đăng xuất
+                        </button>
+                      </div>
+                    </div>
+                  ) : authenticatedCustomer ? (
+                    <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 space-y-2.5">
+                      <div className="flex items-center gap-2 text-xs font-bold text-stone-800">
+                        <User className="w-4 h-4 text-amber-700" />
+                        <span>Khách hàng: {authenticatedCustomer.fullName}</span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          showConfirm({
+                            title: 'Xác nhận đăng xuất',
+                            message: `Quý khách có chắc chắn muốn đăng xuất tài khoản (${authenticatedCustomer.fullName})?`,
+                            confirmText: 'Đăng xuất',
+                            cancelText: 'Hủy bỏ',
+                            isDanger: false,
+                            onConfirm: () => {
+                              appStore.logoutCustomer();
+                              setMobileMenuOpen(false);
+                              toast.success('Đã đăng xuất tài khoản khách hàng thành công!');
+                            }
+                          });
+                        }}
+                        className="w-full py-2.5 px-3 rounded-xl bg-white border border-rose-200 text-rose-700 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        Đăng xuất tài khoản
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        window.location.hash = '#login';
+                        onViewChange('login');
+                      }}
+                      className="w-full py-3 px-4 rounded-xl bg-stone-900 hover:bg-black text-white font-bold text-sm flex items-center justify-center gap-2 cursor-pointer shadow-sm transition-colors"
+                    >
+                      <Lock className="w-4 h-4 text-amber-300" />
+                      <span>Đăng nhập hệ thống</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Cụm Trợ Năng trên Mobile */}
+                <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200 space-y-2 text-xs mt-3">
+                  <div className="font-bold text-stone-700 flex items-center justify-between">
+                    <span>TRỢ NĂNG (CỠ CHỮ: {fontScale}%)</span>
+                    <button onClick={handleResetDefault} className="text-[#ee5a45] underline cursor-pointer">Mặc định</button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button onClick={handleIncreaseFont} className="p-2 bg-white rounded-xl border border-stone-200 font-bold text-center cursor-pointer">+ Tăng</button>
+                    <button onClick={handleDecreaseFont} className="p-2 bg-white rounded-xl border border-stone-200 font-bold text-center cursor-pointer">− Giảm</button>
+                    <button onClick={handleToggleContrast} className={`p-2 rounded-xl border font-bold text-center cursor-pointer ${highContrast ? 'bg-emerald-600 text-white' : 'bg-white border-stone-200'}`}>Tương phản</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Chân Drawer: Hotline 24/7 */}
+            <div className="p-4 border-t border-stone-200 bg-stone-50 text-xs">
+              <a 
+                href={`tel:${hotline.replace(/\D/g, '')}`} 
+                className="w-full py-2.5 px-3 rounded-xl bg-white border border-rose-200 text-[#ee5a45] font-bold flex items-center justify-center gap-2 shadow-2xs hover:bg-rose-50 transition-colors"
               >
-                <Lock className="w-4 h-4 text-amber-300" />
-                <span>Đăng nhập hệ thống</span>
-              </button>
-            )}
-          </div>
-
-          {/* Cụm Trợ Năng trên Mobile */}
-          <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200 space-y-2 text-xs mt-3">
-            <div className="font-bold text-stone-700 flex items-center justify-between">
-              <span>TRỢ NĂNG (CỠ CHỮ: {fontScale}%)</span>
-              <button onClick={handleResetDefault} className="text-[#ee5a45] underline cursor-pointer">Mặc định</button>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <button onClick={handleIncreaseFont} className="p-2 bg-white rounded-xl border border-stone-200 font-bold text-center cursor-pointer">+ Tăng</button>
-              <button onClick={handleDecreaseFont} className="p-2 bg-white rounded-xl border border-stone-200 font-bold text-center cursor-pointer">− Giảm</button>
-              <button onClick={handleToggleContrast} className={`p-2 rounded-xl border font-bold text-center cursor-pointer ${highContrast ? 'bg-emerald-600 text-white' : 'bg-white border-stone-200'}`}>Tương phản</button>
+                <Phone className="w-4 h-4 fill-[#ee5a45]" />
+                <span>Hotline 24/7: {hotline}</span>
+              </a>
             </div>
           </div>
-
-          {/* Hotline Gọi Nhanh trên Mobile */}
-          <div className="pt-2 border-t border-stone-100 flex items-center justify-between text-xs">
-            <a href={`tel:${hotline.replace(/\D/g, '')}`} className="text-[#ee5a45] font-bold flex items-center gap-1.5 py-1">
-              <Phone className="w-3.5 h-3.5 fill-[#ee5a45]" />
-              <span>Hotline 24/7: {hotline}</span>
-            </a>
-          </div>
-        </div>
+        </>
       )}
     </header>
   );

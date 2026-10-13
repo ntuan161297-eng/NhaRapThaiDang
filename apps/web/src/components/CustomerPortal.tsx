@@ -143,6 +143,26 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
   const [viewingThemeDetail, setViewingThemeDetail] = useState<ThemeModel | null>(null);
   const [activeThemeDetailImg, setActiveThemeDetailImg] = useState<string>('');
 
+  // Khóa cuộn trang khi mở modal chi tiết bài viết hoặc chi tiết mẫu rạp & hỗ trợ Escape
+  useEffect(() => {
+    if (viewingThemeDetail || selectedArticle) {
+      document.body.style.overflow = 'hidden';
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          setViewingThemeDetail(null);
+          setSelectedArticle(null);
+        }
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.body.style.overflow = '';
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    } else {
+      document.body.style.overflow = '';
+    }
+  }, [viewingThemeDetail, selectedArticle]);
+
   useEffect(() => {
     const unsub = appStore.subscribe(() => {
       setCmsThemes(appStore.getCmsThemes());
@@ -373,18 +393,18 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
           setTouchStartX(null);
         }}
       >
-        {/* Danh sách ảnh slide chạy mượt mà chuyển động mờ (cross-fade) */}
+        {/* Danh sách ảnh slide chạy mượt mà không chồng ảnh */}
         {slidesToDisplay.map((slide, idx) => (
           <div
             key={slide.id || idx}
-            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-              currentSlideIndex === idx ? 'opacity-100 z-10' : 'opacity-0 pointer-events-none z-0'
+            className={`absolute inset-0 transition-opacity duration-500 ease-in-out ${
+              currentSlideIndex === idx ? 'opacity-100 z-10 pointer-events-auto visible' : 'opacity-0 pointer-events-none z-0 invisible'
             }`}
           >
             <img
               src={slide.imageUrl}
               alt={slide.title || `Banner ${idx + 1}`}
-              className="w-full h-full object-cover object-center transform scale-100 transition-transform duration-7000 ease-out hover:scale-102"
+              className="w-full h-full object-cover object-center transform scale-100 transition-transform duration-7000 ease-out"
             />
             {/* Lớp phủ chuyển sắc nhẹ ở đáy để làm nổi bật các chấm mờ */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/15 pointer-events-none" />
@@ -738,37 +758,46 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               {(promotions || []).filter(p => p.isActive).map((promo) => (
                 <div
                   key={promo.id}
-                  className="bg-white rounded-2xl p-6 border border-[#e8dfcf] hover:border-[#c5a059] transition-all duration-300 space-y-4 hover:shadow-lg flex flex-col justify-between group shadow-xs"
+                  className="bg-white rounded-2xl p-5 sm:p-6 border border-[#e8dfcf] hover:border-[#c5a059] transition-all duration-300 space-y-4 hover:shadow-lg flex flex-col justify-between group shadow-xs w-full"
                 >
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-[#ffece7] text-[#e05638] uppercase tracking-wider border border-[#fbd3c7]">
+                    {/* Hàng 1: Badge + Hạn dùng */}
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-[#ffece7] text-[#e05638] uppercase tracking-wider border border-[#fbd3c7]">
                         {promo.badge || 'HOT DEAL'}
                       </span>
                       <span className="text-xs text-stone-500 flex items-center gap-1 font-medium">
-                        <Clock className="w-3.5 h-3.5 text-amber-600" />
+                        <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                         <span>Hạn dùng: {promo.validUntil}</span>
                       </span>
                     </div>
 
-                    <div className="flex items-baseline justify-between gap-3">
-                      <h3 className="text-lg font-bold text-stone-900 group-hover:text-[#ee5a45] transition-colors">
+                    {/* Hàng 2: Tiêu đề riêng biệt full-width - Cho phép xuống dòng tự nhiên, không ngắt từng từ */}
+                    <div>
+                      <h3 className="text-base sm:text-lg font-bold text-stone-900 group-hover:text-[#ee5a45] transition-colors leading-snug">
                         {promo.title}
                       </h3>
-                      <span className="text-lg font-bold text-[#0e4b44] whitespace-nowrap">
-                        {promo.discountText}
+                    </div>
+
+                    {/* Hàng 3: Badge mức giảm giá to bản, rõ ràng, không bị co ép */}
+                    <div>
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50 text-[#0e4b44] border border-emerald-200 text-sm sm:text-base font-extrabold">
+                        <span>🎁</span>
+                        <span>{promo.discountText}</span>
                       </span>
                     </div>
 
-                    <p className="text-sm text-stone-600 leading-relaxed font-normal">
+                    {/* Hàng 4: Mô tả chi tiết */}
+                    <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-normal">
                       {promo.description}
                     </p>
                   </div>
 
+                  {/* Chân thẻ: Mã ưu đãi + Nút Áp Dụng Ngay */}
                   <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
                     {promo.code ? (
                       <div className="flex items-center gap-2">
@@ -799,7 +828,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                     <button
                       type="button"
                       onClick={() => handleApplyPromo(promo)}
-                      className="px-5 py-2.5 rounded-xl bg-[#0e4b44] hover:bg-[#155e55] text-white font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md flex items-center gap-1.5 transition-all cursor-pointer"
+                      className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#0e4b44] hover:bg-[#155e55] text-white font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                     >
                       <span>Áp Dụng Ngay</span>
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -1971,25 +2000,25 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                 {selectedArticle.content}
               </div>
 
-              <div className="p-6 rounded-2xl bg-[#faf8f5] border border-stone-200/90 text-stone-900 flex flex-wrap items-center justify-between gap-4 mt-6">
+              <div className="p-4 sm:p-6 rounded-2xl bg-[#faf8f5] border border-stone-200/90 text-stone-900 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-6">
                 <div>
                   <h4 className="font-bold text-stone-900 text-sm sm:text-base">Bạn cần tư vấn phong cách rạp cưới này?</h4>
                   <p className="text-xs sm:text-sm text-stone-600 mt-0.5">Đội ngũ kỹ thuật Thái Đăng Palace sẽ đo đạc và lên phương án tận nơi.</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto shrink-0">
                   <button
                     onClick={() => {
                       setSelectedArticle(null);
                       const target = document.getElementById('dat-lich');
                       if (target) target.scrollIntoView({ behavior: 'smooth' });
                     }}
-                    className="px-5 py-2.5 rounded-xl bg-[#ee5a45] hover:bg-[#e04530] text-white font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all cursor-pointer"
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#ee5a45] hover:bg-[#e04530] text-white font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all cursor-pointer text-center"
                   >
                     Đặt Lịch Khảo Sát
                   </button>
                   <a
                     href={`tel:${companyInfo.hotline.replace(/[^0-9]/g, '')}`}
-                    className="px-4 py-2.5 rounded-xl bg-white hover:bg-stone-50 border border-stone-300 text-stone-800 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-colors shadow-2xs"
+                    className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white hover:bg-stone-50 border border-stone-300 text-stone-800 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors shadow-2xs"
                   >
                     <Phone className="w-3.5 h-3.5 text-[#ee5a45]" />
                     <span>Gọi Ngay</span>
@@ -2119,13 +2148,13 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
               </div>
 
               {/* Action Buttons */}
-              <div className="pt-2 flex flex-wrap items-center justify-end gap-3 border-t border-slate-100">
+              <div className="pt-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setViewingThemeDetail(null)}
-                  className="px-5 py-2.5 rounded-xl border border-slate-200 font-bold text-xs hover:bg-slate-50 cursor-pointer"
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-200 font-bold text-xs hover:bg-slate-50 cursor-pointer text-center text-stone-700"
                 >
-                  Đóng
+                  ← Đóng / Quay lại
                 </button>
                 <button
                   type="button"
@@ -2135,7 +2164,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                     const target = document.getElementById('dat-lich');
                     if (target) target.scrollIntoView({ behavior: 'smooth' });
                   }}
-                  className="px-6 py-2.5 rounded-xl bg-[#0e4b44] hover:bg-[#155e55] text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer"
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-[#0e4b44] hover:bg-[#155e55] text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <span>✓ Chọn Mẫu Rạp Này &amp; Đặt Lịch</span>
                   <ArrowRight className="w-4 h-4" />

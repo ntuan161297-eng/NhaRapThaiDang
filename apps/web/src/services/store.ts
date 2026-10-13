@@ -26,6 +26,7 @@ import {
   aggregateAllIntakeDemands 
 } from '@thai-dang/shared';
 import { RBAC } from '@thai-dang/shared';
+import { CONTACT_CONFIG } from '../config/contact';
 
 export interface CustomerAccount {
   id: string;
@@ -1074,18 +1075,18 @@ export const INITIAL_PROMOTIONS: PromotionBanner[] = [
   },
 ];
 
-// Thông tin đơn vị & mạng xã hội ban đầu - CHUẨN XÁC THEO YÊU CẦU NGƯỜI DÙNG
+// Thông tin đơn vị & mạng xã hội ban đầu - Đồng bộ với Single Source of Truth CONTACT_CONFIG
 export const INITIAL_COMPANY_INFO: CompanyInfo = {
-  brandName: 'NHÀ RẠP THÁI ĐĂNG',
-  slogan: 'SỰ KIỆN TRỌN NIỀM VUI',
-  hotline: '0988 112 233',
-  zaloPhone: '0988 112 233',
-  facebookFanpageUrl: 'https://facebook.com/nharapthaidang.ninhbinh',
-  tiktokUrl: 'https://tiktok.com/@nharapthaidang',
-  youtubeUrl: 'https://youtube.com/@nharapthaidang',
-  address: 'Thôn Trực Đông, xã Cổ Lễ, tỉnh Ninh Bình',
-  email: 'sukien@nharapthaidang.vn',
-  workingHours: '07:30 - 22:00 (Phục vụ tận tâm chu đáo)',
+  brandName: CONTACT_CONFIG.BRAND_NAME,
+  slogan: CONTACT_CONFIG.SLOGAN,
+  hotline: CONTACT_CONFIG.DEFAULT_HOTLINE,
+  zaloPhone: CONTACT_CONFIG.DEFAULT_ZALO,
+  facebookFanpageUrl: CONTACT_CONFIG.FACEBOOK_URL,
+  tiktokUrl: CONTACT_CONFIG.TIKTOK_URL,
+  youtubeUrl: CONTACT_CONFIG.YOUTUBE_URL,
+  address: CONTACT_CONFIG.ADDRESS,
+  email: CONTACT_CONFIG.EMAIL,
+  workingHours: CONTACT_CONFIG.WORKING_HOURS,
 };
 
 /**
