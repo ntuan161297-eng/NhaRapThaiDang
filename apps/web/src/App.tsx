@@ -67,7 +67,7 @@ export const App: React.FC = () => {
   const companyInfo = appStore.getCompanyInfo();
 
   return (
-    <div className="min-h-screen bg-[#faf8f5] font-sans text-[#1a1f2c] flex flex-col">
+    <div className="min-h-screen bg-[#faf8f5] font-sans text-[#1a1f2c] flex flex-col overflow-x-hidden">
       {/* Toast thông báo toàn cục */}
       <ToastContainer />
 

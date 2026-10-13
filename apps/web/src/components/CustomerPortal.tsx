@@ -172,6 +172,9 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
     setActiveThemeDetailImg(theme.detailImages?.[0] || theme.imageUrl);
   };
 
+  // Touch Gesture State cho Banner Slideshow
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
   // Form State
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
@@ -348,14 +351,27 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
   };
 
   return (
-    <div className="bg-[#faf8f5] text-[#1a1f2c]">
+    <div className="bg-[#faf8f5] text-[#1a1f2c] overflow-x-hidden w-full max-w-full">
       
       {/* ======================================================== */}
-      {/* 1. HERO BANNER SLIDESHOW (CHẠY TỰ ĐỘNG THEO CMS, CHỈ CÓ DẤU CHẤM MỜ, KHÔNG HIỂN THỊ TIÊU ĐỀ Ở GIỮA) */}
+      {/* 1. HERO BANNER SLIDESHOW (CHẠY TỰ ĐỘNG THEO CMS, CHỈ CÓ DẤU CHẤM MỜ, HỖ TRỢ VUỐT TRÊN MOBILE) */}
       {/* ======================================================== */}
       <section 
         id="top"
-        className="relative overflow-hidden w-full h-[450px] sm:h-[520px] md:h-[600px] lg:h-[680px] bg-stone-900 group select-none"
+        className="relative overflow-hidden w-full max-w-full h-[380px] sm:h-[480px] md:h-[580px] lg:h-[660px] bg-stone-900 group select-none touch-pan-y"
+        onTouchStart={(e) => setTouchStartX(e.touches[0].clientX)}
+        onTouchEnd={(e) => {
+          if (touchStartX === null) return;
+          const diff = touchStartX - e.changedTouches[0].clientX;
+          if (Math.abs(diff) > 40) {
+            if (diff > 0) {
+              setCurrentSlideIndex(prev => (prev + 1) % slidesToDisplay.length);
+            } else {
+              setCurrentSlideIndex(prev => (prev === 0 ? slidesToDisplay.length - 1 : prev - 1));
+            }
+          }
+          setTouchStartX(null);
+        }}
       >
         {/* Danh sách ảnh slide chạy mượt mà chuyển động mờ (cross-fade) */}
         {slidesToDisplay.map((slide, idx) => (
@@ -375,13 +391,13 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
           </div>
         ))}
 
-        {/* Nút lùi/tiến 2 bên tinh tế (chỉ hiện khi hover để không che ảnh) */}
+        {/* Nút lùi/tiến 2 bên tinh tế (chỉ hiện khi hover trên desktop để không che ảnh) */}
         {slidesToDisplay.length > 1 && (
           <>
             <button
               type="button"
               onClick={() => setCurrentSlideIndex(prev => (prev === 0 ? slidesToDisplay.length - 1 : prev - 1))}
-              className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/30 hover:bg-black/60 text-white/80 hover:text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 backdrop-blur-xs cursor-pointer shadow-md"
+              className="hidden sm:flex absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/30 hover:bg-black/60 text-white/80 hover:text-white items-center justify-center transition-all opacity-0 group-hover:opacity-100 backdrop-blur-xs cursor-pointer shadow-md"
               title="Ảnh trước"
               aria-label="Ảnh trước"
             >
@@ -391,7 +407,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
             <button
               type="button"
               onClick={() => setCurrentSlideIndex(prev => (prev === slidesToDisplay.length - 1 ? 0 : prev + 1))}
-              className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/30 hover:bg-black/60 text-white/80 hover:text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 backdrop-blur-xs cursor-pointer shadow-md"
+              className="hidden sm:flex absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/30 hover:bg-black/60 text-white/80 hover:text-white items-center justify-center transition-all opacity-0 group-hover:opacity-100 backdrop-blur-xs cursor-pointer shadow-md"
               title="Ảnh tiếp theo"
               aria-label="Ảnh tiếp theo"
             >
@@ -401,13 +417,13 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
         )}
 
         {/* CÁC DẤU CHẤM MỜ THỂ HIỆN ĐANG Ở ẢNH NÀO (THEO YÊU CẦU NGƯỜI DÙNG: KHÔNG HIỂN THỊ TIÊU ĐỀ Ở GIỮA) */}
-        <div className="absolute bottom-6 left-0 right-0 z-20 flex items-center justify-center gap-2.5 pointer-events-auto">
+        <div className="absolute bottom-5 sm:bottom-6 left-0 right-0 z-20 flex items-center justify-center gap-2 pointer-events-auto">
           {slidesToDisplay.map((_, idx) => (
             <button
               key={idx}
               type="button"
               onClick={() => setCurrentSlideIndex(idx)}
-              className={`transition-all duration-300 rounded-full cursor-pointer ${
+              className={`transition-all duration-300 rounded-full cursor-pointer py-1.5 px-0.5 ${
                 currentSlideIndex === idx
                   ? 'w-7 h-2 bg-white/90 shadow-md ring-1 ring-white/50'
                   : 'w-2 h-2 bg-white/35 hover:bg-white/70'
@@ -471,7 +487,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                     <h3 className="font-bold text-stone-900 text-base group-hover:text-[#ee5a45] transition-colors">
                       Đám cưới
                     </h3>
-                    <p className="text-xs sm:text-[13px] text-stone-600 line-clamp-1">
+                    <p className="text-xs sm:text-[13px] text-stone-600 leading-snug">
                       Rạp cưới trọn gói, sang trọng, ấm cúng
                     </p>
                   </div>
@@ -506,7 +522,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                     <h3 className="font-bold text-stone-900 text-base group-hover:text-[#ee5a45] transition-colors">
                       Đám hỏi
                     </h3>
-                    <p className="text-xs sm:text-[13px] text-stone-600 line-clamp-1">
+                    <p className="text-xs sm:text-[13px] text-stone-600 leading-snug">
                       Tinh tế, trang trọng, đúng phong tục
                     </p>
                   </div>
@@ -541,7 +557,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                     <h3 className="font-bold text-stone-900 text-base group-hover:text-[#ee5a45] transition-colors">
                       Nhà mới
                     </h3>
-                    <p className="text-xs sm:text-[13px] text-stone-600 line-clamp-1">
+                    <p className="text-xs sm:text-[13px] text-stone-600 leading-snug">
                       Không gian ấm cúng, khởi đầu may mắn
                     </p>
                   </div>
@@ -575,7 +591,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                     <h3 className="font-bold text-stone-900 text-base group-hover:text-[#ee5a45] transition-colors">
                       Thiệp cưới online
                     </h3>
-                    <p className="text-xs sm:text-[13px] text-stone-600 line-clamp-1">
+                    <p className="text-xs sm:text-[13px] text-stone-600 leading-snug">
                       Mẫu đẹp, cá nhân hoá theo yêu cầu
                     </p>
                   </div>
@@ -827,8 +843,8 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                 <div className="w-8 h-8 rounded-full bg-[#f06148] text-white font-bold text-xs flex items-center justify-center shadow-md">
                   1
                 </div>
-                <span className="text-xs font-bold text-[#f06148] mt-2 whitespace-nowrap">
-                  1. Dịch vụ & quy mô
+                <span className="text-[11px] sm:text-xs font-bold text-[#f06148] mt-2 text-center max-w-[85px] sm:max-w-none">
+                  1. Dịch vụ &amp; quy mô
                 </span>
                 <div className="w-12 h-0.5 bg-[#f06148] rounded-full mt-1" />
               </div>
@@ -838,8 +854,8 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                 <div className="w-8 h-8 rounded-full bg-white border-2 border-slate-300 text-slate-500 font-bold text-xs flex items-center justify-center">
                   2
                 </div>
-                <span className="text-xs font-medium text-slate-500 mt-2 whitespace-nowrap">
-                  2. Thời gian & địa điểm
+                <span className="text-[11px] sm:text-xs font-medium text-slate-500 mt-2 text-center max-w-[85px] sm:max-w-none">
+                  2. Thời gian &amp; địa điểm
                 </span>
               </div>
 
@@ -848,7 +864,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                 <div className="w-8 h-8 rounded-full bg-white border-2 border-slate-300 text-slate-500 font-bold text-xs flex items-center justify-center">
                   3
                 </div>
-                <span className="text-xs font-medium text-slate-500 mt-2 whitespace-nowrap">
+                <span className="text-[11px] sm:text-xs font-medium text-slate-500 mt-2 text-center max-w-[85px] sm:max-w-none">
                   3. Thông tin liên hệ
                 </span>
               </div>
@@ -906,9 +922,9 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
 
               {/* MỤC 2: Cấu hình rạp và bàn ghế */}
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-full bg-emerald-100 text-[#0e4b44] font-bold text-xs flex items-center justify-center">
+                    <div className="w-7 h-7 rounded-full bg-emerald-100 text-[#0e4b44] font-bold text-xs flex items-center justify-center shrink-0">
                       2
                     </div>
                     <div>
@@ -922,7 +938,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                   <button
                     type="button"
                     onClick={handleAddConfigRow}
-                    className="px-4 py-1.5 rounded-full border border-amber-300 bg-[#fffdf7] hover:bg-amber-100/60 text-amber-900 font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+                    className="px-4 py-1.5 rounded-full border border-amber-300 bg-[#fffdf7] hover:bg-amber-100/60 text-amber-900 font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer shrink-0"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Thêm khu vực</span>
@@ -930,8 +946,8 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                 </div>
 
                 {/* Table Cấu hình chuẩn Ảnh 1 */}
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs text-left">
+                <div className="overflow-x-auto w-full max-w-full border border-slate-200/80 rounded-2xl">
+                  <table className="w-full min-w-[560px] text-xs text-left">
                     <thead>
                       <tr className="text-[11px] font-bold text-slate-500 border-b border-slate-100">
                         <th className="py-2 px-2 w-8 text-center">#</th>
@@ -1137,11 +1153,14 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                   <input
                     type="text"
                     required
-                    placeholder="Ví dụ: Thôn Trực Đông, xã Cổ Lễ, tỉnh Ninh Bình"
+                    placeholder="Nhập địa chỉ tổ chức của gia đình (thôn/xóm, xã, huyện...)"
                     value={eventAddress}
                     onChange={(e) => setEventAddress(e.target.value)}
                     className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-[#0e4b44]"
                   />
+                  <p className="text-[11px] text-stone-500 font-normal">
+                    Địa chỉ nơi dựng rạp sự kiện (Quý khách nhập cụ thể thôn/xóm, xã, huyện nơi tổ chức).
+                  </p>
                 </div>
               </div>
 
@@ -1839,62 +1858,62 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
       </footer>
 
       {/* ======================================================== */}
-      {/* PHẦN LIÊN HỆ CỐ ĐỊNH CHÍNH GIỮA BÊN PHẢI (CHUẨN HÌNH ẢNH) */}
+      {/* PHẦN LIÊN HỆ CỐ ĐỊNH: TRÊN MOBILE GỌN GÀNG GÓC DƯỚI, KHÔNG CHE NỘI DUNG CHÍNH GIỮA */}
       {/* ======================================================== */}
-      <div className="fixed right-3 sm:right-5 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-3 pointer-events-auto animate-fade-in">
+      <div className="fixed right-2.5 sm:right-5 bottom-20 sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 z-40 flex flex-col items-center gap-2 sm:gap-3 pointer-events-auto animate-fade-in">
         
-        {/* 1. NÚT GỌI HOTLINE: TRÒN MÀU VÀNG GOLD, ICON ĐIỆN THOẠI ĐEN (CHUẨN ẢNH) */}
+        {/* 1. NÚT GỌI HOTLINE: TRÒN MÀU VÀNG GOLD, ICON ĐIỆN THOẠI ĐEN */}
         <a
           href={`tel:${companyInfo.hotline.replace(/[^0-9]/g, '')}`}
-          className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-b from-[#e8c676] to-[#cba048] text-stone-900 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all group relative border-2 border-white/40 cursor-pointer"
+          className="w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-gradient-to-b from-[#e8c676] to-[#cba048] text-stone-900 shadow-lg flex items-center justify-center hover:scale-108 active:scale-95 transition-all group relative border-2 border-white/60 cursor-pointer"
           title={`Hotline: ${companyInfo.hotline}`}
         >
-          <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-stone-900 stroke-[2.3]" />
-          <span className="absolute right-16 bg-[#161c2b] text-[#dfba73] text-[11px] font-bold px-3 py-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap shadow-2xl pointer-events-none border border-[#dfba73]/30">
+          <Phone className="w-4 h-4 sm:w-6 sm:h-6 text-stone-900 stroke-[2.3]" />
+          <span className="hidden sm:block absolute right-16 bg-[#161c2b] text-[#dfba73] text-[11px] font-bold px-3 py-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap shadow-2xl pointer-events-none border border-[#dfba73]/30">
             Hotline: {companyInfo.hotline}
           </span>
         </a>
 
-        {/* 2. NÚT CHAT ZALO: TRÒN MÀU XANH NGỌC/CYAN, ICON BONG BÓNG CHAT TRẮNG (CHUẨN ẢNH) */}
+        {/* 2. NÚT CHAT ZALO: TRÒN MÀU XANH NGỌC/CYAN */}
         <a
           href={companyInfo.zaloChat}
           target="_blank"
           rel="noopener noreferrer"
-          className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#0098b9] hover:bg-[#008ba9] text-white shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all group relative border-2 border-white/40 cursor-pointer"
+          className="w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-[#0098b9] hover:bg-[#008ba9] text-white shadow-lg flex items-center justify-center hover:scale-108 active:scale-95 transition-all group relative border-2 border-white/60 cursor-pointer"
           title="Chat Zalo Trực Tiếp"
         >
-          <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 text-white stroke-[2.3]" />
-          <span className="absolute right-16 bg-slate-900 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap shadow-2xl pointer-events-none border border-white/10">
+          <MessageCircle className="w-4 h-4 sm:w-6 sm:h-6 text-white stroke-[2.3]" />
+          <span className="hidden sm:block absolute right-16 bg-slate-900 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap shadow-2xl pointer-events-none border border-white/10">
             Chat Zalo Trực Tiếp
           </span>
         </a>
 
-        {/* 3. NÚT FACEBOOK FANPAGE: TRÒN MÀU XANH DƯƠNG, ICON CHIA SẺ TRẮNG (CHUẨN ẢNH) */}
+        {/* 3. NÚT FACEBOOK FANPAGE: TRÒN MÀU XANH DƯƠNG */}
         <a
           href={companyInfo.facebookFanpage}
           target="_blank"
           rel="noopener noreferrer"
-          className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#1877F2] hover:bg-[#166fe5] text-white shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all group relative border-2 border-white/40 cursor-pointer"
+          className="w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-[#1877F2] hover:bg-[#166fe5] text-white shadow-lg flex items-center justify-center hover:scale-108 active:scale-95 transition-all group relative border-2 border-white/60 cursor-pointer"
           title="Kết nối Facebook Fanpage"
         >
-          <Share2 className="w-5 h-5 sm:w-6 sm:h-6 text-white stroke-[2.3]" />
-          <span className="absolute right-16 bg-slate-900 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap shadow-2xl pointer-events-none border border-white/10">
+          <Share2 className="w-4 h-4 sm:w-6 sm:h-6 text-white stroke-[2.3]" />
+          <span className="hidden sm:block absolute right-16 bg-slate-900 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap shadow-2xl pointer-events-none border border-white/10">
             Facebook Fanpage
           </span>
         </a>
 
       </div>
 
-      {/* LÊN ĐẦU TRANG (SCROLL TO TOP) */}
-      <div className="fixed bottom-6 right-6 z-40 pointer-events-auto">
+      {/* LÊN ĐẦU TRANG (SCROLL TO TOP): BỐ TRÍ DƯỚI CÙNG GÓC PHẢI KHÔNG VA CHẠM */}
+      <div className="fixed bottom-5 right-2.5 sm:right-5 z-40 pointer-events-auto">
         <button
           type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#121722]/90 hover:bg-[#1a2233] text-[#dfba73] border border-[#dfba73]/40 shadow-xl flex items-center justify-center hover:scale-108 transition-all group relative cursor-pointer"
+          className="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-[#121722]/90 hover:bg-[#1a2233] text-[#dfba73] border border-[#dfba73]/40 shadow-md flex items-center justify-center hover:scale-108 transition-all group relative cursor-pointer"
           title="Lên đầu trang"
         >
-          <ChevronUp className="w-6 h-6" />
-          <span className="absolute right-14 bg-slate-900 text-white text-[11px] font-bold px-3 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-md pointer-events-none">
+          <ChevronUp className="w-5 h-5 sm:w-6 sm:h-6" />
+          <span className="hidden sm:block absolute right-14 bg-slate-900 text-white text-[11px] font-bold px-3 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-md pointer-events-none">
             Lên đầu trang
           </span>
         </button>

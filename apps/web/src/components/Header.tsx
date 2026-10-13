@@ -139,12 +139,12 @@ export const Header: React.FC<HeaderProps> = ({
           <img 
             src="/logo_thai_dang.png" 
             alt="Nhà Rạp Thái Đăng" 
-            className="h-14 sm:h-16 w-auto object-contain transform group-hover:scale-102 transition-transform drop-shadow-2xs" 
+            className="h-11 sm:h-13 md:h-16 w-auto object-contain transform group-hover:scale-102 transition-transform drop-shadow-2xs" 
           />
         </div>
 
         {/* MENU TRUNG TÂM TRÊN 1 HÀNG DUY NHẤT (CHUẨN ẢNH) */}
-        <nav className="hidden md:flex items-center gap-4 lg:gap-6 text-sm font-semibold text-stone-700 whitespace-nowrap shrink-0">
+        <nav className="hidden md:flex items-center gap-3 lg:gap-6 text-xs lg:text-sm font-semibold text-stone-700 whitespace-nowrap shrink-0">
           <button
             onClick={() => handleNavClick('trang-chu', '#top')}
             className={`py-2 relative transition-colors cursor-pointer whitespace-nowrap ${
@@ -292,10 +292,10 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </nav>
 
-        {/* CỤM BÊN PHẢI: HOTLINE + ĐẶT LỊCH NGAY + NÚT ĐĂNG NHẬP ADMIN */}
-        <div className="flex items-center gap-3 sm:gap-4">
+        {/* CỤM BÊN PHẢI: HOTLINE + ĐẶT LỊCH NGAY + NÚT ĐĂNG NHẬP (DESKTOP) + NÚT HAMBURGER (MOBILE) */}
+        <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 shrink-0">
           
-          {/* Hotline */}
+          {/* Hotline (chỉ hiện trên màn hình rộng) */}
           <a
             href={`tel:${hotline.replace(/\D/g, '')}`}
             className="hidden xl:flex items-center gap-2 text-stone-800 hover:text-[#ee5a45] transition-colors py-1.5 px-2 font-bold text-sm"
@@ -306,169 +306,228 @@ export const Header: React.FC<HeaderProps> = ({
             <span>{hotline}</span>
           </a>
 
-          {/* Nút "ĐẶT LỊCH NGAY" màu cam đỏ bo tròn */}
+          {/* Nút "ĐẶT LỊCH NGAY" màu cam đỏ bo tròn vừa vặn */}
           <button
             onClick={() => handleNavClick('dich-vu', '#dat-lich')}
-            className="px-4 lg:px-5 py-2.5 rounded-full bg-[#ee5a45] hover:bg-[#e04530] text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 transform hover:-translate-y-0.5 cursor-pointer shrink-0"
+            className="px-3.5 sm:px-4 lg:px-5 py-2 sm:py-2.5 rounded-full bg-[#ee5a45] hover:bg-[#e04530] text-white font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
           >
             <Calendar className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">ĐẶT LỊCH NGAY</span>
             <span className="sm:hidden">ĐẶT LỊCH</span>
           </button>
 
-          {/* NÚT ĐĂNG NHẬP GỘP CHUNG (HOẶC HIỂN THỊ THÔNG TIN PHIÊN KÈM ĐĂNG XUẤT) */}
-          {authenticatedStaff ? (
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() => {
-                  window.location.hash = '#admin';
-                  onViewChange('admin');
-                }}
-                className="p-2 sm:px-3 sm:py-2 rounded-xl bg-[#0e4b44] hover:bg-[#093530] text-white font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
-                title={`Vào trang quản trị (${authenticatedStaff.fullName})`}
-              >
-                <Lock className="w-3.5 h-3.5 text-amber-300" />
-                <span className="hidden sm:inline">Quản trị ({authenticatedStaff.fullName.split(' ').pop()})</span>
-              </button>
-              <button
-                onClick={() => {
-                  showConfirm({
-                    title: 'Xác nhận đăng xuất',
-                    message: `Bạn có chắc chắn muốn đăng xuất tài khoản quản trị viên (${authenticatedStaff.fullName})?`,
-                    confirmText: 'Đăng xuất',
-                    cancelText: 'Hủy bỏ',
-                    isDanger: true,
-                    onConfirm: () => {
-                      appStore.logoutStaff();
-                      window.location.hash = '';
-                      onViewChange('customer');
-                      toast.success('Đã đăng xuất tài khoản quản trị thành công!');
-                    }
-                  });
-                }}
-                className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-colors cursor-pointer"
-                title="Đăng xuất quản trị"
-              >
-                <LogOut className="w-3.5 h-3.5 text-rose-600" />
-              </button>
-            </div>
-          ) : authenticatedCustomer ? (
-            <div className="flex items-center gap-1.5">
-              <div 
-                className="px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-stone-800 text-xs font-bold flex items-center gap-1.5 shadow-2xs"
-                title="Khách hàng đã đăng nhập"
-              >
-                <User className="w-3.5 h-3.5 text-amber-700" />
-                <span className="max-w-[100px] truncate">{authenticatedCustomer.fullName}</span>
+          {/* NÚT ĐĂNG NHẬP / PHIÊN USER TRÊN DESKTOP (Ẩn trên mobile để menu gọn, không bị ép xuống dòng) */}
+          <div className="hidden md:flex items-center">
+            {authenticatedStaff ? (
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => {
+                    window.location.hash = '#admin';
+                    onViewChange('admin');
+                  }}
+                  className="p-2 sm:px-3 sm:py-2 rounded-xl bg-[#0e4b44] hover:bg-[#093530] text-white font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                  title={`Vào trang quản trị (${authenticatedStaff.fullName})`}
+                >
+                  <Lock className="w-3.5 h-3.5 text-amber-300" />
+                  <span>Quản trị ({authenticatedStaff.fullName.split(' ').pop()})</span>
+                </button>
+                <button
+                  onClick={() => {
+                    showConfirm({
+                      title: 'Xác nhận đăng xuất',
+                      message: `Bạn có chắc chắn muốn đăng xuất tài khoản quản trị viên (${authenticatedStaff.fullName})?`,
+                      confirmText: 'Đăng xuất',
+                      cancelText: 'Hủy bỏ',
+                      isDanger: true,
+                      onConfirm: () => {
+                        appStore.logoutStaff();
+                        window.location.hash = '';
+                        onViewChange('customer');
+                        toast.success('Đã đăng xuất tài khoản quản trị thành công!');
+                      }
+                    });
+                  }}
+                  className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-colors cursor-pointer"
+                  title="Đăng xuất quản trị"
+                >
+                  <LogOut className="w-3.5 h-3.5 text-rose-600" />
+                </button>
               </div>
+            ) : authenticatedCustomer ? (
+              <div className="flex items-center gap-1.5">
+                <div 
+                  className="px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-stone-800 text-xs font-bold flex items-center gap-1.5 shadow-2xs"
+                  title="Khách hàng đã đăng nhập"
+                >
+                  <User className="w-3.5 h-3.5 text-amber-700" />
+                  <span className="max-w-[100px] truncate">{authenticatedCustomer.fullName}</span>
+                </div>
+                <button
+                  onClick={() => {
+                    showConfirm({
+                      title: 'Xác nhận đăng xuất',
+                      message: `Quý khách có chắc chắn muốn đăng xuất tài khoản (${authenticatedCustomer.fullName})?`,
+                      confirmText: 'Đăng xuất',
+                      cancelText: 'Hủy bỏ',
+                      isDanger: false,
+                      onConfirm: () => {
+                        appStore.logoutCustomer();
+                        toast.success('Đã đăng xuất tài khoản khách hàng thành công!');
+                      }
+                    });
+                  }}
+                  className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-colors cursor-pointer"
+                  title="Đăng xuất khách hàng"
+                >
+                  <LogOut className="w-3.5 h-3.5 text-rose-600" />
+                </button>
+              </div>
+            ) : (
               <button
                 onClick={() => {
-                  showConfirm({
-                    title: 'Xác nhận đăng xuất',
-                    message: `Quý khách có chắc chắn muốn đăng xuất tài khoản (${authenticatedCustomer.fullName})?`,
-                    confirmText: 'Đăng xuất',
-                    cancelText: 'Hủy bỏ',
-                    isDanger: false,
-                    onConfirm: () => {
-                      appStore.logoutCustomer();
-                      toast.success('Đã đăng xuất tài khoản khách hàng thành công!');
-                    }
-                  });
+                  window.location.hash = '#login';
+                  onViewChange('login');
                 }}
-                className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-colors cursor-pointer"
-                title="Đăng xuất khách hàng"
+                className="px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer border border-stone-200 shadow-2xs"
+                title="Đăng nhập hệ thống (Khách hàng & Quản trị)"
               >
-                <LogOut className="w-3.5 h-3.5 text-rose-600" />
+                <Lock className="w-3.5 h-3.5 text-amber-600" />
+                <span>Đăng nhập</span>
               </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => {
-                window.location.hash = '#login';
-                onViewChange('login');
-              }}
-              className="px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer border border-stone-200 shadow-2xs"
-              title="Đăng nhập hệ thống (Khách hàng & Quản trị)"
-            >
-              <Lock className="w-3.5 h-3.5 text-amber-600" />
-              <span>Đăng nhập</span>
-            </button>
-          )}
+            )}
+          </div>
 
-          {/* Nút Menu Mobile */}
+          {/* Nút Menu Hamburger Mobile (Nhận diện rõ ràng, dễ chạm) */}
           <button
+            type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-stone-700 hover:text-stone-900"
+            className="md:hidden w-10 h-10 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 flex items-center justify-center transition-colors cursor-pointer"
+            aria-label="Menu điều hướng"
           >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {mobileMenuOpen ? <X className="w-5 h-5 stroke-[2.5]" /> : <Menu className="w-5 h-5 stroke-[2.5]" />}
           </button>
 
         </div>
 
       </div>
 
-      {/* MOBILE DROPDOWN */}
+      {/* MOBILE DROPDOWN DRAWER DẠNG DỌC TIỆN DỤNG */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white border-b border-stone-200 px-5 py-4 space-y-3 text-sm font-semibold animate-fade-in">
-          <button onClick={() => handleNavClick('trang-chu', '#top')} className="block w-full text-left py-2 text-stone-800">Trang chủ</button>
-          <button onClick={() => handleNavClick('mau-rap', '#mau-rap')} className="block w-full text-left py-2 text-stone-800">Mẫu rạp</button>
-          <button onClick={() => handleNavClick('dich-vu', '#dich-vu')} className="block w-full text-left py-2 text-stone-800">Dịch vụ</button>
-          <button onClick={() => handleNavClick('thiep-cuoi', '#thiep-cuoi')} className="block w-full text-left py-2 text-stone-800">Thiệp cưới</button>
-          <button onClick={() => handleNavClick('ve-chung-toi', '#ve-chung-toi')} className="block w-full text-left py-2 text-stone-800">Về chúng tôi</button>
-          <button onClick={() => handleNavClick('lien-he', '#lien-he')} className="block w-full text-left py-2 text-stone-800">Liên hệ – Chỉ đường</button>
+        <div className="md:hidden bg-white border-b border-stone-200 px-5 py-4 space-y-2.5 text-sm font-semibold animate-fade-in shadow-xl">
+          <button 
+            onClick={() => handleNavClick('trang-chu', '#top')} 
+            className="w-full text-left py-2.5 px-3 rounded-xl hover:bg-stone-100 text-stone-800 flex items-center justify-between"
+          >
+            <span>Trang chủ</span>
+            <ChevronRight className="w-4 h-4 text-stone-400" />
+          </button>
+          
+          <button 
+            onClick={() => handleNavClick('mau-rap', '#mau-rap')} 
+            className="w-full text-left py-2.5 px-3 rounded-xl hover:bg-stone-100 text-stone-800 flex items-center justify-between"
+          >
+            <span>Mẫu rạp</span>
+            <ChevronRight className="w-4 h-4 text-stone-400" />
+          </button>
+          
+          <button 
+            onClick={() => handleNavClick('dich-vu', '#dich-vu')} 
+            className="w-full text-left py-2.5 px-3 rounded-xl hover:bg-stone-100 text-stone-800 flex items-center justify-between"
+          >
+            <span>Dịch vụ</span>
+            <ChevronRight className="w-4 h-4 text-stone-400" />
+          </button>
+          
+          <button 
+            onClick={() => handleNavClick('thiep-cuoi', '#thiep-cuoi')} 
+            className="w-full text-left py-2.5 px-3 rounded-xl hover:bg-stone-100 text-stone-800 flex items-center justify-between"
+          >
+            <span>Thiệp cưới</span>
+            <ChevronRight className="w-4 h-4 text-stone-400" />
+          </button>
+          
+          <button 
+            onClick={() => handleNavClick('ve-chung-toi', '#ve-chung-toi')} 
+            className="w-full text-left py-2.5 px-3 rounded-xl hover:bg-stone-100 text-stone-800 flex items-center justify-between"
+          >
+            <span>Về chúng tôi</span>
+            <ChevronRight className="w-4 h-4 text-stone-400" />
+          </button>
+          
+          <button 
+            onClick={() => handleNavClick('lien-he', '#lien-he')} 
+            className="w-full text-left py-2.5 px-3 rounded-xl hover:bg-stone-100 text-stone-800 flex items-center justify-between"
+          >
+            <span>Liên hệ – Chỉ đường</span>
+            <ChevronRight className="w-4 h-4 text-stone-400" />
+          </button>
 
-          {/* Cụm Trợ Năng trên Mobile */}
-          <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200 space-y-2 text-xs">
-            <div className="font-bold text-stone-700 flex items-center justify-between">
-              <span>TRỢ NĂNG (CỠ CHỮ: {fontScale}%)</span>
-              <button onClick={handleResetDefault} className="text-[#ee5a45] underline">Mặc định</button>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <button onClick={handleIncreaseFont} className="p-2 bg-white rounded-xl border border-stone-200 font-bold text-center">+ Tăng</button>
-              <button onClick={handleDecreaseFont} className="p-2 bg-white rounded-xl border border-stone-200 font-bold text-center">− Giảm</button>
-              <button onClick={handleToggleContrast} className={`p-2 rounded-xl border font-bold text-center ${highContrast ? 'bg-emerald-600 text-white' : 'bg-white border-stone-200'}`}>Tương phản</button>
-            </div>
-          </div>
-
-          {/* Hàng Đăng Nhập & Đăng Xuất trên Mobile */}
-          <div className="pt-2 border-t border-stone-100 flex items-center justify-between text-xs">
-            <a href={`tel:${hotline.replace(/\D/g, '')}`} className="text-[#ee5a45] font-bold">Hotline: {hotline}</a>
-            
+          {/* MỤC ĐĂNG NHẬP / PHIÊN LÀM VIỆC TRÊN MOBILE: RỘNG RÃI, DỄ CHẠM, KHÔNG CHEN LẤN */}
+          <div className="pt-2">
             {authenticatedStaff ? (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    window.location.hash = '#admin';
-                    onViewChange('admin');
-                  }}
-                  className="text-[#0e4b44] font-bold underline"
-                >
-                  Quản trị
-                </button>
-                <button
-                  onClick={() => {
-                    appStore.logoutStaff();
-                    setMobileMenuOpen(false);
-                    window.location.hash = '';
-                    onViewChange('customer');
-                  }}
-                  className="text-rose-600 font-bold"
-                >
-                  Đăng xuất
-                </button>
+              <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-2.5">
+                <div className="flex items-center gap-2 text-xs font-bold text-[#0e4b44]">
+                  <Crown className="w-4 h-4 text-amber-500" />
+                  <span>Quản trị viên: {authenticatedStaff.fullName}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      window.location.hash = '#admin';
+                      onViewChange('admin');
+                    }}
+                    className="py-2.5 px-3 rounded-xl bg-[#0e4b44] text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                  >
+                    Vào Quản trị
+                  </button>
+                  <button
+                    onClick={() => {
+                      showConfirm({
+                        title: 'Xác nhận đăng xuất',
+                        message: `Bạn có chắc chắn muốn đăng xuất tài khoản quản trị viên (${authenticatedStaff.fullName})?`,
+                        confirmText: 'Đăng xuất',
+                        cancelText: 'Hủy bỏ',
+                        isDanger: true,
+                        onConfirm: () => {
+                          appStore.logoutStaff();
+                          setMobileMenuOpen(false);
+                          window.location.hash = '';
+                          onViewChange('customer');
+                          toast.success('Đã đăng xuất tài khoản quản trị thành công!');
+                        }
+                      });
+                    }}
+                    className="py-2.5 px-3 rounded-xl bg-white border border-rose-200 text-rose-700 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    Đăng xuất
+                  </button>
+                </div>
               </div>
             ) : authenticatedCustomer ? (
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-stone-700">{authenticatedCustomer.fullName}</span>
+              <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 space-y-2.5">
+                <div className="flex items-center gap-2 text-xs font-bold text-stone-800">
+                  <User className="w-4 h-4 text-amber-700" />
+                  <span>Khách hàng: {authenticatedCustomer.fullName}</span>
+                </div>
                 <button
                   onClick={() => {
-                    appStore.logoutCustomer();
-                    setMobileMenuOpen(false);
+                    showConfirm({
+                      title: 'Xác nhận đăng xuất',
+                      message: `Quý khách có chắc chắn muốn đăng xuất tài khoản (${authenticatedCustomer.fullName})?`,
+                      confirmText: 'Đăng xuất',
+                      cancelText: 'Hủy bỏ',
+                      isDanger: false,
+                      onConfirm: () => {
+                        appStore.logoutCustomer();
+                        setMobileMenuOpen(false);
+                        toast.success('Đã đăng xuất tài khoản khách hàng thành công!');
+                      }
+                    });
                   }}
-                  className="text-rose-600 font-bold"
+                  className="w-full py-2.5 px-3 rounded-xl bg-white border border-rose-200 text-rose-700 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  Đăng xuất
+                  Đăng xuất tài khoản
                 </button>
               </div>
             ) : (
@@ -478,12 +537,33 @@ export const Header: React.FC<HeaderProps> = ({
                   window.location.hash = '#login';
                   onViewChange('login');
                 }}
-                className="text-amber-800 font-bold underline flex items-center gap-1"
+                className="w-full py-3 px-4 rounded-xl bg-[#0e4b44] hover:bg-[#093530] text-white font-bold text-sm flex items-center justify-center gap-2 cursor-pointer shadow-sm transition-colors"
               >
-                <Lock className="w-3.5 h-3.5 text-amber-600" />
+                <Lock className="w-4 h-4 text-amber-300" />
                 <span>Đăng nhập hệ thống</span>
               </button>
             )}
+          </div>
+
+          {/* Cụm Trợ Năng trên Mobile */}
+          <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200 space-y-2 text-xs mt-3">
+            <div className="font-bold text-stone-700 flex items-center justify-between">
+              <span>TRỢ NĂNG (CỠ CHỮ: {fontScale}%)</span>
+              <button onClick={handleResetDefault} className="text-[#ee5a45] underline cursor-pointer">Mặc định</button>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <button onClick={handleIncreaseFont} className="p-2 bg-white rounded-xl border border-stone-200 font-bold text-center cursor-pointer">+ Tăng</button>
+              <button onClick={handleDecreaseFont} className="p-2 bg-white rounded-xl border border-stone-200 font-bold text-center cursor-pointer">− Giảm</button>
+              <button onClick={handleToggleContrast} className={`p-2 rounded-xl border font-bold text-center cursor-pointer ${highContrast ? 'bg-emerald-600 text-white' : 'bg-white border-stone-200'}`}>Tương phản</button>
+            </div>
+          </div>
+
+          {/* Hotline Gọi Nhanh trên Mobile */}
+          <div className="pt-2 border-t border-stone-100 flex items-center justify-between text-xs">
+            <a href={`tel:${hotline.replace(/\D/g, '')}`} className="text-[#ee5a45] font-bold flex items-center gap-1.5 py-1">
+              <Phone className="w-3.5 h-3.5 fill-[#ee5a45]" />
+              <span>Hotline 24/7: {hotline}</span>
+            </a>
           </div>
         </div>
       )}

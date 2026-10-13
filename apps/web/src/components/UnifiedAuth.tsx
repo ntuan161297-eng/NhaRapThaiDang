@@ -292,7 +292,7 @@ export const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onBack, onSuccess }) =
                     <input
                       type="text"
                       required
-                      placeholder="admin hoặc 0912 345 678"
+                      placeholder="Tên đăng nhập, email hoặc số điện thoại"
                       value={identifier}
                       onChange={(e) => setIdentifier(e.target.value)}
                       className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-stone-300 text-stone-900 bg-white placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#0e4b44] text-sm"
@@ -313,7 +313,7 @@ export const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onBack, onSuccess }) =
                     <Lock className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5" />
                     <input
                       type={showPassword ? 'text' : 'password'}
-                      placeholder="Nhập mật khẩu (ví dụ: 123456)"
+                      placeholder="Nhập mật khẩu quản trị viên"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-stone-300 text-stone-900 bg-white placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#0e4b44] text-sm"
@@ -336,40 +336,6 @@ export const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onBack, onSuccess }) =
                   <span>ĐĂNG NHẬP VÀO HỆ THỐNG</span>
                 </button>
               </form>
-
-              {/* KHU VỰC THỬ NGHIỆM ĐĂNG NHẬP NHANH */}
-              <div className="pt-3 border-t border-stone-100 space-y-2">
-                <span className="text-[11px] font-bold text-stone-500 block">
-                  Tài khoản dùng thử có sẵn:
-                </span>
-                
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <button
-                    type="button"
-                    onClick={handleQuickAdminLogin}
-                    className="p-2 rounded-xl bg-stone-50 hover:bg-emerald-50 border border-stone-200 text-left transition-colors cursor-pointer"
-                  >
-                    <div className="font-bold text-[#0e4b44] flex items-center gap-1">
-                      <Crown className="w-3 h-3 text-[#0e4b44]" />
-                      <span>Quản trị viên</span>
-                    </div>
-                    <div className="text-[10px] text-stone-500">admin / 123456</div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleQuickCustomerLogin('0912345678')}
-                    className="p-2 rounded-xl bg-stone-50 hover:bg-amber-50 border border-stone-200 text-left transition-colors cursor-pointer"
-                  >
-                    <div className="font-bold text-amber-800 flex items-center gap-1">
-                      <User className="w-3 h-3 text-amber-700" />
-                      <span>Khách hàng</span>
-                    </div>
-                    <div className="text-[10px] text-stone-500">Anh Nam (0912 345 678)</div>
-                  </button>
-                </div>
-              </div>
-
             </div>
           ) : (
             <form onSubmit={handleRegisterCustomer} className="space-y-4 text-sm">
