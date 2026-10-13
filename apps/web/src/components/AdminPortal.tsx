@@ -22,6 +22,7 @@ import {
   Filter,
   Check,
   X,
+  Menu,
   FileText,
   Plus,
   Search,
@@ -286,6 +287,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   // Company Info & Fanpage Settings State
   const [settingsForm, setSettingsForm] = useState<CompanyInfo>(companyInfo);
   const [settingsSavedAlert, setSettingsSavedAlert] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // Quick Role Switcher Dropdown in Sidebar
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
@@ -892,15 +894,151 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     }
   };
 
+  const renderSidebarNav = (isMobile = false) => (
+    <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-1 text-sm font-medium">
+      {/* 1. Tổng quan */}
+      <button
+        type="button"
+        onClick={() => { setActiveMenu('dashboard'); if (isMobile) setIsMobileSidebarOpen(false); }}
+        className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl transition-all cursor-pointer ${
+          activeMenu === 'dashboard'
+            ? 'bg-[#ffece7] text-[#e05638] font-bold shadow-2xs'
+            : 'text-slate-700 hover:bg-stone-100/70 hover:text-slate-900'
+        }`}
+      >
+        <Home className={`w-5 h-5 ${activeMenu === 'dashboard' ? 'text-[#e05638]' : 'text-slate-500'}`} />
+        <span>Tổng quan</span>
+      </button>
+
+      {/* 2. Lịch sự kiện */}
+      <button
+        type="button"
+        onClick={() => { setActiveMenu('calendar'); if (isMobile) setIsMobileSidebarOpen(false); }}
+        className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl transition-all cursor-pointer ${
+          activeMenu === 'calendar'
+            ? 'bg-[#ffece7] text-[#e05638] font-bold shadow-2xs'
+            : 'text-slate-700 hover:bg-stone-100/70 hover:text-slate-900'
+        }`}
+      >
+        <Calendar className={`w-5 h-5 ${activeMenu === 'calendar' ? 'text-[#e05638]' : 'text-slate-500'}`} />
+        <span>Lịch sự kiện</span>
+      </button>
+
+      {/* 3. Sự kiện / Hợp đồng */}
+      <button
+        type="button"
+        onClick={() => { setActiveMenu('jobs'); if (isMobile) setIsMobileSidebarOpen(false); }}
+        className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl transition-all cursor-pointer ${
+          activeMenu === 'jobs'
+            ? 'bg-[#ffece7] text-[#e05638] font-bold shadow-2xs'
+            : 'text-slate-700 hover:bg-stone-100/70 hover:text-slate-900'
+        }`}
+      >
+        <FileText className={`w-5 h-5 ${activeMenu === 'jobs' ? 'text-[#e05638]' : 'text-slate-500'}`} />
+        <span>Sự kiện / Hợp đồng</span>
+      </button>
+
+      {/* 4. Khách hàng */}
+      <button
+        type="button"
+        onClick={() => { setActiveMenu('customers'); if (isMobile) setIsMobileSidebarOpen(false); }}
+        className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl transition-all cursor-pointer ${
+          activeMenu === 'customers'
+            ? 'bg-[#ffece7] text-[#e05638] font-bold shadow-2xs'
+            : 'text-slate-700 hover:bg-stone-100/70 hover:text-slate-900'
+        }`}
+      >
+        <Briefcase className={`w-5 h-5 ${activeMenu === 'customers' ? 'text-[#e05638]' : 'text-slate-500'}`} />
+        <span>Khách hàng</span>
+      </button>
+
+      {/* 5. Kho dụng cụ */}
+      <button
+        type="button"
+        onClick={() => { setActiveMenu('inventory'); if (isMobile) setIsMobileSidebarOpen(false); }}
+        className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl transition-all cursor-pointer ${
+          activeMenu === 'inventory'
+            ? 'bg-[#ffece7] text-[#e05638] font-bold shadow-2xs'
+            : 'text-slate-700 hover:bg-stone-100/70 hover:text-slate-900'
+        }`}
+      >
+        <Boxes className={`w-5 h-5 ${activeMenu === 'inventory' ? 'text-[#e05638]' : 'text-slate-500'}`} />
+        <span>Kho dụng cụ</span>
+      </button>
+
+      {/* 6. Doanh thu - Chi phí */}
+      <button
+        type="button"
+        onClick={() => { setActiveMenu('finance'); if (isMobile) setIsMobileSidebarOpen(false); }}
+        className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl transition-all cursor-pointer ${
+          activeMenu === 'finance'
+            ? 'bg-[#ffece7] text-[#e05638] font-bold shadow-2xs'
+            : 'text-slate-700 hover:bg-stone-100/70 hover:text-slate-900'
+        }`}
+      >
+        <DollarSign className={`w-5 h-5 ${activeMenu === 'finance' ? 'text-[#e05638]' : 'text-slate-500'}`} />
+        <span>Doanh thu - Chi phí</span>
+      </button>
+
+      {/* 7. Công nợ */}
+      <button
+        type="button"
+        onClick={() => { setActiveMenu('finance'); if (isMobile) setIsMobileSidebarOpen(false); }}
+        className="w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl text-slate-700 hover:bg-stone-100/70 hover:text-slate-900 transition-all cursor-pointer"
+      >
+        <Coins className="w-5 h-5 text-slate-500" />
+        <span>Công nợ</span>
+      </button>
+
+      {/* 8. Nhân sự */}
+      <button
+        type="button"
+        onClick={() => { setActiveMenu('staff'); if (isMobile) setIsMobileSidebarOpen(false); }}
+        className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl transition-all cursor-pointer ${
+          activeMenu === 'staff'
+            ? 'bg-[#ffece7] text-[#e05638] font-bold shadow-2xs'
+            : 'text-slate-700 hover:bg-stone-100/70 hover:text-slate-900'
+        }`}
+      >
+        <Users className={`w-5 h-5 ${activeMenu === 'staff' ? 'text-[#e05638]' : 'text-slate-500'}`} />
+        <span>Nhân sự</span>
+      </button>
+
+      {/* 9. Báo cáo */}
+      <button
+        type="button"
+        onClick={() => { setActiveMenu('finance'); if (isMobile) setIsMobileSidebarOpen(false); }}
+        className="w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl text-slate-700 hover:bg-stone-100/70 hover:text-slate-900 transition-all cursor-pointer"
+      >
+        <BarChart3 className="w-5 h-5 text-slate-500" />
+        <span>Báo cáo</span>
+      </button>
+
+      {/* 10. Cấu hình */}
+      <button
+        type="button"
+        onClick={() => { setActiveMenu('settings'); if (isMobile) setIsMobileSidebarOpen(false); }}
+        className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl transition-all cursor-pointer ${
+          activeMenu === 'settings'
+            ? 'bg-[#ffece7] text-[#e05638] font-bold shadow-2xs'
+            : 'text-slate-700 hover:bg-stone-100/70 hover:text-slate-900'
+        }`}
+      >
+        <Settings className={`w-5 h-5 ${activeMenu === 'settings' ? 'text-[#e05638]' : 'text-slate-500'}`} />
+        <span>Cấu hình</span>
+      </button>
+    </nav>
+  );
+
   return (
-    <div className="min-h-screen bg-[#f4efe6] flex">
+    <div className="h-screen w-full bg-[#f4efe6] flex overflow-hidden">
       
       {/* ======================================================== */}
-      {/* 1. LEFT SIDEBAR MENU (CHUẨN XÁC ẢNH 2 & ẢNH 1)            */}
+      {/* 1. LEFT SIDEBAR MENU (DESKTOP)                            */}
       {/* ======================================================== */}
-      <aside className="w-64 bg-[#fbfaf8] text-slate-700 flex flex-col shrink-0 border-r border-[#ece8df] shadow-xs select-none">
+      <aside className="hidden lg:flex w-64 bg-[#fbfaf8] text-slate-700 flex-col shrink-0 border-r border-[#ece8df] shadow-xs select-none">
         
-        {/* Brand Header có Logo Nhà Rạp Thái Đăng (Chuẩn Ảnh 2) */}
+        {/* Brand Header Logo */}
         <div className="pt-5 pb-4 px-4 text-center border-b border-[#ece8df]/60">
           <img 
             src="/logo_thai_dang.png" 
@@ -910,138 +1048,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         </div>
 
         {/* 10 Menu Items chính xác theo Ảnh 2 */}
-        <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-1 text-sm font-medium">
-          
-          {/* 1. Tổng quan */}
-          <button
-            onClick={() => setActiveMenu('dashboard')}
-            className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl transition-all cursor-pointer ${
-              activeMenu === 'dashboard'
-                ? 'bg-[#ffece7] text-[#e05638] font-bold shadow-2xs'
-                : 'text-slate-700 hover:bg-stone-100/70 hover:text-slate-900'
-            }`}
-          >
-            <Home className={`w-5 h-5 ${activeMenu === 'dashboard' ? 'text-[#e05638]' : 'text-slate-500'}`} />
-            <span>Tổng quan</span>
-          </button>
+        {renderSidebarNav(false)}
 
-          {/* 2. Lịch sự kiện */}
-          <button
-            onClick={() => setActiveMenu('calendar')}
-            className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl transition-all cursor-pointer ${
-              activeMenu === 'calendar'
-                ? 'bg-[#ffece7] text-[#e05638] font-bold shadow-2xs'
-                : 'text-slate-700 hover:bg-stone-100/70 hover:text-slate-900'
-            }`}
-          >
-            <Calendar className={`w-5 h-5 ${activeMenu === 'calendar' ? 'text-[#e05638]' : 'text-slate-500'}`} />
-            <span>Lịch sự kiện</span>
-          </button>
-
-          {/* 3. Sự kiện / Hợp đồng */}
-          <button
-            onClick={() => setActiveMenu('jobs')}
-            className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl transition-all cursor-pointer ${
-              activeMenu === 'jobs'
-                ? 'bg-[#ffece7] text-[#e05638] font-bold shadow-2xs'
-                : 'text-slate-700 hover:bg-stone-100/70 hover:text-slate-900'
-            }`}
-          >
-            <FileText className={`w-5 h-5 ${activeMenu === 'jobs' ? 'text-[#e05638]' : 'text-slate-500'}`} />
-            <span>Sự kiện / Hợp đồng</span>
-          </button>
-
-          {/* 4. Khách hàng */}
-          <button
-            onClick={() => setActiveMenu('customers')}
-            className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl transition-all cursor-pointer ${
-              activeMenu === 'customers'
-                ? 'bg-[#ffece7] text-[#e05638] font-bold shadow-2xs'
-                : 'text-slate-700 hover:bg-stone-100/70 hover:text-slate-900'
-            }`}
-          >
-            <Briefcase className={`w-5 h-5 ${activeMenu === 'customers' ? 'text-[#e05638]' : 'text-slate-500'}`} />
-            <span>Khách hàng</span>
-          </button>
-
-          {/* 5. Kho dụng cụ */}
-          <button
-            onClick={() => setActiveMenu('inventory')}
-            className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl transition-all cursor-pointer ${
-              activeMenu === 'inventory'
-                ? 'bg-[#ffece7] text-[#e05638] font-bold shadow-2xs'
-                : 'text-slate-700 hover:bg-stone-100/70 hover:text-slate-900'
-            }`}
-          >
-            <Boxes className={`w-5 h-5 ${activeMenu === 'inventory' ? 'text-[#e05638]' : 'text-slate-500'}`} />
-            <span>Kho dụng cụ</span>
-          </button>
-
-          {/* 6. Doanh thu - Chi phí */}
-          <button
-            onClick={() => setActiveMenu('finance')}
-            className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl transition-all cursor-pointer ${
-              activeMenu === 'finance'
-                ? 'bg-[#ffece7] text-[#e05638] font-bold shadow-2xs'
-                : 'text-slate-700 hover:bg-stone-100/70 hover:text-slate-900'
-            }`}
-          >
-            <DollarSign className={`w-5 h-5 ${activeMenu === 'finance' ? 'text-[#e05638]' : 'text-slate-500'}`} />
-            <span>Doanh thu - Chi phí</span>
-          </button>
-
-          {/* 7. Công nợ */}
-          <button
-            onClick={() => setActiveMenu('finance')}
-            className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl transition-all cursor-pointer ${
-              activeMenu === 'finance' && false
-                ? 'bg-[#ffece7] text-[#e05638] font-bold shadow-2xs'
-                : 'text-slate-700 hover:bg-stone-100/70 hover:text-slate-900'
-            }`}
-          >
-            <Coins className="w-5 h-5 text-slate-500" />
-            <span>Công nợ</span>
-          </button>
-
-          {/* 8. Nhân sự */}
-          <button
-            onClick={() => setActiveMenu('staff')}
-            className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl transition-all cursor-pointer ${
-              activeMenu === 'staff'
-                ? 'bg-[#ffece7] text-[#e05638] font-bold shadow-2xs'
-                : 'text-slate-700 hover:bg-stone-100/70 hover:text-slate-900'
-            }`}
-          >
-            <Users className={`w-5 h-5 ${activeMenu === 'staff' ? 'text-[#e05638]' : 'text-slate-500'}`} />
-            <span>Nhân sự</span>
-          </button>
-
-          {/* 9. Báo cáo */}
-          <button
-            onClick={() => setActiveMenu('finance')}
-            className="w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl text-slate-700 hover:bg-stone-100/70 hover:text-slate-900 transition-all cursor-pointer"
-          >
-            <BarChart3 className="w-5 h-5 text-slate-500" />
-            <span>Báo cáo</span>
-          </button>
-
-          {/* 10. Cấu hình (Bổ sung đầy đủ CMS: Chuyên mục, tin bài, banner, footer) */}
-          <button
-            onClick={() => setActiveMenu('settings')}
-            className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl transition-all cursor-pointer ${
-              activeMenu === 'settings'
-                ? 'bg-[#ffece7] text-[#e05638] font-bold shadow-2xs'
-                : 'text-slate-700 hover:bg-stone-100/70 hover:text-slate-900'
-            }`}
-          >
-            <Settings className={`w-5 h-5 ${activeMenu === 'settings' ? 'text-[#e05638]' : 'text-slate-500'}`} />
-            <span>Cấu hình</span>
-          </button>
-
-        </nav>
-
-        {/* Địa chỉ cơ sở ở chân Sidebar (Chuẩn xác Ảnh 2) */}
-        <div className="p-3 mx-3 mb-2 rounded-2xl bg-[#f5f3ee] border border-[#e8e4dc] text-xs text-slate-700 flex items-start gap-2.5 shadow-2xs">
+        {/* Địa chỉ cơ sở ở chân Sidebar */}
+        <div className="p-3 mx-3 mb-4 rounded-2xl bg-[#f5f3ee] border border-[#e8e4dc] text-xs text-slate-700 flex items-start gap-2.5 shadow-2xs">
           <MapPin className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
           <div className="font-medium text-slate-800 leading-snug">
             Thôn Trực Đông,<br />
@@ -1049,57 +1059,95 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
           </div>
         </div>
 
-        {/* Chân Sidebar: Nút Về Website Khách Hàng */}
-        <div className="p-3 border-t border-[#ece8df] space-y-2 bg-[#f8f6f0]">
-          <button
-            onClick={onBackToCustomerSite}
-            className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-stone-100 text-slate-700 font-semibold text-xs flex items-center justify-center gap-2 border border-[#e8e4dc] transition-all cursor-pointer shadow-2xs"
-          >
-            <Globe className="w-3.5 h-3.5 text-slate-500" />
-            <span>Về Website Khách Hàng</span>
-          </button>
-        </div>
-
       </aside>
 
       {/* ======================================================== */}
-      {/* 2. MAIN CONTENT WORKSPACE AREA                           */}
+      {/* MOBILE DRAWER SIDEBAR (KHI MỞ TRÊN ĐIỆN THOẠI)             */}
       {/* ======================================================== */}
-      <main className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6">
-        
-        {/* ======================================================== */}
-        {/* TOP HEADER BAR: CHUÔNG NHẮC VIỆC, VỀ WEBSITE, TÀI KHOẢN  */}
-        {/* ======================================================== */}
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[#e2d9cb]">
-          
-          {/* Bên trái: Breadcrumb phân cấp */}
-          <div>
-            <div className="flex items-center gap-2 text-xs text-slate-500">
-              <span>Hệ Thống Quản Trị</span>
-              <span>/</span>
-              <span className="font-bold text-[#0e4b44] uppercase tracking-wider">
-                {activeMenu === 'dashboard' ? 'Tổng quan' : activeMenu}
-              </span>
-            </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-stone-900 mt-0.5">
-              {activeMenu === 'dashboard' && 'Bảng Điều Khiển & Hoạt Động Sự Kiện'}
-              {activeMenu === 'intake' && 'Quản Lý Hồ Sơ Tiếp Nhận & Khảo Sát'}
-              {activeMenu === 'jobs' && 'Sự Kiện / Hợp Đồng (Jobs & 7 Đầu Việc)'}
-              {activeMenu === 'inventory' && 'Quản Lý Danh Mục Kho Thiết Bị'}
-              {activeMenu === 'timeline' && 'Kiểm Tra Khả Dụng Thiết Bị Theo Giờ'}
-              {activeMenu === 'calendar' && 'Lịch Biểu Sự Kiện & Điều Phối'}
-              {activeMenu === 'finance' && 'Doanh Thu, Chi Phí, Báo Giá & Thu Cọc'}
-              {activeMenu === 'customers' && 'Quản Lý Khách Hàng (Customer CRM)'}
-              {activeMenu === 'staff' && 'Quản Lý Nhân Sự & Phân Quyền'}
-              {activeMenu === 'audit' && 'Nhật Ký Hoạt Động & Kiểm Toán'}
-              {activeMenu === 'settings' && 'Cấu Hình Hệ Thống & Quản Trị CMS'}
-            </h2>
+      {isMobileSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 lg:hidden animate-fade-in"
+          onClick={() => setIsMobileSidebarOpen(false)}
+        />
+      )}
+      {isMobileSidebarOpen && (
+        <aside className="fixed inset-y-0 left-0 w-72 max-w-[85vw] bg-[#fbfaf8] z-50 flex flex-col shadow-2xl lg:hidden select-none animate-slide-right">
+          <div className="pt-5 pb-4 px-4 border-b border-[#ece8df]/60 flex items-center justify-between">
+            <img 
+              src="/logo_thai_dang.png" 
+              alt="Nhà Rạp Thái Đăng" 
+              className="h-12 object-contain drop-shadow-2xs" 
+            />
+            <button 
+              type="button" 
+              onClick={() => setIsMobileSidebarOpen(false)}
+              className="p-2 rounded-xl hover:bg-stone-100 text-stone-500 cursor-pointer"
+              title="Đóng menu"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
-          {/* GÓC PHẢI TRÊN: TỪ NGOÀI VÀO: [THÔNG TIN TÀI KHOẢN] [NÚT VỀ WEBSITE] [QUẢ CHUÔNG THÔNG BÁO] */}
-          <div className="flex items-center gap-2.5 sm:gap-3.5 ml-auto">
+          {renderSidebarNav(true)}
+
+          <div className="p-3 mx-3 mb-4 rounded-2xl bg-[#f5f3ee] border border-[#e8e4dc] text-xs text-slate-700 flex items-start gap-2.5 shadow-2xs">
+            <MapPin className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
+            <div className="font-medium text-slate-800 leading-snug">
+              Thôn Trực Đông,<br />
+              xã Cổ Lễ, tỉnh Ninh Bình
+            </div>
+          </div>
+        </aside>
+      )}
+
+      {/* ======================================================== */}
+      {/* 2. MAIN WORKSPACE CONTAINER (HEADER CỐ ĐỊNH + NỘI DUNG CUỘN)*/}
+      {/* ======================================================== */}
+      <div className="flex-1 flex flex-col h-screen min-w-0 overflow-hidden">
+        
+        {/* TOP HEADER BAR CỐ ĐỊNH (STICKY TOP-0 - KHÔNG BỊ TRÔI KHI CUỘN) */}
+        <header className="sticky top-0 z-30 bg-[#f4efe6]/95 backdrop-blur-md px-3 sm:px-6 lg:px-8 py-3 border-b border-[#e2d9cb] flex items-center justify-between gap-3 shrink-0 shadow-2xs">
+          
+          {/* Bên trái: Nút Hamburger Menu trên Mobile + Breadcrumb */}
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <button
+              type="button"
+              onClick={() => setIsMobileSidebarOpen(true)}
+              className="lg:hidden h-11 w-11 rounded-2xl bg-white border border-[#dcd7cd] text-slate-700 flex items-center justify-center hover:bg-stone-50 active:bg-stone-100 transition-colors shadow-2xs cursor-pointer shrink-0"
+              title="Mở menu quản trị"
+              aria-label="Mở menu quản trị"
+            >
+              <Menu className="w-5 h-5 text-slate-700" />
+            </button>
+
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                <span className="hidden sm:inline">Hệ Thống Quản Trị</span>
+                <span className="hidden sm:inline text-slate-400">/</span>
+                <span className="font-bold text-[#0e4b44] uppercase tracking-wider truncate">
+                  {activeMenu === 'dashboard' ? 'Tổng quan' : activeMenu}
+                </span>
+              </div>
+              <h1 className="text-sm sm:text-lg lg:text-xl font-bold text-stone-900 mt-0.5 truncate leading-tight">
+                {activeMenu === 'dashboard' && 'Bảng Điều Khiển & Hoạt Động'}
+                {activeMenu === 'intake' && 'Hồ Sơ Tiếp Nhận & Khảo Sát'}
+                {activeMenu === 'jobs' && 'Sự Kiện & Hợp Đồng (Jobs)'}
+                {activeMenu === 'inventory' && 'Quản Lý Kho Thiết Bị'}
+                {activeMenu === 'timeline' && 'Kiểm Tra Khả Dụng Thiết Bị'}
+                {activeMenu === 'calendar' && 'Lịch Biểu & Điều Phối'}
+                {activeMenu === 'finance' && 'Doanh Thu, Báo Giá & Thu Cọc'}
+                {activeMenu === 'customers' && 'Quản Lý Khách Hàng (CRM)'}
+                {activeMenu === 'staff' && 'Nhân Sự & Phân Quyền'}
+                {activeMenu === 'audit' && 'Nhật Ký & Kiểm Toán'}
+                {activeMenu === 'settings' && 'Cấu Hình & Quản Trị CMS'}
+              </h1>
+            </div>
+          </div>
+
+          {/* Bên phải: Đồng nhất kích thước chiều cao h-11 và bo góc rounded-2xl */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto">
             
-            {/* 1. QUẢ CHUÔNG THÔNG BÁO NHẮC VIỆC (ĐẶT LỊCH, GẦN TỚI 1 TUẦN, CHƯA THANH TOÁN 1-2 TUẦN) */}
+            {/* 1. Chuông thông báo nhắc việc (h-11 w-11 rounded-2xl) */}
             <NotificationBell
               intakes={intakes}
               jobs={jobs}
@@ -1107,46 +1155,45 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
               onNavigateMenu={(menu) => setActiveMenu(menu)}
             />
 
-            {/* 2. NÚT VỀ WEBSITES NẰM KẾ BÊN TỪ NGOÀI VÀO */}
+            {/* 2. Nút Về Website: Chiều cao h-11, bo góc rounded-2xl đồng nhất */}
             <button
               type="button"
               onClick={onBackToCustomerSite}
-              className="px-3 sm:px-4 py-2 rounded-xl bg-white hover:bg-stone-50 active:bg-stone-100 text-slate-700 font-bold text-xs flex items-center gap-2 border border-[#dcd7cd] transition-all cursor-pointer shadow-2xs hover:shadow-xs shrink-0"
+              className="h-11 px-3 sm:px-4 rounded-2xl bg-white hover:bg-stone-50 active:bg-stone-100 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 border border-[#dcd7cd] transition-all cursor-pointer shadow-2xs hover:shadow-xs shrink-0"
               title="Quay lại giao diện website khách hàng"
             >
-              <Globe className="w-4 h-4 text-[#0e4b44]" />
+              <Globe className="w-4.5 h-4.5 text-[#0e4b44]" />
               <span className="hidden sm:inline">Về Website</span>
             </button>
 
-            {/* 3. KHỐI THÔNG TIN TÀI KHOẢN GÓC PHẢI TRÊN (CHUẨN ẢNH 1: QUẢN TRỊ HỆ THỐNG + AVATAR) */}
+            {/* 3. Khối thông tin tài khoản: Chiều cao h-11, bo góc rounded-2xl đồng nhất */}
             <div className="relative" ref={topUserMenuRef}>
-              <div className="bg-[#0e4b44] text-white pl-3.5 pr-2 py-1.5 sm:py-2 rounded-2xl flex items-center gap-3 border border-[#0a3833] shadow-xs">
+              <button
+                type="button"
+                onClick={() => setShowTopUserMenu(!showTopUserMenu)}
+                className="h-11 bg-[#0e4b44] hover:bg-[#0c403a] active:bg-[#0a3530] text-white pl-3 sm:pl-4 pr-1.5 rounded-2xl flex items-center gap-2.5 sm:gap-3 border border-[#0a3833] shadow-2xs cursor-pointer transition-all shrink-0"
+                title="Menu chức năng tài khoản"
+                aria-label="Menu chức năng tài khoản"
+              >
                 <div className="text-left hidden md:block">
-                  <div className="text-xs font-bold truncate tracking-wide text-white flex items-center gap-1.5">
+                  <div className="text-xs font-bold truncate tracking-wide text-white flex items-center gap-1 leading-tight">
                     <span>Quản trị hệ thống</span>
                     <span className="text-emerald-200 font-normal">({currentUser.username || 'admin'})</span>
                   </div>
-                  <div className="text-[11px] text-emerald-200/90 truncate font-medium">
+                  <div className="text-[11px] text-emerald-200/90 truncate font-medium leading-tight mt-0.5">
                     {currentUser.fullName}
                   </div>
                 </div>
 
-                {/* Biểu tượng nút Avatar chuẩn Ảnh 1 (ấn vào hiện ra menu chức năng) */}
-                <button
-                  type="button"
-                  onClick={() => setShowTopUserMenu(!showTopUserMenu)}
-                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/15 hover:bg-white/25 active:bg-white/30 text-white flex items-center justify-center transition-all cursor-pointer shadow-2xs shrink-0 ring-1 ring-white/20"
-                  title="Menu chức năng tài khoản"
-                  aria-label="Menu chức năng tài khoản"
-                >
+                {/* Avatar bo tròn */}
+                <div className="w-8 h-8 rounded-xl bg-white/15 text-white flex items-center justify-center shrink-0 ring-1 ring-white/20">
                   <User className="w-4.5 h-4.5 text-white" />
-                </button>
-              </div>
+                </div>
+              </button>
 
-              {/* MENU POPUP NỔI CHUẨN XÁC ẢNH 1 */}
+              {/* Popup menu chức năng */}
               {showTopUserMenu && (
                 <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-stone-200 p-3 z-50 text-slate-800 animate-fade-in">
-                  {/* Avatar to ở trên chuẩn ảnh */}
                   <div className="flex flex-col items-center p-3 pb-3 border-b border-stone-100">
                     <div className="w-16 h-16 rounded-2xl bg-stone-100 border border-stone-200 flex items-center justify-center shadow-inner mb-2 text-stone-400">
                       <User className="w-9 h-9" />
@@ -1158,9 +1205,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                     </span>
                   </div>
 
-                  {/* Danh sách chức năng chuẩn ảnh 1 */}
                   <div className="pt-2 space-y-1">
-                    {/* 1. Thông tin cá nhân */}
                     <button
                       type="button"
                       onClick={() => {
@@ -1173,7 +1218,6 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                       <span>Thông tin cá nhân</span>
                     </button>
 
-                    {/* 2. Đăng xuất */}
                     <button
                       type="button"
                       onClick={() => {
@@ -1191,10 +1235,11 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
             </div>
 
           </div>
-        </div>
+        </header>
 
-        {/* WIDGET CHÀO MỪNG: LỜI CHÀO, CÂU CHÂM NGÔN, THỜI TIẾT, ĐỒNG HỒ & ÂM LỊCH (CHUẨN XÁC ẢNH 2) */}
-        <AdminGreetingBanner userName={currentUser.fullName || 'Admin'} roleLabel={ROLE_LABELS[currentUser.role]} />
+        {/* PHẦN CUỘN NỘI DUNG CHÍNH (ĐỘC LẬP BÊN DƯỚI HEADER CỐ ĐỊNH) */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+          <AdminGreetingBanner userName={currentUser.fullName || 'Admin'} roleLabel={ROLE_LABELS[currentUser.role]} />
 
         {/* --- MODULE 1: DASHBOARD (TỔNG QUAN) --- */}
         {activeMenu === 'dashboard' && (
@@ -3321,7 +3366,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
           </div>
         )}
 
-      </main>
+        </main>
+      </div>
 
       {/* --- MODAL 1: KHẢO SÁT MẶT BẰNG --- */}
       {showSurveyModal && selectedIntake && (

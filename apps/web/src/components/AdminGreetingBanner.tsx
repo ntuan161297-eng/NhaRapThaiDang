@@ -64,8 +64,8 @@ export const AdminGreetingBanner: React.FC<AdminGreetingBannerProps> = ({
     <div className="w-full bg-[#eef5fc] border border-[#d6e5f5] rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-6 transition-all">
       {/* 1. KHỐI TRÁI: LỜI CHÀO & CÂU CHÂM NGÔN THEO NGÀY (CHUẨN XÁC ẢNH 2) */}
       <div className="flex-1 space-y-1.5 min-w-0 pr-2">
-        <h2 className="text-xl sm:text-2xl font-extrabold text-[#0a3a60] tracking-tight">
-          {greetingPrefix}, {userName}!
+        <h2 className="text-lg sm:text-2xl font-extrabold text-[#0a3a60] tracking-tight truncate">
+          {greetingPrefix}, {userName.split('(')[0].trim() || 'Admin'}!
         </h2>
         <div className="flex items-center gap-2 group">
           <p className="text-xs sm:text-sm text-[#4a6b82] italic font-medium leading-relaxed">

@@ -142,7 +142,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="relative w-10 h-10 rounded-xl bg-white hover:bg-stone-50 border border-stone-200 text-slate-700 flex items-center justify-center transition-all cursor-pointer shadow-2xs hover:shadow-xs active:scale-95"
+        className="relative h-11 w-11 rounded-2xl bg-white hover:bg-stone-50 border border-[#dcd7cd] text-slate-700 flex items-center justify-center transition-all cursor-pointer shadow-2xs hover:shadow-xs active:scale-95 shrink-0"
         title="Thông báo nhắc việc hệ thống"
         aria-label="Thông báo nhắc việc hệ thống"
       >
