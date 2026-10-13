@@ -171,12 +171,12 @@ export const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onBack, onSuccess }) =
       {/* Card Đăng Nhập Gộp Chung Hoàn Chỉnh */}
       <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl border border-stone-200/90 overflow-hidden relative z-10 animate-fade-in">
         
-        {/* Header trên card */}
-        <div className="bg-[#0e4b44] p-6 text-white text-center relative">
+        {/* Header trên card: Chuyển bề mặt sang màu trung tính sáng trang nhã, tương phản cao */}
+        <div className="bg-stone-50 border-b border-stone-200/90 p-6 sm:p-7 text-center relative">
           <button
             type="button"
             onClick={onBack}
-            className="absolute left-4 top-4 text-emerald-200 hover:text-white flex items-center gap-1.5 text-xs font-semibold cursor-pointer transition-colors"
+            className="absolute left-4 top-4 text-stone-500 hover:text-stone-900 flex items-center gap-1.5 text-xs font-semibold cursor-pointer transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Về website</span>
@@ -185,18 +185,18 @@ export const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onBack, onSuccess }) =
           <img 
             src="/logo_thai_dang.png" 
             alt="Nhà Rạp Thái Đăng" 
-            className="h-14 mx-auto object-contain drop-shadow-sm mb-2" 
+            className="h-14 mx-auto object-contain mb-2.5" 
           />
-          <h2 className="font-serif text-2xl font-bold tracking-tight text-white uppercase">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0e4b44] uppercase">
             HỆ THỐNG ĐĂNG NHẬP
           </h2>
-          <p className="text-xs text-emerald-200/90 mt-1 font-medium">
-            Dành cho Khách hàng & Quản trị viên Nhà Rạp Thái Đăng
+          <p className="text-xs sm:text-sm text-stone-600 mt-1 font-medium">
+            Dành cho Khách hàng &amp; Quản trị viên Nhà Rạp Thái Đăng
           </p>
         </div>
 
         {/* Tab Chuyển đổi: Đăng Nhập vs Đăng Ký Mới */}
-        <div className="flex border-b border-stone-200 text-xs font-bold uppercase tracking-wider bg-stone-50/70">
+        <div className="flex border-b border-stone-200 text-xs font-bold uppercase tracking-wider bg-stone-100/60">
           <button
             type="button"
             onClick={() => { setTab('login'); setErrorMessage(''); }}
@@ -281,47 +281,47 @@ export const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onBack, onSuccess }) =
               </div>
 
               {/* FORM NHẬP TÀI KHOẢN */}
-              <form onSubmit={handleUnifiedLogin} className="space-y-3.5 text-xs">
+              <form onSubmit={handleUnifiedLogin} className="space-y-4 text-sm">
                 
                 <div>
-                  <label className="block font-bold text-stone-800 mb-1">
-                    Tên đăng nhập, Email hoặc Số điện thoại *
+                  <label className="block font-semibold text-stone-800 mb-1.5 text-sm">
+                    Tên đăng nhập, Email hoặc Số điện thoại <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative">
-                    <User className="w-4 h-4 text-stone-400 absolute left-3.5 top-3" />
+                    <User className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5" />
                     <input
                       type="text"
                       required
                       placeholder="admin hoặc 0912 345 678"
                       value={identifier}
                       onChange={(e) => setIdentifier(e.target.value)}
-                      className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-stone-200 text-stone-900 bg-white placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#0e4b44]"
+                      className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-stone-300 text-stone-900 bg-white placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#0e4b44] text-sm"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="font-bold text-stone-800">
-                      Mật khẩu <span className="font-normal text-stone-500">(cho tài khoản Quản trị)</span>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="font-semibold text-stone-800 text-sm">
+                      Mật khẩu <span className="font-normal text-stone-500 text-xs">(Quản trị viên)</span>
                     </label>
-                    <span className="text-[10px] text-stone-400 font-normal">
-                      Khách hàng có thể để trống
+                    <span className="text-xs text-stone-500 font-normal">
+                      Khách hàng để trống
                     </span>
                   </div>
                   <div className="relative">
-                    <Lock className="w-4 h-4 text-stone-400 absolute left-3.5 top-3" />
+                    <Lock className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5" />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       placeholder="Nhập mật khẩu (ví dụ: 123456)"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-stone-200 text-stone-900 bg-white placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#0e4b44]"
+                      className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-stone-300 text-stone-900 bg-white placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#0e4b44] text-sm"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-2.5 text-stone-400 hover:text-stone-700"
+                      className="absolute right-3.5 top-3 text-stone-400 hover:text-stone-700"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -330,7 +330,7 @@ export const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onBack, onSuccess }) =
 
                 <button
                   type="submit"
-                  className="w-full py-3.5 rounded-xl bg-[#f06148] hover:bg-[#e05038] text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer mt-2"
+                  className="w-full py-3 rounded-xl bg-[#ee5a45] hover:bg-[#e04530] text-white font-bold text-sm uppercase tracking-wider shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer mt-3"
                 >
                   <KeyRound className="w-4 h-4" />
                   <span>ĐĂNG NHẬP VÀO HỆ THỐNG</span>
@@ -372,68 +372,72 @@ export const UnifiedAuth: React.FC<UnifiedAuthProps> = ({ onBack, onSuccess }) =
 
             </div>
           ) : (
-            <form onSubmit={handleRegisterCustomer} className="space-y-3.5 text-xs">
+            <form onSubmit={handleRegisterCustomer} className="space-y-4 text-sm">
               <div>
-                <label className="block font-bold text-stone-800 mb-1">Họ và tên gia đình / đại diện *</label>
+                <label className="block font-semibold text-stone-800 mb-1.5 text-sm">
+                  Họ và tên gia đình / đại diện <span className="text-rose-500">*</span>
+                </label>
                 <div className="relative">
-                  <User className="w-4 h-4 text-stone-400 absolute left-3.5 top-3" />
+                  <User className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5" />
                   <input
                     type="text"
                     required
                     placeholder="Anh Nam & Chị Lan"
                     value={regFullName}
                     onChange={(e) => setRegFullName(e.target.value)}
-                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-stone-200 text-stone-900 bg-white"
+                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-stone-300 text-stone-900 bg-white placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#0e4b44] text-sm"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold text-stone-800 mb-1">Số điện thoại *</label>
+                <label className="block font-semibold text-stone-800 mb-1.5 text-sm">
+                  Số điện thoại <span className="text-rose-500">*</span>
+                </label>
                 <div className="relative">
-                  <Phone className="w-4 h-4 text-stone-400 absolute left-3.5 top-3" />
+                  <Phone className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5" />
                   <input
                     type="tel"
                     required
                     placeholder="0988 123 456"
                     value={regPhone}
                     onChange={(e) => setRegPhone(e.target.value)}
-                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-stone-200 text-stone-900 bg-white"
+                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-stone-300 text-stone-900 bg-white placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#0e4b44] text-sm"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold text-stone-800 mb-1">Email (tùy chọn)</label>
+                <label className="block font-semibold text-stone-800 mb-1.5 text-sm">Email (tùy chọn)</label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-stone-400 absolute left-3.5 top-3" />
+                  <Mail className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5" />
                   <input
                     type="email"
                     placeholder="khachhang@gmail.com"
                     value={regEmail}
                     onChange={(e) => setRegEmail(e.target.value)}
-                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-stone-200 text-stone-900 bg-white"
+                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-stone-300 text-stone-900 bg-white placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#0e4b44] text-sm"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold text-stone-800 mb-1">Địa chỉ (Thôn, Xã, Huyện)</label>
+                <label className="block font-semibold text-stone-800 mb-1.5 text-sm">Địa chỉ (Thôn, Xã, Tỉnh)</label>
                 <div className="relative">
-                  <MapPin className="w-4 h-4 text-stone-400 absolute left-3.5 top-3" />
+                  <MapPin className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5" />
                   <input
                     type="text"
-                    placeholder="Ví dụ: Quang Châu, Việt Yên, Bắc Giang"
+                    placeholder="Ví dụ: Cổ Lễ, Trực Ninh, Nam Định"
                     value={regAddress}
                     onChange={(e) => setRegAddress(e.target.value)}
-                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-stone-200 text-stone-900 bg-white"
+                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-stone-300 text-stone-900 bg-white placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#0e4b44] text-sm"
                   />
                 </div>
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3.5 rounded-xl bg-[#f06148] hover:bg-[#e05038] text-white font-bold uppercase tracking-wider shadow-md hover:shadow-lg transition-all cursor-pointer mt-2"
+                className="w-full py-3 rounded-xl bg-[#ee5a45] hover:bg-[#e04530] text-white font-bold text-sm uppercase tracking-wider shadow-md hover:shadow-lg transition-all cursor-pointer mt-3"
               >
                 Đăng Ký Tài Khoản Khách Hàng
               </button>

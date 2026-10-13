@@ -996,7 +996,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                 <span>/</span>
                 <span className="font-bold text-slate-800 uppercase tracking-wider">{activeMenu}</span>
               </div>
-              <h2 className="font-serif-luxury text-2xl font-bold text-[#161c2b] mt-0.5">
+              <h2 className="text-2xl font-bold text-stone-900 mt-0.5">
                 {activeMenu === 'intake' && 'Quản Lý Hồ Sơ Tiếp Nhận & Khảo Sát'}
                 {activeMenu === 'jobs' && 'Sự Kiện / Hợp Đồng (Jobs & 7 Đầu Việc)'}
                 {activeMenu === 'inventory' && 'Quản Lý Danh Mục Kho Thiết Bị'}
@@ -1708,7 +1708,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         {activeMenu === 'timeline' && (
           <div className="p-6 rounded-3xl bg-white border border-[#ede8de] shadow-xs space-y-5">
             <div>
-              <h3 className="font-serif-luxury text-xl font-bold text-slate-900">
+              <h3 className="text-xl font-bold text-stone-900">
                 Công Cụ Kiểm Tra Khả Dụng Dụng Cụ Theo Khoảng Thời Gian
               </h3>
               <p className="text-xs text-slate-500">
@@ -1786,7 +1786,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         {/* --- MODULE 6: LỊCH BIỂU --- */}
         {activeMenu === 'calendar' && (
           <div className="p-6 rounded-3xl bg-white border border-[#ede8de] shadow-xs space-y-4">
-            <h3 className="font-serif-luxury text-xl font-bold text-slate-900">
+            <h3 className="text-xl font-bold text-stone-900">
               Lịch Biểu Điều Phối (Múi giờ Asia/Ho_Chi_Minh)
             </h3>
             <div className="space-y-3">
@@ -1813,19 +1813,19 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="p-5 rounded-2xl card-luxury">
                 <span className="text-xs text-slate-500 font-bold uppercase">Tổng giá trị báo giá</span>
-                <span className="text-2xl font-bold font-serif-luxury text-slate-900 mt-1 block">
+                <span className="text-2xl font-bold text-stone-900 mt-1 block">
                   {quotes.reduce((s, q) => s + q.finalAmountVND, 0).toLocaleString('vi-VN')} đ
                 </span>
               </div>
               <div className="p-5 rounded-2xl card-luxury">
                 <span className="text-xs text-slate-500 font-bold uppercase">Tiền cọc & Thực thu</span>
-                <span className="text-2xl font-bold font-serif-luxury text-emerald-700 mt-1 block">
+                <span className="text-2xl font-bold text-emerald-700 mt-1 block">
                   {payments.reduce((s, p) => s + p.amountVND, 0).toLocaleString('vi-VN')} đ
                 </span>
               </div>
               <div className="p-5 rounded-2xl card-luxury">
                 <span className="text-xs text-slate-500 font-bold uppercase">Công nợ còn lại</span>
-                <span className="text-2xl font-bold font-serif-luxury text-rose-700 mt-1 block">
+                <span className="text-2xl font-bold text-rose-700 mt-1 block">
                   {Math.max(0, quotes.reduce((s, q) => s + q.finalAmountVND, 0) - payments.reduce((s, p) => s + p.amountVND, 0)).toLocaleString('vi-VN')} đ
                 </span>
               </div>
@@ -1870,7 +1870,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
           <div className="bg-white rounded-3xl border border-[#ede8de] p-6 shadow-xs space-y-5">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
               <div>
-                <h3 className="font-serif-luxury text-xl font-bold text-slate-900">
+                <h3 className="text-xl font-bold text-stone-900">
                   Danh Bạ Khách Hàng (Customer CRM)
                 </h3>
                 <p className="text-xs text-slate-500">
@@ -1941,7 +1941,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
           <div className="bg-white rounded-3xl border border-[#ede8de] p-6 shadow-xs space-y-5">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
               <div>
-                <h3 className="font-serif-luxury text-xl font-bold text-slate-900">
+                <h3 className="text-xl font-bold text-stone-900">
                   Quản Lý Tài Khoản Quản Trị & Phân Quyền (RBAC)
                 </h3>
                 <p className="text-xs text-slate-500">
@@ -2188,7 +2188,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                     </div>
 
                     <div className="flex items-baseline justify-between gap-4">
-                      <h4 className={`font-serif-luxury text-xl font-bold ${promo.isActive ? 'text-slate-900' : 'text-slate-600'}`}>
+                      <h4 className={`text-xl font-bold ${promo.isActive ? 'text-slate-900' : 'text-slate-600'}`}>
                         {promo.title}
                       </h4>
                       <span className="font-bold text-lg text-[#b8860b] whitespace-nowrap">
@@ -2256,7 +2256,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
             {/* Header Module Cấu hình */}
             <div className="bg-white rounded-3xl border border-[#ede8de] p-6 shadow-xs flex flex-wrap items-center justify-between gap-4">
               <div>
-                <h3 className="font-serif font-bold text-slate-900 text-xl flex items-center gap-2.5">
+                <h3 className="font-bold text-slate-900 text-xl flex items-center gap-2.5">
                   <Settings className="w-6 h-6 text-[#e05638]" />
                   <span>Cấu Hình CMS & Quản Trị Hệ Thống</span>
                 </h3>
@@ -2520,7 +2520,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                         </div>
 
                         <div className="flex items-baseline justify-between gap-4">
-                          <h4 className={`font-serif-luxury text-xl font-bold ${promo.isActive ? 'text-slate-900' : 'text-slate-600'}`}>
+                          <h4 className={`text-xl font-bold ${promo.isActive ? 'text-slate-900' : 'text-slate-600'}`}>
                             {promo.title}
                           </h4>
                           <span className="font-bold text-lg text-[#b8860b] whitespace-nowrap">

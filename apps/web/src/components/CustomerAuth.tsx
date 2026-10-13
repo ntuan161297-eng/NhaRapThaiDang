@@ -107,7 +107,7 @@ export const CustomerAuth: React.FC<CustomerAuthProps> = ({ onBack, onSuccess })
           <div className="w-14 h-14 mx-auto rounded-full border border-[#c5a059] flex items-center justify-center bg-gradient-to-tr from-[#1f2638] to-[#2c3750] shadow-md mb-3">
             <Crown className="w-7 h-7 text-[#dfba73]" />
           </div>
-          <h2 className="font-serif-luxury text-2xl font-bold tracking-wider text-[#f5ecd8] uppercase">
+          <h2 className="text-2xl font-bold tracking-wider text-[#f5ecd8] uppercase">
             CỔNG THÔNG TIN KHÁCH HÀNG
           </h2>
           <p className="text-xs text-[#c5a059] mt-1">

@@ -435,11 +435,11 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
               <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-[#b38338]/60" />
             </div>
 
-            <h2 className="text-3xl sm:text-4xl font-serif-luxury font-bold text-stone-900 tracking-wide">
+            <h2 className="text-2xl sm:text-3xl lg:text-[34px] font-bold text-stone-900 tracking-tight">
               Dịch vụ của <span className="text-[#a87428]">Thái Đăng</span>
             </h2>
 
-            <p className="text-xs sm:text-sm text-stone-500 max-w-xl mx-auto font-light">
+            <p className="text-sm sm:text-base text-stone-600 max-w-xl mx-auto font-normal">
               Đồng hành cùng bạn trong những cột mốc quan trọng của cuộc đời
             </p>
           </div>
@@ -453,13 +453,13 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                 setServiceType('dam_cuoi');
                 document.getElementById('dat-lich')?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="bg-white rounded-2xl border border-stone-200 shadow-xs hover:shadow-lg transition-all transform hover:-translate-y-1 cursor-pointer overflow-hidden flex flex-col group"
+              className="bg-white rounded-2xl border border-stone-200/90 shadow-xs hover:shadow-lg transition-all transform hover:-translate-y-1 cursor-pointer overflow-hidden flex flex-col group"
             >
               <div className="h-44 w-full overflow-hidden bg-stone-100 relative">
                 <img 
                   src="/card_dam_cuoi.jpg" 
                   alt="Đám cưới Thái Đăng" 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                 />
               </div>
               <div className="p-4 flex items-center justify-between gap-3 flex-1 bg-white">
@@ -468,10 +468,10 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                     💍
                   </div>
                   <div>
-                    <h3 className="font-bold text-stone-900 text-sm group-hover:text-[#ee5a45] transition-colors">
+                    <h3 className="font-bold text-stone-900 text-base group-hover:text-[#ee5a45] transition-colors">
                       Đám cưới
                     </h3>
-                    <p className="text-[11px] text-stone-500 line-clamp-1">
+                    <p className="text-xs sm:text-[13px] text-stone-600 line-clamp-1">
                       Rạp cưới trọn gói, sang trọng, ấm cúng
                     </p>
                   </div>
@@ -488,13 +488,13 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                 setServiceType('dam_hoi');
                 document.getElementById('dat-lich')?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="bg-white rounded-2xl border border-stone-200 shadow-xs hover:shadow-lg transition-all transform hover:-translate-y-1 cursor-pointer overflow-hidden flex flex-col group"
+              className="bg-white rounded-2xl border border-stone-200/90 shadow-xs hover:shadow-lg transition-all transform hover:-translate-y-1 cursor-pointer overflow-hidden flex flex-col group"
             >
               <div className="h-44 w-full overflow-hidden bg-stone-100 relative">
                 <img 
                   src="/card_dam_hoi.jpg" 
                   alt="Đám hỏi Thái Đăng" 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                 />
               </div>
               <div className="p-4 flex items-center justify-between gap-3 flex-1 bg-white">
@@ -503,10 +503,10 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                     ❤️
                   </div>
                   <div>
-                    <h3 className="font-bold text-stone-900 text-sm group-hover:text-[#ee5a45] transition-colors">
+                    <h3 className="font-bold text-stone-900 text-base group-hover:text-[#ee5a45] transition-colors">
                       Đám hỏi
                     </h3>
-                    <p className="text-[11px] text-stone-500 line-clamp-1">
+                    <p className="text-xs sm:text-[13px] text-stone-600 line-clamp-1">
                       Tinh tế, trang trọng, đúng phong tục
                     </p>
                   </div>
@@ -523,13 +523,13 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                 setServiceType('nha_moi');
                 document.getElementById('dat-lich')?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="bg-white rounded-2xl border border-stone-200 shadow-xs hover:shadow-lg transition-all transform hover:-translate-y-1 cursor-pointer overflow-hidden flex flex-col group"
+              className="bg-white rounded-2xl border border-stone-200/90 shadow-xs hover:shadow-lg transition-all transform hover:-translate-y-1 cursor-pointer overflow-hidden flex flex-col group"
             >
               <div className="h-44 w-full overflow-hidden bg-stone-100 relative">
                 <img 
                   src="/card_nha_moi.jpg" 
                   alt="Nhà mới Thái Đăng" 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                 />
               </div>
               <div className="p-4 flex items-center justify-between gap-3 flex-1 bg-white">
@@ -538,10 +538,10 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                     🏡
                   </div>
                   <div>
-                    <h3 className="font-bold text-stone-900 text-sm group-hover:text-[#ee5a45] transition-colors">
+                    <h3 className="font-bold text-stone-900 text-base group-hover:text-[#ee5a45] transition-colors">
                       Nhà mới
                     </h3>
-                    <p className="text-[11px] text-stone-500 line-clamp-1">
+                    <p className="text-xs sm:text-[13px] text-stone-600 line-clamp-1">
                       Không gian ấm cúng, khởi đầu may mắn
                     </p>
                   </div>
@@ -557,13 +557,13 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
               onClick={() => {
                 document.getElementById('thiep-cuoi')?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="bg-white rounded-2xl border border-stone-200 shadow-xs hover:shadow-lg transition-all transform hover:-translate-y-1 cursor-pointer overflow-hidden flex flex-col group"
+              className="bg-white rounded-2xl border border-stone-200/90 shadow-xs hover:shadow-lg transition-all transform hover:-translate-y-1 cursor-pointer overflow-hidden flex flex-col group"
             >
               <div className="h-44 w-full overflow-hidden bg-stone-100 relative">
                 <img 
                   src="/card_thiep_cuoi.jpg" 
                   alt="Thiệp cưới online Thái Đăng" 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                 />
               </div>
               <div className="p-4 flex items-center justify-between gap-3 flex-1 bg-white">
@@ -572,10 +572,10 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                     ✉️
                   </div>
                   <div>
-                    <h3 className="font-bold text-stone-900 text-sm group-hover:text-[#ee5a45] transition-colors">
+                    <h3 className="font-bold text-stone-900 text-base group-hover:text-[#ee5a45] transition-colors">
                       Thiệp cưới online
                     </h3>
-                    <p className="text-[11px] text-stone-500 line-clamp-1">
+                    <p className="text-xs sm:text-[13px] text-stone-600 line-clamp-1">
                       Mẫu đẹp, cá nhân hoá theo yêu cầu
                     </p>
                   </div>
@@ -599,10 +599,10 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
             <span className="text-xs font-bold uppercase tracking-[0.25em] text-[#b8860b]">
               BỘ SƯU TẬP KHÔNG GIAN ĐẲNG CẤP
             </span>
-            <h2 className="text-3xl sm:text-4xl font-serif-luxury font-bold text-[#161c2b]">
+            <h2 className="text-2xl sm:text-3xl lg:text-[34px] font-bold text-stone-900 tracking-tight">
               Các Mẫu Phông Rạp Cưới &amp; Không Gian Tiệc
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600 max-w-2xl mx-auto">
+            <p className="text-sm sm:text-base text-stone-600 max-w-2xl mx-auto font-normal">
               Được thiết kế đồng bộ với hệ khung kiên cố, vải rèm lụa nhập khẩu, tư vấn màu sắc tương sinh theo phong thủy bản mệnh cô dâu chú rể.
             </p>
           </div>
@@ -632,10 +632,10 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                           {theme.badge}
                         </span>
                         <div>
-                          <div className="text-[10px] text-amber-300 font-serif-luxury tracking-widest uppercase">
+                          <div className="text-[11px] text-amber-300 font-semibold tracking-wider uppercase">
                             {theme.titleEn}
                           </div>
-                          <div className="font-serif-luxury font-bold text-lg text-white drop-shadow-sm">
+                          <div className="font-bold text-lg text-white drop-shadow-sm">
                             {theme.name}
                           </div>
                         </div>
@@ -708,10 +708,10 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                   <Tag className="w-3.5 h-3.5" />
                   <span>ƯU ĐÃI ĐỘC QUYỀN MÙA CƯỚI 2026</span>
                 </div>
-                <h2 className="text-3xl sm:text-4xl font-serif-luxury font-bold text-slate-900 tracking-wide">
+                <h2 className="text-2xl sm:text-3xl lg:text-[34px] font-bold text-stone-900 tracking-tight">
                   Chương Trình Khuyến Mại &amp; Gói Quà Tặng
                 </h2>
-                <p className="text-xs sm:text-sm text-slate-600 max-w-2xl font-light">
+                <p className="text-sm sm:text-base text-stone-600 max-w-2xl font-normal">
                   Nhận ngay voucher chiết khấu trực tiếp và gói quà tặng trang trí sân khấu tiệc cưới khi đăng ký dịch vụ sớm tại Nhà Rạp Thái Đăng.
                 </p>
               </div>
@@ -733,14 +733,14 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                       <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-[#ffece7] text-[#e05638] uppercase tracking-wider border border-[#fbd3c7]">
                         {promo.badge || 'HOT DEAL'}
                       </span>
-                      <span className="text-[11px] text-slate-500 flex items-center gap-1 font-medium">
+                      <span className="text-xs text-stone-500 flex items-center gap-1 font-medium">
                         <Clock className="w-3.5 h-3.5 text-amber-600" />
                         <span>Hạn dùng: {promo.validUntil}</span>
                       </span>
                     </div>
 
                     <div className="flex items-baseline justify-between gap-3">
-                      <h3 className="font-serif-luxury text-xl font-bold text-slate-900 group-hover:text-[#e05638] transition-colors">
+                      <h3 className="text-lg font-bold text-stone-900 group-hover:text-[#ee5a45] transition-colors">
                         {promo.title}
                       </h3>
                       <span className="text-lg font-bold text-[#0e4b44] whitespace-nowrap">
@@ -748,7 +748,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                       </span>
                     </div>
 
-                    <p className="text-xs text-slate-600 leading-relaxed">
+                    <p className="text-sm text-stone-600 leading-relaxed font-normal">
                       {promo.description}
                     </p>
                   </div>
@@ -807,10 +807,10 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
               alt="Nhà Rạp Thái Đăng" 
               className="h-16 mx-auto object-contain drop-shadow-2xs" 
             />
-            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-[#0e4b44] tracking-tight">
-              Đặt lịch & dự tính chi phí
+            <h2 className="text-2xl sm:text-3xl lg:text-[34px] font-bold text-[#0e4b44] tracking-tight">
+              Đặt lịch &amp; dự tính chi phí
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600 font-medium max-w-xl mx-auto">
+            <p className="text-sm sm:text-base text-stone-600 font-normal max-w-xl mx-auto">
               Chọn dịch vụ, cấu hình rạp và để lại thông tin — Thái Đăng sẽ liên hệ tư vấn.
             </p>
           </div>
@@ -1292,15 +1292,15 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                 <span>TÍNH NĂNG ĐANG PHÁT TRIỂN</span>
               </div>
 
-              {/* Tiêu đề 2 dòng màu xanh lục đậm (Chuẩn Ảnh 2) */}
-              <h3 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-[#0e4b44] leading-tight">
+              {/* Tiêu đề 2 dòng màu xanh lục đậm */}
+              <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#0e4b44] leading-tight tracking-tight">
                 Thiệp cưới online &amp;<br />quản lý khách mời
               </h3>
 
               {/* Đoạn văn mô tả */}
-              <div className="space-y-1.5 text-xs sm:text-sm text-slate-600 leading-relaxed font-normal max-w-xl">
+              <div className="space-y-2 text-sm sm:text-base text-stone-600 leading-relaxed font-normal max-w-xl">
                 <p>
-                  Dành riêng cho các cặp đôi đặt trọn gói dịch vụ rạp cưới tại <strong className="text-slate-900 font-semibold">Thái Đăng Palace</strong>.
+                  Dành riêng cho các cặp đôi đặt trọn gói dịch vụ rạp cưới tại <strong className="text-stone-900 font-semibold">Thái Đăng Palace</strong>.
                 </p>
                 <p>
                   Tạo thiệp cưới số sang trọng với ảnh cưới, lời mời, bản đồ định vị Google Maps và nhận phản hồi tham dự từ đồng ý, đến bạn bè, người thân.
@@ -1310,10 +1310,10 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
               {/* Thông báo khóa vàng gold (Chuẩn Ảnh 2) */}
               <div className="pt-3 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-[#faedd8] border border-[#f2dac0] flex items-center justify-center shrink-0 shadow-2xs">
-                  <Lock className="w-4 h-4 text-[#b87a2a]" />
+                  <Lock className="w-4 h-4 text-[#996515]" />
                 </div>
                 <div className="h-6 w-[1.5px] bg-[#eedcc2]" />
-                <span className="text-xs sm:text-sm text-[#b87a2a] font-semibold">
+                <span className="text-xs sm:text-sm text-[#996515] font-semibold">
                   Sẽ mở sau khi Job tổ chức cưới được xác nhận.
                 </span>
               </div>
@@ -1353,7 +1353,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                   <div className="text-[11px] font-bold text-[#0e4b44] uppercase tracking-wider">
                     MẪU THIỆP SỐ
                   </div>
-                  <div className="text-xs font-serif font-bold text-[#0e4b44] tracking-widest uppercase">
+                  <div className="text-xs font-bold text-[#0e4b44] tracking-widest uppercase">
                     THÁI ĐĂNG
                   </div>
                 </div>
@@ -1372,10 +1372,10 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
               <Search className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-serif-luxury text-2xl font-bold text-[#161c2b]">
-                Tra Cứu Hồ Sơ & Lịch Trình Sự Kiện
+              <h3 className="text-xl sm:text-2xl font-bold text-stone-900">
+                Tra Cứu Hồ Sơ &amp; Lịch Trình Sự Kiện
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-sm text-stone-600 mt-0.5">
                 Nhập mã hồ sơ (ví dụ: TD-202610-001) hoặc số điện thoại để kiểm tra tình trạng xử lý.
               </p>
             </div>
@@ -1387,11 +1387,11 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
               placeholder="Nhập mã hồ sơ hoặc số điện thoại đã đăng ký..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 px-4 py-3 rounded-2xl border border-slate-200 text-xs text-slate-800 focus:outline-[#c5a059]"
+              className="flex-1 px-4 py-3 rounded-2xl border border-stone-300 text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-[#0e4b44]"
             />
             <button
               type="submit"
-              className="px-6 py-3 rounded-2xl bg-[#161c2b] hover:bg-[#253046] text-[#dfba73] font-bold text-xs uppercase tracking-wider transition-colors"
+              className="px-6 py-3 rounded-2xl bg-[#0e4b44] hover:bg-[#155e55] text-white font-bold text-sm uppercase tracking-wider transition-colors cursor-pointer"
             >
               Tra Cứu
             </button>
@@ -1433,14 +1433,14 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
       <section id="tin-tuc" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 space-y-12">
         <div className="flex flex-wrap items-end justify-between gap-6 border-b border-[#ede8de] pb-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 text-[#b8860b] text-[11px] font-bold tracking-widest uppercase">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 text-[#b8860b] text-xs font-bold tracking-wider uppercase">
               <FileText className="w-3.5 h-3.5" />
               <span>CẨM NĂNG & DỰ ÁN THỰC TẾ</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-serif-luxury font-bold text-[#161c2b] tracking-wide">
-              Xu Hướng Rạp Cưới & Tin Tức Sự Kiện
+            <h2 className="text-2xl sm:text-3xl lg:text-[34px] font-bold text-stone-900 tracking-tight">
+              Xu Hướng Rạp Cưới &amp; Tin Tức Sự Kiện
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600 max-w-2xl">
+            <p className="text-sm sm:text-base text-stone-600 max-w-2xl font-normal">
               Cập nhật các mẫu phông rạp mới nhất năm 2026, kinh nghiệm chọn ngày tổ chức tiệc và phóng sự ảnh thực tế từ các công trình chúng tôi đã thi công.
             </p>
           </div>
@@ -1499,17 +1499,17 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                   </div>
 
                   <div className="p-6 space-y-3">
-                    <div className="flex items-center gap-2 text-[11px] text-slate-400">
-                      <span>Biên tập: <strong className="text-slate-600 font-semibold">{art.author}</strong></span>
+                    <div className="flex items-center gap-2 text-xs text-stone-500">
+                      <span>Biên tập: <strong className="text-stone-700 font-semibold">{art.author}</strong></span>
                       <span>•</span>
                       <span>{new Date(art.publishedAt).toLocaleDateString('vi-VN')}</span>
                     </div>
 
-                    <h3 className="font-serif-luxury text-xl font-bold text-slate-900 group-hover:text-[#b8860b] transition-colors leading-snug line-clamp-2">
+                    <h3 className="text-lg font-bold text-stone-900 group-hover:text-[#b8860b] transition-colors leading-snug line-clamp-2">
                       {art.title}
                     </h3>
 
-                    <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed font-light">
+                    <p className="text-sm text-stone-600 line-clamp-3 leading-relaxed font-normal">
                       {art.summary}
                     </p>
                   </div>
@@ -1535,37 +1535,37 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
               alt="Nhà Rạp Thái Đăng" 
               className="h-16 mx-auto object-contain drop-shadow-2xs" 
             />
-            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-[#0e4b44] tracking-tight">
+            <h2 className="text-2xl sm:text-3xl lg:text-[34px] font-bold text-[#0e4b44] tracking-tight">
               Liên hệ Nhà rạp Thái Đăng
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600 font-medium">
+            <p className="text-sm sm:text-base text-stone-600 font-normal">
               Chúng tôi sẵn sàng tư vấn và khảo sát theo nhu cầu của gia đình.
             </p>
             <div className="w-16 h-0.5 bg-amber-400 mx-auto rounded-full mt-2" />
           </div>
 
-          {/* 4 Cards hàng ngang thẳng hàng tuyệt đối, icon căn giữa (Chuẩn Ảnh) */}
+          {/* 4 Cards hàng ngang thẳng hàng tuyệt đối, icon căn giữa */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
             
             {/* Card 1: Gọi điện */}
             <div className="p-6 rounded-3xl bg-white border border-stone-200/90 shadow-xs hover:shadow-md transition-all flex flex-col justify-between h-full text-center">
               <div className="space-y-3 flex-1 flex flex-col items-center">
                 {/* Icon căn giữa */}
-                <div className="w-12 h-12 rounded-full bg-[#fdeee9] text-[#f06148] flex items-center justify-center shadow-2xs shrink-0 mx-auto">
+                <div className="w-12 h-12 rounded-full bg-[#fdeee9] text-[#ee5a45] flex items-center justify-center shadow-2xs shrink-0 mx-auto">
                   <Phone className="w-5 h-5" />
                 </div>
                 <h3 className="font-bold text-[#0e4b44] text-lg text-center">Gọi điện</h3>
-                <p className="text-xs text-slate-500 leading-relaxed font-normal flex-1 text-center">
+                <p className="text-sm text-stone-600 leading-relaxed font-normal flex-1 text-center">
                   Tư vấn báo giá, giải đáp thắc mắc và hỗ trợ trực tiếp về dịch vụ nhà rạp.
                 </p>
-                <div className="text-2xl font-extrabold text-[#f06148] font-sans tracking-tight pt-1 text-center">
+                <div className="text-2xl font-extrabold text-[#ee5a45] font-sans tracking-tight pt-1 text-center">
                   {companyInfo.hotline || '0988 112 233'}
                 </div>
               </div>
               <div className="mt-4 pt-2">
                 <a
                   href={`tel:${(companyInfo.hotline || '0988 112 233').replace(/[^0-9]/g, '')}`}
-                  className="w-full py-2.5 rounded-xl bg-[#f06148] hover:bg-[#e05038] text-white font-bold text-xs uppercase tracking-wider text-center flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
+                  className="w-full py-2.5 rounded-xl bg-[#ee5a45] hover:bg-[#e04530] text-white font-bold text-xs uppercase tracking-wider text-center flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
                 >
                   <Phone className="w-3.5 h-3.5" />
                   <span>GỌI NGAY</span>
@@ -1583,7 +1583,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                   </svg>
                 </div>
                 <h3 className="font-bold text-[#0e4b44] text-lg text-center">Facebook Fanpage</h3>
-                <p className="text-xs text-slate-500 leading-relaxed font-normal flex-1 text-center">
+                <p className="text-sm text-stone-600 leading-relaxed font-normal flex-1 text-center">
                   Cập nhật video thực tế các đám cưới, livestream không gian tiệc mỗi ngày.
                 </p>
               </div>
@@ -1608,7 +1608,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                   <span className="text-white font-extrabold text-sm tracking-tight leading-none text-center">Zalo</span>
                 </div>
                 <h3 className="font-bold text-[#0e4b44] text-lg text-center">Zalo</h3>
-                <p className="text-xs text-slate-500 leading-relaxed font-normal flex-1 text-center">
+                <p className="text-sm text-stone-600 leading-relaxed font-normal flex-1 text-center">
                   Gửi ảnh mặt bằng sân rạp, nhận demo phối cảnh và trao đổi chi tiết qua Zalo.
                 </p>
               </div>
@@ -1632,7 +1632,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                   <MapPin className="w-5 h-5" />
                 </div>
                 <h3 className="font-bold text-[#0e4b44] text-lg text-center">Địa chỉ</h3>
-                <p className="text-xs text-slate-800 font-semibold leading-relaxed flex-1 text-center">
+                <p className="text-sm text-stone-800 font-semibold leading-relaxed flex-1 text-center">
                   {companyInfo.address || 'Thôn Trực Đông, xã Cổ Lễ, tỉnh Ninh Bình'}
                 </p>
               </div>
@@ -1653,74 +1653,74 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
 
           {/* Form để lại thông tin tư vấn chuẩn Ảnh 2 */}
           <div className="bg-white rounded-3xl border border-stone-200/90 shadow-md p-6 sm:p-10 max-w-3xl mx-auto space-y-6">
-            <h3 className="font-bold text-slate-900 text-lg sm:text-xl text-center">
+            <h3 className="font-bold text-stone-900 text-lg sm:text-xl text-center">
               Để lại thông tin, Thái Đăng sẽ liên hệ tư vấn
             </h3>
 
             {contactSubmitted ? (
-              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold text-center flex items-center justify-center gap-2">
+              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-sm font-semibold text-center flex items-center justify-center gap-2">
                 <CheckCircle className="w-5 h-5 text-emerald-600" />
                 <span>Cảm ơn quý khách! Đội ngũ Nhà Rạp Thái Đăng đã nhận thông tin và sẽ gọi lại ngay.</span>
               </div>
             ) : (
-              <form onSubmit={handleSendContact} className="space-y-4 text-xs">
+              <form onSubmit={handleSendContact} className="space-y-4 text-sm">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="relative">
-                    <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                    <User className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5" />
                     <input
                       type="text"
                       required
                       placeholder="Họ và tên *"
                       value={contactName}
                       onChange={(e) => setContactName(e.target.value)}
-                      className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-200 bg-white font-medium text-slate-800 placeholder-slate-400 focus:outline-[#0e4b44]"
+                      className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-stone-300 bg-white font-medium text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#0e4b44] text-sm"
                     />
                   </div>
                   <div className="relative">
-                    <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                    <Phone className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5" />
                     <input
                       type="tel"
                       required
                       placeholder="Số điện thoại *"
                       value={contactPhone}
                       onChange={(e) => setContactPhone(e.target.value)}
-                      className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-200 bg-white font-medium text-slate-800 placeholder-slate-400 focus:outline-[#0e4b44]"
+                      className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-stone-300 bg-white font-medium text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#0e4b44] text-sm"
                     />
                   </div>
                 </div>
 
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                  <Mail className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5" />
                   <input
                     type="email"
                     placeholder="Email (không bắt buộc)"
                     value={contactEmail || ''}
                     onChange={(e) => setContactEmail(e.target.value)}
-                    className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-200 bg-white font-medium text-slate-800 placeholder-slate-400 focus:outline-[#0e4b44]"
+                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-stone-300 bg-white font-medium text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#0e4b44] text-sm"
                   />
                 </div>
 
                 <div className="relative">
-                  <FileText className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                  <FileText className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5" />
                   <textarea
                     rows={3}
                     placeholder="Nội dung cần hỗ trợ (ví dụ: ngày cưới dự kiến, địa điểm sân ngõ, quy mô bàn tiệc...)"
                     value={contactMsg}
                     onChange={(e) => setContactMsg(e.target.value)}
-                    className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-200 bg-white font-medium text-slate-800 placeholder-slate-400 leading-relaxed focus:outline-[#0e4b44]"
+                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-stone-300 bg-white font-medium text-stone-900 placeholder-stone-400 leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#0e4b44] text-sm"
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full py-3.5 rounded-xl bg-[#f06148] hover:bg-[#e05038] text-white font-bold text-xs uppercase tracking-wider shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer hover:scale-101"
+                  className="w-full py-3.5 rounded-xl bg-[#ee5a45] hover:bg-[#e04530] text-white font-bold text-sm uppercase tracking-wider shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer hover:shadow-md"
                 >
                   <Send className="w-4 h-4" />
                   <span>GỬI YÊU CẦU TƯ VẤN</span>
                 </button>
 
-                <p className="text-[11px] text-slate-500 text-center flex items-center justify-center gap-1.5 pt-1">
-                  <Lock className="w-3.5 h-3.5 text-slate-400" />
+                <p className="text-xs text-stone-500 text-center flex items-center justify-center gap-1.5 pt-1">
+                  <Lock className="w-3.5 h-3.5 text-stone-400" />
                   <span>Thông tin chỉ dùng để liên hệ tư vấn dịch vụ.</span>
                 </p>
               </form>
@@ -1730,8 +1730,8 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
         </div>
       </section>
 
-      {/* FOOTER ĐẲNG CẤP CHUẨN ẢNH 3: TONE MÀU SÁNG TRANG NHÃ */}
-      <footer className="bg-[#fbf9f6] text-slate-700 pt-16 pb-10 border-t border-[#ede5d8] text-xs">
+      {/* FOOTER ĐẲNG CẤP: TONE MÀU SÁNG TRANG NHÃ, DỄ ĐỌC */}
+      <footer className="bg-[#fbf9f6] text-stone-700 pt-16 pb-10 border-t border-[#ede5d8] text-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 pb-12 border-b border-[#ede5d8]">
           
           {/* Cột 1: Vương miện, Slogan & Các biểu tượng mạng xã hội */}
@@ -1739,7 +1739,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
             <div className="flex items-center gap-2">
               <Crown className="w-6 h-6 text-[#c59b4c]" />
             </div>
-            <h4 className="font-bold text-[#0e4b44] text-xs tracking-wider uppercase">
+            <h4 className="font-bold text-[#0e4b44] text-sm tracking-wider uppercase">
               SỰ KIỆN TRỌN NIỀM VUI
             </h4>
             <div className="flex items-center gap-2.5 pt-1">
@@ -1788,10 +1788,10 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
 
           {/* Cột 2: Dịch Vụ Tổ Chức */}
           <div className="space-y-3">
-            <h4 className="font-bold text-[#0e4b44] uppercase tracking-wider text-xs">
+            <h4 className="font-bold text-[#0e4b44] uppercase tracking-wider text-sm">
               DỊCH VỤ TỔ CHỨC
             </h4>
-            <ul className="space-y-2 text-slate-600 font-medium">
+            <ul className="space-y-2.5 text-stone-600 font-medium">
               <li>Tiệc cưới hoành tráng</li>
               <li>Lễ ăn hỏi &amp; đính hôn</li>
               <li>Lễ tân gia mừng nhà mới</li>
@@ -1802,10 +1802,10 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
 
           {/* Cột 3: Chính Sách & Cam Kết */}
           <div className="space-y-3">
-            <h4 className="font-bold text-[#0e4b44] uppercase tracking-wider text-xs">
+            <h4 className="font-bold text-[#0e4b44] uppercase tracking-wider text-sm">
               CHÍNH SÁCH &amp; CAM KẾT
             </h4>
-            <ul className="space-y-2 text-slate-600 font-medium">
+            <ul className="space-y-2.5 text-stone-600 font-medium">
               <li>Khảo sát đo đạc mặt bằng miễn phí</li>
               <li>Bảo đảm an toàn kết cấu rạp khẩu độ lớn</li>
               <li>Cam kết đúng giờ hoàng đạo 100%</li>
@@ -1814,25 +1814,25 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
           </div>
 
           {/* Cột 4: Liên Hệ Trực Tiếp */}
-          <div className="space-y-2.5">
-            <h4 className="font-bold text-[#0e4b44] uppercase tracking-wider text-xs">
+          <div className="space-y-3">
+            <h4 className="font-bold text-[#0e4b44] uppercase tracking-wider text-sm">
               LIÊN HỆ TRỰC TIẾP
             </h4>
-            <p className="text-slate-600 font-medium leading-relaxed">
+            <p className="text-stone-600 font-medium leading-relaxed">
               Trụ sở kho bãi &amp; văn phòng: {companyInfo.address || 'Thôn Trực Đông, xã Cổ Lễ, tỉnh Ninh Bình'}
             </p>
-            <p className="text-slate-800 font-medium">
-              Hotline 24/7: <strong className="text-[#e05638] font-bold text-sm">{companyInfo.hotline || '0988 112 233'}</strong>
+            <p className="text-stone-800 font-medium">
+              Hotline 24/7: <strong className="text-[#ee5a45] font-bold text-base">{companyInfo.hotline || '0988 112 233'}</strong>
             </p>
-            <p className="text-slate-600 font-medium">
+            <p className="text-stone-600 font-medium">
               Email: {companyInfo.email || 'sukien@nharapthaidang.vn'}
             </p>
           </div>
 
         </div>
 
-        {/* Thanh bản quyền phía chân trang (Chuẩn Ảnh 3) */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 pt-6 flex flex-wrap items-center justify-between text-slate-500 text-[11px] font-medium gap-2">
+        {/* Thanh bản quyền phía chân trang */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 pt-6 flex flex-wrap items-center justify-between text-stone-500 text-xs font-medium gap-2">
           <p>© 2026 • Tất cả các quyền được bảo lưu.</p>
           <p>Thiết kế &amp; phát triển cho Nhà Rạp Thái Đăng.</p>
         </div>
@@ -1926,7 +1926,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                     <span className="px-3 py-1 rounded-full text-[10px] font-bold gold-gradient text-[#121722] uppercase tracking-wider">
                       {selectedArticle.category === 'xu_huong_rap' ? 'Xu hướng rạp' : selectedArticle.category === 'kinh_nghiem_cuoi' ? 'Kinh nghiệm cưới' : selectedArticle.category === 'du_an_thuc_te' ? 'Dự án thực tế' : 'Ưu đãi'}
                     </span>
-                    <h2 className="text-xl sm:text-2xl font-serif-luxury font-bold text-white leading-tight">
+                    <h2 className="text-xl sm:text-2xl font-bold text-white leading-tight">
                       {selectedArticle.title}
                     </h2>
                   </div>
@@ -1952,10 +1952,10 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                 {selectedArticle.content}
               </div>
 
-              <div className="p-6 rounded-2xl bg-[#121722] text-white flex flex-wrap items-center justify-between gap-4 mt-6">
+              <div className="p-6 rounded-2xl bg-[#faf8f5] border border-stone-200/90 text-stone-900 flex flex-wrap items-center justify-between gap-4 mt-6">
                 <div>
-                  <h4 className="font-bold text-white text-sm">Bạn cần tư vấn phong cách rạp cưới này?</h4>
-                  <p className="text-xs text-slate-300">Đội ngũ kỹ thuật Thái Đăng Palace sẽ đo đạc và lên phương án tận nơi.</p>
+                  <h4 className="font-bold text-stone-900 text-sm sm:text-base">Bạn cần tư vấn phong cách rạp cưới này?</h4>
+                  <p className="text-xs sm:text-sm text-stone-600 mt-0.5">Đội ngũ kỹ thuật Thái Đăng Palace sẽ đo đạc và lên phương án tận nơi.</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
@@ -1964,15 +1964,15 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                       const target = document.getElementById('dat-lich');
                       if (target) target.scrollIntoView({ behavior: 'smooth' });
                     }}
-                    className="px-5 py-2.5 rounded-xl gold-gradient text-[#121722] font-bold text-xs uppercase tracking-wider shadow-md hover:brightness-110"
+                    className="px-5 py-2.5 rounded-xl bg-[#ee5a45] hover:bg-[#e04530] text-white font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all cursor-pointer"
                   >
                     Đặt Lịch Khảo Sát
                   </button>
                   <a
                     href={`tel:${companyInfo.hotline.replace(/[^0-9]/g, '')}`}
-                    className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1.5"
+                    className="px-4 py-2.5 rounded-xl bg-white hover:bg-stone-50 border border-stone-300 text-stone-800 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-colors shadow-2xs"
                   >
-                    <Phone className="w-3.5 h-3.5 text-[#dfba73]" />
+                    <Phone className="w-3.5 h-3.5 text-[#ee5a45]" />
                     <span>Gọi Ngay</span>
                   </a>
                 </div>
@@ -1994,7 +1994,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                 <span className="text-[10px] uppercase font-bold text-amber-700 bg-amber-100/80 px-2.5 py-0.5 rounded-full">
                   {viewingThemeDetail.badge}
                 </span>
-                <h3 className="text-xl sm:text-2xl font-serif-luxury font-bold text-slate-900 mt-1">
+                <h3 className="text-xl sm:text-2xl font-bold text-stone-900 mt-1">
                   {viewingThemeDetail.name}
                 </h3>
                 <p className="text-xs text-[#b8860b] font-medium tracking-wide">

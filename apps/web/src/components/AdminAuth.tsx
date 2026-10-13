@@ -73,7 +73,7 @@ export const AdminAuth: React.FC<AdminAuthProps> = ({ onBack, onSuccess }) => {
             alt="Nhà Rạp Thái Đăng" 
             className="h-16 mx-auto object-contain drop-shadow-2xs mb-2" 
           />
-          <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#0e4b44] tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-bold text-[#0e4b44] tracking-tight">
             Đăng nhập quản trị
           </h2>
           <p className="text-xs text-stone-500 font-medium">
