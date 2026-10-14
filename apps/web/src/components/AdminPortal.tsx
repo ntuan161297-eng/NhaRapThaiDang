@@ -231,12 +231,16 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   const [themeFengShuiFlowers, setThemeFengShuiFlowers] = useState('Hoa hồng kem pastel, hoa lan hồ điệp trắng, tú cầu vàng champagne');
   const [themeIsActive, setThemeIsActive] = useState(true);
   
-  // Category Modal State
+  // Category Modal State (Quản trị thanh Menu Header & Chuyên mục CMS)
   const [showCatModal, setShowCatModal] = useState(false);
   const [editingCatId, setEditingCatId] = useState<string | null>(null);
   const [catName, setCatName] = useState('');
   const [catSlug, setCatSlug] = useState('');
   const [catDesc, setCatDesc] = useState('');
+  const [catLinkUrl, setCatLinkUrl] = useState('');
+  const [catSortOrder, setCatSortOrder] = useState<number>(1);
+  const [catIsHeaderNav, setCatIsHeaderNav] = useState(true);
+  const [catIsActive, setCatIsActive] = useState(true);
 
   // Partner Photo Modal State
   const [showPhotoModal, setShowPhotoModal] = useState(false);
@@ -284,8 +288,31 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   const [promoBadge, setPromoBadge] = useState('');
   const [promoIsActive, setPromoIsActive] = useState(true);
 
-  // Company Info & Fanpage Settings State
-  const [settingsForm, setSettingsForm] = useState<CompanyInfo>(companyInfo);
+  // Company Info & Chân Trang (Footer) Settings State
+  const initialComp = appStore.getCompanyInfo();
+  const [settingsForm, setSettingsForm] = useState<CompanyInfo>(() => ({
+    ...initialComp,
+    footerSloganTitle: initialComp.footerSloganTitle || 'SỰ KIỆN TRỌN NIỀM VUI',
+    footerCol2Title: initialComp.footerCol2Title || 'DỊCH VỤ TỔ CHỨC',
+    footerCol2Items: initialComp.footerCol2Items || [
+      'Tiệc cưới hoành tráng',
+      'Lễ ăn hỏi & đính hôn',
+      'Lễ tân gia mừng nhà mới',
+      'Sự kiện khai trương & khánh thành',
+      'Cung cấp thiết bị bàn ghế & âm thanh',
+    ],
+    footerCol3Title: initialComp.footerCol3Title || 'CHÍNH SÁCH & CAM KẾT',
+    footerCol3Items: initialComp.footerCol3Items || [
+      'Khảo sát đo đạc mặt bằng miễn phí',
+      'Bảo đảm an toàn kết cấu rạp khẩu độ lớn',
+      'Cam kết đúng giờ hoàng đạo 100%',
+      'Dụng cụ bàn ghế sạch sẽ, khử khuẩn',
+    ],
+    footerCol4Title: initialComp.footerCol4Title || 'LIÊN HỆ TRỰC TIẾP',
+    footerCopyright: initialComp.footerCopyright || '© 2026 • Tất cả các quyền được bảo lưu. Thiết kế & phát triển cho Nhà Rạp Thái Đăng.',
+  }));
+  const [footerCol2Text, setFooterCol2Text] = useState(() => (settingsForm.footerCol2Items || []).join('\n'));
+  const [footerCol3Text, setFooterCol3Text] = useState(() => (settingsForm.footerCol3Items || []).join('\n'));
   const [settingsSavedAlert, setSettingsSavedAlert] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
@@ -458,12 +485,16 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     }
   };
 
-  // CMS Category Handlers
+  // CMS Category Handlers (Quản trị thanh Menu Header & Chuyên mục)
   const handleOpenAddCategory = () => {
     setEditingCatId(null);
     setCatName('');
     setCatSlug('');
     setCatDesc('');
+    setCatLinkUrl('');
+    setCatSortOrder(cmsCategoriesList.length + 1);
+    setCatIsHeaderNav(true);
+    setCatIsActive(true);
     setShowCatModal(true);
   };
 
@@ -472,6 +503,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     setCatName(cat.name);
     setCatSlug(cat.slug);
     setCatDesc(cat.description);
+    setCatLinkUrl(cat.linkUrl || `#${cat.slug}`);
+    setCatSortOrder(cat.sortOrder || 1);
+    setCatIsHeaderNav(cat.isHeaderNav !== false);
+    setCatIsActive(cat.isActive !== false);
     setShowCatModal(true);
   };
 
@@ -480,10 +515,28 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     if (!catName.trim()) return;
     const slug = catSlug.trim() || catName.toLowerCase().replace(/[^a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ\s]/g, '').replace(/\s+/g, '-');
     if (editingCatId) {
-      appStore.updateCmsCategory(editingCatId, { name: catName, slug, description: catDesc });
+      appStore.updateCmsCategory(editingCatId, { 
+        name: catName.trim(), 
+        slug, 
+        description: catDesc.trim(),
+        linkUrl: catLinkUrl.trim() || `#${slug}`,
+        sortOrder: Number(catSortOrder) || 1,
+        isHeaderNav: catIsHeaderNav,
+        isActive: catIsActive,
+      });
       toast.success('Đã cập nhật chuyên mục thành công!');
     } else {
-      appStore.addCmsCategory({ name: catName, slug, description: catDesc, iconName: 'Sparkles', itemCount: 0, isActive: true });
+      appStore.addCmsCategory({ 
+        name: catName.trim(), 
+        slug, 
+        description: catDesc.trim(),
+        linkUrl: catLinkUrl.trim() || `#${slug}`,
+        iconName: 'Sparkles', 
+        itemCount: 0, 
+        sortOrder: Number(catSortOrder) || (cmsCategoriesList.length + 1),
+        isHeaderNav: catIsHeaderNav,
+        isActive: catIsActive,
+      });
       toast.success('Đã thêm chuyên mục mới thành công!');
     }
     setCmsCategoriesList(appStore.getCmsCategories());
@@ -881,12 +934,18 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     });
   };
 
-  // Settings Handlers
+  // Settings Handlers (Lưu thông tin Chân trang Footer & Cấu hình thương hiệu)
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
-    const res = appStore.updateCompanyInfo(settingsForm);
+    const updated: CompanyInfo = {
+      ...settingsForm,
+      footerCol2Items: footerCol2Text.split('\n').map(s => s.trim()).filter(Boolean),
+      footerCol3Items: footerCol3Text.split('\n').map(s => s.trim()).filter(Boolean),
+    };
+    const res = appStore.updateCompanyInfo(updated);
+    setSettingsForm(updated);
     setSettingsSavedAlert(true);
-    setTimeout(() => setSettingsSavedAlert(false), 3000);
+    setTimeout(() => setSettingsSavedAlert(false), 3500);
     if (res.success) {
       toast.success(res.message);
     } else {
@@ -1038,12 +1097,12 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
       {/* ======================================================== */}
       <aside className="hidden lg:flex w-64 bg-[#fbfaf8] text-slate-700 flex-col shrink-0 border-r border-[#ece8df] shadow-xs select-none">
         
-        {/* Brand Header Logo */}
-        <div className="pt-5 pb-4 px-4 text-center border-b border-[#ece8df]/60">
+        {/* Brand Header Logo - Cố định đúng chiều cao h-[74px] thẳng hàng 100% với Top Header */}
+        <div className="h-[74px] px-4 flex items-center justify-center border-b border-[#e2d9cb] shrink-0">
           <img 
             src="/logo_thai_dang.png" 
             alt="Nhà Rạp Thái Đăng" 
-            className="h-14 mx-auto object-contain drop-shadow-2xs" 
+            className="h-11 max-h-11 mx-auto object-contain drop-shadow-2xs" 
           />
         </div>
 
@@ -1072,11 +1131,11 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
       )}
       {isMobileSidebarOpen && (
         <aside className="fixed inset-y-0 left-0 w-72 max-w-[85vw] bg-[#fbfaf8] z-50 flex flex-col shadow-2xl lg:hidden select-none animate-slide-right">
-          <div className="pt-5 pb-4 px-4 border-b border-[#ece8df]/60 flex items-center justify-between">
+          <div className="h-[74px] px-4 border-b border-[#e2d9cb] flex items-center justify-between shrink-0">
             <img 
               src="/logo_thai_dang.png" 
               alt="Nhà Rạp Thái Đăng" 
-              className="h-12 object-contain drop-shadow-2xs" 
+              className="h-10 object-contain drop-shadow-2xs" 
             />
             <button 
               type="button" 
@@ -1105,8 +1164,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
       {/* ======================================================== */}
       <div className="flex-1 flex flex-col h-screen min-w-0 overflow-hidden">
         
-        {/* TOP HEADER BAR CỐ ĐỊNH (STICKY TOP-0 - KHÔNG BỊ TRÔI KHI CUỘN) */}
-        <header className="sticky top-0 z-30 bg-[#f4efe6]/95 backdrop-blur-md px-3 sm:px-6 lg:px-8 py-3 border-b border-[#e2d9cb] flex items-center justify-between gap-3 shrink-0 shadow-2xs">
+        {/* TOP HEADER BAR CỐ ĐỊNH (STICKY TOP-0 - KHÔNG BỊ TRÔI KHI CUỘN, CAO ĐỘ h-[74px] THẲNG HÀNG 100% VỚI LOGO) */}
+        <header className="sticky top-0 z-30 h-[74px] bg-[#f4efe6]/95 backdrop-blur-md px-3 sm:px-6 lg:px-8 border-b border-[#e2d9cb] flex items-center justify-between gap-3 shrink-0 shadow-2xs">
           
           {/* Bên trái: Nút Hamburger Menu trên Mobile + Breadcrumb */}
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -2785,42 +2844,61 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
               </div>
             )}
 
-            {/* TAB 1: CHUYÊN MỤC CMS */}
+            {/* TAB 1: CHUYÊN MỤC CMS (QUẢN TRỊ THANH MENU HEADER & DANH MỤC DỊCH VỤ) */}
             {settingsTab === 'chuyen_muc' && (
               <div className="bg-white rounded-3xl border border-[#ede8de] p-6 shadow-xs space-y-6">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
                   <div>
-                    <h4 className="font-bold text-slate-900 text-base">Danh Sách Chuyên Mục Dịch Vụ & Tin Tức</h4>
-                    <p className="text-xs text-slate-500 mt-0.5">Phân loại hiển thị bài viết và mẫu rạp trên website cổng thông tin</p>
+                    <h4 className="font-bold text-slate-900 text-base flex items-center gap-2">
+                      <Globe className="w-5 h-5 text-[#0e4b44]" />
+                      <span>Quản Lý Chuyên Mục & Thanh Menu Điều Hướng Header</span>
+                    </h4>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Cấu hình các mục hiển thị trên thanh Menu điều hướng đầu trang (Image 4: Trang chủ, Mẫu rạp, Dịch vụ, Thiệp cưới, Về chúng tôi, Liên hệ...) và danh mục bài viết.
+                    </p>
                   </div>
                   <button
                     onClick={handleOpenAddCategory}
-                    className="px-4 py-2 rounded-xl bg-[#0e4b44] hover:bg-[#155e55] text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                    className="px-4 py-2.5 rounded-xl bg-[#0e4b44] hover:bg-[#155e55] text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
                   >
                     <Plus className="w-4 h-4" />
-                    <span>Thêm Chuyên Mục Mới</span>
+                    <span>+ Thêm Chuyên Mục Mới</span>
                   </button>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {cmsCategoriesList.map((cat) => (
+                  {cmsCategoriesList
+                    .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+                    .map((cat) => (
                     <div key={cat.id} className="p-4 rounded-2xl border border-slate-200 bg-[#fbfaf8] hover:border-[#c5a059] transition-all space-y-3">
                       <div className="flex items-start justify-between">
                         <div>
-                          <span className="text-[10px] uppercase font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
-                            /{cat.slug}
-                          </span>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-[10px] font-mono font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                              #{cat.sortOrder || 1}
+                            </span>
+                            <span className="text-[10px] uppercase font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
+                              {cat.linkUrl || `/${cat.slug}`}
+                            </span>
+                          </div>
                           <h5 className="font-bold text-slate-900 text-sm mt-1">{cat.name}</h5>
                         </div>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                          cat.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'
-                        }`}>
-                          {cat.isActive ? 'Đang kích hoạt' : 'Tạm ẩn'}
-                        </span>
+                        <div className="flex flex-col items-end gap-1">
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                            cat.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'
+                          }`}>
+                            {cat.isActive ? 'Đang kích hoạt' : 'Tạm ẩn'}
+                          </span>
+                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded-md ${
+                            cat.isHeaderNav !== false ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-slate-100 text-slate-500'
+                          }`}>
+                            {cat.isHeaderNav !== false ? '● Hiện trên Menu Top' : '○ Chỉ bài viết'}
+                          </span>
+                        </div>
                       </div>
-                      <p className="text-xs text-slate-600 line-clamp-2">{cat.description}</p>
+                      <p className="text-xs text-slate-600 line-clamp-2">{cat.description || 'Chuyên mục điều hướng trên hệ thống Thái Đăng'}</p>
                       <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs">
-                        <span className="text-slate-600 text-[11px]">{cat.itemCount} bài / mục</span>
+                        <span className="text-slate-600 text-[11px] font-medium">Neo: <strong className="text-slate-700">{cat.linkUrl || `#${cat.slug}`}</strong></span>
                         <div className="flex items-center gap-1.5">
                           <button
                             onClick={() => handleToggleCategoryActive(cat.id, cat.isActive)}
@@ -2831,14 +2909,14 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                           <button
                             onClick={() => handleOpenEditCategory(cat)}
                             className="p-1 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-slate-900 cursor-pointer"
-                            title="Sửa"
+                            title="Sửa chuyên mục"
                           >
-                            <Edit className="w-3.5 h-3.5" />
+                            <Edit className="w-3.5 h-3.5 text-blue-600" />
                           </button>
                           <button
                             onClick={() => handleDeleteCategory(cat.id)}
                             className="p-1 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 cursor-pointer"
-                            title="Xóa"
+                            title="Xóa chuyên mục"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -3038,21 +3116,21 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
               </div>
             )}
 
-            {/* TAB 5: CHÂN TRANG & THÔNG TIN CHUNG (FOOTER) */}
+            {/* TAB 5: CHÂN TRANG & THÔNG TIN CHUNG (FOOTER - QUẢN TRỊ 100% NỘI DUNG) */}
             {settingsTab === 'footer' && (
-              <div className="bg-white rounded-3xl border border-[#ede8de] p-8 shadow-xs max-w-4xl space-y-6">
+              <div className="bg-white rounded-3xl border border-[#ede8de] p-6 sm:p-8 shadow-xs max-w-5xl space-y-6">
                 <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
                   <div>
                     <h4 className="font-bold text-slate-900 text-lg flex items-center gap-2">
                       <Share2 className="w-5 h-5 text-[#b8860b]" />
-                      Thông Tin Chân Trang, Hotline & Địa Chỉ Cơ Sở
+                      Quản Trị Toàn Bộ Nội Dung Chân Trang (Footer) & Kênh Liên Hệ
                     </h4>
                     <p className="text-xs text-slate-500 mt-1">
-                      Cập nhật địa chỉ, số hotline, giờ làm việc và liên kết mạng xã hội hiển thị tại trang chủ, trang liên hệ và chân trang (Footer).
+                      Toàn quyền quản trị tiêu đề, các mục dịch vụ, chính sách cam kết, hotline, trụ sở và bản quyền hiển thị ở Chân trang (Footer) website.
                     </p>
                   </div>
                   <a
-                    href={settingsForm.facebookFanpage}
+                    href={settingsForm.facebookFanpageUrl || settingsForm.facebookFanpage || 'https://facebook.com'}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="px-4 py-2 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold text-xs flex items-center gap-1.5 border border-blue-200 transition-colors"
@@ -3065,112 +3143,182 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                 {settingsSavedAlert && (
                   <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-2 animate-fade-in">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    <span>Đã lưu thành công! Thông tin chân trang và thương hiệu đã được cập nhật toàn hệ thống.</span>
+                    <span>Đã lưu thành công! Toàn bộ nội dung chân trang (Footer) đã được cập nhật ra website khách hàng.</span>
                   </div>
                 )}
 
                 <form onSubmit={handleSaveSettings} className="space-y-6 text-xs">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1.5">Tên thương hiệu đơn vị</label>
-                      <input
-                        type="text"
-                        value={settingsForm.companyName}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, companyName: e.target.value })}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#c5a059]"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1.5">Slogan thương hiệu</label>
-                      <input
-                        type="text"
-                        value={settingsForm.slogan}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, slogan: e.target.value })}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#c5a059]"
-                      />
+                  
+                  {/* KHỐI 1: THƯƠNG HIỆU & CỘT 1 (SLOGAN CHÂN TRANG) */}
+                  <div className="p-5 rounded-2xl bg-[#faf8f5] border border-[#e8e2d5] space-y-4">
+                    <h5 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                      <Crown className="w-4 h-4 text-[#c59b4c]" />
+                      <span>Cột 1: Slogan & Thông Tin Thương Hiệu</span>
+                    </h5>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1.5">Tên thương hiệu đơn vị</label>
+                        <input
+                          type="text"
+                          value={settingsForm.brandName || settingsForm.companyName || ''}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, brandName: e.target.value })}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white font-semibold focus:outline-none focus:ring-2 focus:ring-[#c5a059]"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1.5">
+                          Tiêu đề Slogan Chân trang (Cột 1) *
+                        </label>
+                        <input
+                          type="text"
+                          value={settingsForm.footerSloganTitle || 'SỰ KIỆN TRỌN NIỀM VUI'}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, footerSloganTitle: e.target.value })}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-[#c5a059]/60 bg-white font-bold text-[#0e4b44] focus:outline-none focus:ring-2 focus:ring-[#c5a059]"
+                          required
+                        />
+                        <p className="text-[11px] text-slate-500 mt-1">Mặc định: &ldquo;SỰ KIỆN TRỌN NIỀM VUI&rdquo;</p>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  {/* KHỐI 2: QUẢN TRỊ CỘT 2 & CỘT 3 CHÂN TRANG */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    
+                    {/* Cột 2: Dịch Vụ Tổ Chức */}
+                    <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-3">
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <label className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                          <Briefcase className="w-4 h-4 text-[#0e4b44]" />
+                          <span>Cột 2: Tiêu đề & Danh Sách Dịch Vụ</span>
+                        </label>
+                        <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-bold">
+                          Mỗi dòng 1 dịch vụ
+                        </span>
+                      </div>
+                      <div>
+                        <label className="block font-semibold text-slate-600 mb-1">Tiêu đề cột 2</label>
+                        <input
+                          type="text"
+                          value={settingsForm.footerCol2Title || 'DỊCH VỤ TỔ CHỨC'}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, footerCol2Title: e.target.value })}
+                          className="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-bold text-[#0e4b44]"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-semibold text-slate-600 mb-1">Danh sách các dịch vụ tổ chức</label>
+                        <textarea
+                          rows={6}
+                          value={footerCol2Text}
+                          onChange={(e) => setFooterCol2Text(e.target.value)}
+                          placeholder="Tiệc cưới hoành tráng&#10;Lễ ăn hỏi & đính hôn&#10;Lễ tân gia mừng nhà mới&#10;Sự kiện khai trương & khánh thành&#10;Cung cấp thiết bị bàn ghế & âm thanh"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-medium leading-relaxed font-sans"
+                        />
+                        <p className="text-[11px] text-slate-500 mt-1">Xuống dòng để tạo mục dịch vụ mới ở chân trang.</p>
+                      </div>
+                    </div>
+
+                    {/* Cột 3: Chính Sách & Cam Kết */}
+                    <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-3">
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <label className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                          <span>Cột 3: Tiêu đề & Cam Kết Chất Lượng</span>
+                        </label>
+                        <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-bold">
+                          Mỗi dòng 1 cam kết
+                        </span>
+                      </div>
+                      <div>
+                        <label className="block font-semibold text-slate-600 mb-1">Tiêu đề cột 3</label>
+                        <input
+                          type="text"
+                          value={settingsForm.footerCol3Title || 'CHÍNH SÁCH & CAM KẾT'}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, footerCol3Title: e.target.value })}
+                          className="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-bold text-[#0e4b44]"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-semibold text-slate-600 mb-1">Danh sách các chính sách & cam kết</label>
+                        <textarea
+                          rows={6}
+                          value={footerCol3Text}
+                          onChange={(e) => setFooterCol3Text(e.target.value)}
+                          placeholder="Khảo sát đo đạc mặt bằng miễn phí&#10;Bảo đảm an toàn kết cấu rạp khẩu độ lớn&#10;Cam kết đúng giờ hoàng đạo 100%&#10;Dụng cụ bàn ghế sạch sẽ, khử khuẩn"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-medium leading-relaxed font-sans"
+                        />
+                        <p className="text-[11px] text-slate-500 mt-1">Xuống dòng để tạo cam kết mới ở chân trang.</p>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {/* KHỐI 3: QUẢN TRỊ CỘT 4 (LIÊN HỆ TRỰC TIẾP) */}
+                  <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-4">
+                    <h5 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-[#e05638]" />
+                      <span>Cột 4: Tiêu đề & Thông Tin Liên Hệ Trực Tiếp</span>
+                    </h5>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Tiêu đề cột 4</label>
+                        <input
+                          type="text"
+                          value={settingsForm.footerCol4Title || 'LIÊN HỆ TRỰC TIẾP'}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, footerCol4Title: e.target.value })}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-bold text-[#0e4b44]"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1 text-rose-600 flex items-center gap-1">
+                          <Phone className="w-3.5 h-3.5" />
+                          Hotline 24/7 *
+                        </label>
+                        <input
+                          type="text"
+                          value={settingsForm.hotline}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, hotline: e.target.value })}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-rose-200 font-bold text-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-400"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Email tiếp nhận liên hệ</label>
+                        <input
+                          type="email"
+                          value={settingsForm.email}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, email: e.target.value })}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-semibold"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    {/* Địa chỉ trụ sở kho bãi */}
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1.5 text-rose-600 flex items-center gap-1">
-                        <Phone className="w-3.5 h-3.5" />
-                        Hotline Tư Vấn Chính (Đầu trang & Chân trang) *
+                      <label className="block font-bold text-slate-700 mb-1">
+                        Trụ sở kho bãi & văn phòng (Hiển thị chân trang):
                       </label>
                       <input
                         type="text"
-                        value={settingsForm.hotline}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, hotline: e.target.value })}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-rose-200 font-bold text-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-400"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1.5">Số điện thoại phụ / Điều hành kho</label>
-                      <input
-                        type="text"
-                        value={settingsForm.secondaryPhone || ''}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, secondaryPhone: e.target.value })}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-semibold"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1.5">Email tiếp nhận liên hệ</label>
-                      <input
-                        type="email"
-                        value={settingsForm.email}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, email: e.target.value })}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-semibold"
+                        value={settingsForm.address}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, address: e.target.value })}
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-amber-300 font-bold text-slate-900 bg-white"
                         required
                       />
                     </div>
                   </div>
 
-                  {/* Địa chỉ cơ sở chính - Theo yêu cầu chuẩn xác của chủ rạp */}
-                  <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-2">
-                    <label className="block font-bold text-slate-800 text-xs flex items-center gap-1.5 text-amber-900">
-                      <MapPin className="w-4 h-4 text-[#e05638]" />
-                      Địa chỉ cơ sở chính thức (Hiển thị toàn bộ website, liên hệ và footer):
-                    </label>
-                    <input
-                      type="text"
-                      value={settingsForm.address}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, address: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-amber-300 font-bold text-slate-900 bg-white"
-                      required
-                    />
-                    <p className="text-[11px] text-amber-800">
-                      Giá trị chuẩn: &ldquo;Nhà rạp Thái Đăng, Thôn Trực Đông, xã Cổ Lễ, tỉnh Ninh Bình&rdquo;
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1">Thời gian phục vụ & tư vấn</label>
-                      <input
-                        type="text"
-                        value={settingsForm.workingHours}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, workingHours: e.target.value })}
-                        className="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-medium"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1">Link Google Maps (Chỉ đường kho rạp)</label>
-                      <input
-                        type="url"
-                        value={settingsForm.googleMapsUrl || ''}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, googleMapsUrl: e.target.value })}
-                        className="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-medium"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Nhóm Kênh Mạng Xã Hội */}
+                  {/* KHỐI 4: KÊNH MẠNG XÃ HỘI (ICON TRÒN CỘT 1) */}
                   <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
                     <h5 className="font-bold text-slate-800 text-xs flex items-center gap-2">
                       <Globe className="w-4 h-4 text-blue-600" />
-                      Kênh Mạng Xã Hội & Fanpage Chính Thức
+                      Liên Kết Kênh Mạng Xã Hội (Hiển thị các icon Chia sẻ, Zalo, TikTok, YouTube ở Cột 1)
                     </h5>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -3178,18 +3326,18 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                         <label className="block font-bold text-slate-700 mb-1 text-blue-700">Link Facebook Fanpage</label>
                         <input
                           type="url"
-                          value={settingsForm.facebookFanpage}
-                          onChange={(e) => setSettingsForm({ ...settingsForm, facebookFanpage: e.target.value })}
+                          value={settingsForm.facebookFanpageUrl || settingsForm.facebookFanpage || ''}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, facebookFanpageUrl: e.target.value, facebookFanpage: e.target.value })}
                           className="w-full px-3.5 py-2 rounded-xl border border-blue-200 bg-white font-medium"
                           required
                         />
                       </div>
                       <div>
-                        <label className="block font-bold text-slate-700 mb-1 text-cyan-700">Link Zalo Official / Tư Vấn Chat</label>
+                        <label className="block font-bold text-slate-700 mb-1 text-cyan-700">Link / Số Zalo Official</label>
                         <input
-                          type="url"
-                          value={settingsForm.zaloChat}
-                          onChange={(e) => setSettingsForm({ ...settingsForm, zaloChat: e.target.value })}
+                          type="text"
+                          value={settingsForm.zaloPhone || settingsForm.zaloChat || ''}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, zaloPhone: e.target.value, zaloChat: e.target.value })}
                           className="w-full px-3.5 py-2 rounded-xl border border-cyan-200 bg-white font-medium"
                           required
                         />
@@ -3215,12 +3363,102 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                     </div>
                   </div>
 
-                  <div className="flex justify-end gap-3 pt-2">
+                  {/* KHỐI 5: DÒNG BẢN QUYỀN CHÂN TRANG */}
+                  <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 space-y-2">
+                    <label className="block font-bold text-slate-800 text-xs">
+                      Dòng Bản Quyền Phía Chân Trang (Copyright):
+                    </label>
+                    <input
+                      type="text"
+                      value={settingsForm.footerCopyright || '© 2026 • Tất cả các quyền được bảo lưu. Thiết kế & phát triển cho Nhà Rạp Thái Đăng.'}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, footerCopyright: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-amber-300 font-medium text-slate-800 bg-white"
+                      required
+                    />
+                  </div>
+
+                  {/* LIVE PREVIEW CHÂN TRANG THỰC TẾ (CHUẨN ẢNH 3) */}
+                  <div className="pt-2">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-bold text-slate-700 text-xs uppercase tracking-wider">
+                        Xem Trước Giao Diện Chân Trang Thực Tế (Live Preview):
+                      </span>
+                      <span className="text-[11px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded-md">
+                        Tự động đồng bộ theo nội dung trên
+                      </span>
+                    </div>
+
+                    <div className="p-6 rounded-2xl bg-[#faf7f2] border border-[#ede7dc] text-[#1c2434] shadow-inner space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-xs">
+                        {/* Col 1 */}
+                        <div className="space-y-2.5">
+                          <Crown className="w-5 h-5 text-[#c59b4c]" />
+                          <h6 className="font-bold text-[#0e4b44] uppercase tracking-wider">
+                            {settingsForm.footerSloganTitle || 'SỰ KIỆN TRỌN NIỀM VUI'}
+                          </h6>
+                          <div className="flex items-center gap-2 pt-1">
+                            <span className="w-7 h-7 rounded-full bg-[#f4ece1] text-[#8c6b3e] flex items-center justify-center font-bold text-[10px]">FB</span>
+                            <span className="w-7 h-7 rounded-full bg-[#f4ece1] text-[#8c6b3e] flex items-center justify-center font-bold text-[10px]">ZL</span>
+                            <span className="w-7 h-7 rounded-full bg-[#f4ece1] text-[#8c6b3e] flex items-center justify-center font-bold text-[10px]">TT</span>
+                            <span className="w-7 h-7 rounded-full bg-[#f4ece1] text-[#8c6b3e] flex items-center justify-center font-bold text-[10px]">YT</span>
+                          </div>
+                        </div>
+
+                        {/* Col 2 */}
+                        <div className="space-y-2">
+                          <h6 className="font-bold text-[#0e4b44] uppercase tracking-wider">
+                            {settingsForm.footerCol2Title || 'DỊCH VỤ TỔ CHỨC'}
+                          </h6>
+                          <ul className="space-y-1.5 text-stone-600">
+                            {footerCol2Text.split('\n').filter(Boolean).map((line, idx) => (
+                              <li key={idx}>• {line}</li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        {/* Col 3 */}
+                        <div className="space-y-2">
+                          <h6 className="font-bold text-[#0e4b44] uppercase tracking-wider">
+                            {settingsForm.footerCol3Title || 'CHÍNH SÁCH & CAM KẾT'}
+                          </h6>
+                          <ul className="space-y-1.5 text-stone-600">
+                            {footerCol3Text.split('\n').filter(Boolean).map((line, idx) => (
+                              <li key={idx}>• {line}</li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        {/* Col 4 */}
+                        <div className="space-y-2">
+                          <h6 className="font-bold text-[#0e4b44] uppercase tracking-wider">
+                            {settingsForm.footerCol4Title || 'LIÊN HỆ TRỰC TIẾP'}
+                          </h6>
+                          <p className="text-stone-600 leading-snug">
+                            Trụ sở: {settingsForm.address}
+                          </p>
+                          <p className="text-stone-800 font-bold">
+                            Hotline: <span className="text-[#ee5a45]">{settingsForm.hotline}</span>
+                          </p>
+                          <p className="text-stone-600">
+                            Email: {settingsForm.email}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-[#e8e2d4] text-[11px] text-stone-500 flex justify-between">
+                        <span>{settingsForm.footerCopyright || '© 2026 • Tất cả các quyền được bảo lưu.'}</span>
+                        <span>Nhà Rạp Thái Đăng</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-3 pt-3 border-t border-slate-200">
                     <button
                       type="submit"
-                      className="px-6 py-2.5 rounded-xl bg-[#0e4b44] hover:bg-[#155e55] text-white font-bold shadow-md hover:scale-102 transition-transform text-xs cursor-pointer"
+                      className="px-8 py-3 rounded-2xl bg-[#0e4b44] hover:bg-[#155e55] text-white font-bold shadow-md hover:scale-102 transition-transform text-xs cursor-pointer flex items-center gap-2"
                     >
-                      Lưu Thông Tin Chân Trang & Áp Dụng
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Lưu Toàn Bộ Chân Trang & Áp Dụng Ngay</span>
                     </button>
                   </div>
                 </form>
@@ -4311,6 +4549,139 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: THÊM / CHỈNH SỬA CHUYÊN MỤC CMS & MENU HEADER */}
+      {showCatModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fade-in">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl border border-stone-200">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <Globe className="w-5 h-5 text-[#0e4b44]" />
+                <h3 className="font-bold text-slate-900 text-base">
+                  {editingCatId ? 'Chỉnh Sửa Chuyên Mục & Menu' : 'Thêm Chuyên Mục Mới'}
+                </h3>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setShowCatModal(false)} 
+                className="text-slate-400 hover:text-slate-600 cursor-pointer p-1 rounded-lg hover:bg-slate-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveCategory} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Tên chuyên mục / Nhãn Menu *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ví dụ: Trang chủ, Mẫu rạp, Dịch vụ, Thiệp cưới..."
+                  value={catName}
+                  onChange={(e) => setCatName(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#c5a059]"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Mã định danh (Slug)</label>
+                  <input
+                    type="text"
+                    placeholder="mau-rap, dich-vu..."
+                    value={catSlug}
+                    onChange={(e) => setCatSlug(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-mono text-slate-800"
+                  />
+                  <p className="text-[10px] text-slate-500 mt-1">Để trống hệ thống tự sinh theo tên</p>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Thứ tự hiển thị (Sort Order)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="99"
+                    value={catSortOrder}
+                    onChange={(e) => setCatSortOrder(Number(e.target.value))}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-bold"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">
+                  Đường dẫn liên kết / Neo cuộn trang (linkUrl) *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ví dụ: #top, #mau-rap, #dich-vu, #thiep-cuoi, #ve-chung-toi, #lien-he"
+                  value={catLinkUrl}
+                  onChange={(e) => setCatLinkUrl(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-medium font-mono text-emerald-800"
+                />
+                <p className="text-[10px] text-slate-500 mt-1">Dùng #id để cuộn mượt đến vị trí tương ứng ngoài website</p>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Mô tả tóm tắt</label>
+                <textarea
+                  rows={2}
+                  placeholder="Mô tả nội dung chuyên mục này..."
+                  value={catDesc}
+                  onChange={(e) => setCatDesc(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200"
+                />
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="catIsHeaderNavCheck"
+                    checked={catIsHeaderNav}
+                    onChange={(e) => setCatIsHeaderNav(e.target.checked)}
+                    className="rounded text-[#0e4b44] focus:ring-[#0e4b44] w-4 h-4 cursor-pointer"
+                  />
+                  <label htmlFor="catIsHeaderNavCheck" className="font-bold text-slate-800 cursor-pointer">
+                    Hiển thị chuyên mục này trên Thanh Menu Header chính (Image 4)
+                  </label>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="catIsActiveCheck"
+                    checked={catIsActive}
+                    onChange={(e) => setCatIsActive(e.target.checked)}
+                    className="rounded text-emerald-600 focus:ring-emerald-600 w-4 h-4 cursor-pointer"
+                  />
+                  <label htmlFor="catIsActiveCheck" className="font-semibold text-slate-700 cursor-pointer">
+                    Kích hoạt hoạt động (Cho phép khách hàng truy cập)
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowCatModal(false)}
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 font-bold hover:bg-slate-50 cursor-pointer"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl bg-[#0e4b44] hover:bg-[#155e55] text-white font-bold shadow-md hover:scale-102 transition-transform cursor-pointer"
+                >
+                  {editingCatId ? 'Cập Nhật Chuyên Mục' : 'Lưu Chuyên Mục Mới'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

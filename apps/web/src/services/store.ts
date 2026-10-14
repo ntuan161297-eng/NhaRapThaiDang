@@ -69,6 +69,7 @@ export interface CompanyInfo {
   brandName: string;
   slogan: string;
   hotline: string;
+  secondaryPhone?: string;
   zaloPhone: string;
   facebookFanpageUrl: string;
   tiktokUrl: string;
@@ -76,6 +77,15 @@ export interface CompanyInfo {
   address: string;
   email: string;
   workingHours: string;
+  googleMapsUrl?: string;
+  // Cấu hình quản trị Chân trang (Footer CMS - Toàn quyền quản trị nội dung)
+  footerSloganTitle?: string;
+  footerCol2Title?: string;
+  footerCol2Items?: string[];
+  footerCol3Title?: string;
+  footerCol3Items?: string[];
+  footerCol4Title?: string;
+  footerCopyright?: string;
 }
 
 export interface CmsCategory {
@@ -86,6 +96,9 @@ export interface CmsCategory {
   iconName: string;
   itemCount: number;
   isActive: boolean;
+  linkUrl?: string; // Liên kết điều hướng (ví dụ: #mau-rap, #dich-vu, #thiep-cuoi...)
+  sortOrder?: number; // Thứ tự hiển thị
+  isHeaderNav?: boolean; // Bật/tắt hiển thị trên thanh Menu Header
 }
 
 export interface CmsPartnerPhoto {
@@ -804,13 +817,14 @@ export const INITIAL_WAREHOUSE_ALERTS: WarehouseAlertItem[] = [
   { id: 'WHA-02', title: 'Bạt trắng 10m: chỉ còn 1 bộ', detail: 'cần kiểm tra vệ sinh sau thu hồi', severity: 'warning', iconType: 'tents' },
 ];
 
-// Danh mục CMS Chuyên mục
+// Danh mục CMS Chuyên mục (Đồng bộ trực tiếp với Thanh Menu Header Image 4)
 export const INITIAL_CMS_CATEGORIES: CmsCategory[] = [
-  { id: 'CAT-01', name: 'Đám cưới', slug: 'dam-cuoi', description: 'Rạp cưới trọn gói, sang trọng, ấm cúng', iconName: 'rings', itemCount: 18, isActive: true },
-  { id: 'CAT-02', name: 'Đám hỏi', slug: 'dam-hoi', description: 'Tinh tế, trang trọng, đúng phong tục', iconName: 'heart', itemCount: 12, isActive: true },
-  { id: 'CAT-03', name: 'Nhà mới', slug: 'nha-moi', description: 'Không gian ấm cúng, khởi đầu may mắn', iconName: 'home', itemCount: 8, isActive: true },
-  { id: 'CAT-04', name: 'Thiệp cưới online', slug: 'thiep-cuoi', description: 'Mẫu đẹp, cá nhân hoá theo yêu cầu', iconName: 'mail', itemCount: 15, isActive: true },
-  { id: 'CAT-05', name: 'Kinh nghiệm tổ chức', slug: 'kinh-nghiem', description: 'Bí quyết dự toán, phong tục và lưu ý', iconName: 'book', itemCount: 9, isActive: true },
+  { id: 'CAT-01', name: 'Trang chủ', slug: 'trang-chu', linkUrl: '#top', description: 'Trang chủ Nhà rạp Thái Đăng', iconName: 'home', itemCount: 10, isActive: true, sortOrder: 1, isHeaderNav: true },
+  { id: 'CAT-02', name: 'Mẫu rạp', slug: 'mau-rap', linkUrl: '#mau-rap', description: 'Bộ sưu tập mẫu rạp cưới & rạp sự kiện', iconName: 'tents', itemCount: 18, isActive: true, sortOrder: 2, isHeaderNav: true },
+  { id: 'CAT-03', name: 'Dịch vụ', slug: 'dich-vu', linkUrl: '#dich-vu', description: 'Gói dịch vụ tiệc cưới, ăn hỏi trọn gói', iconName: 'briefcase', itemCount: 12, isActive: true, sortOrder: 3, isHeaderNav: true },
+  { id: 'CAT-04', name: 'Thiệp cưới', slug: 'thiep-cuoi', linkUrl: '#thiep-cuoi', description: 'Mẫu thiệp cưới online sang trọng', iconName: 'mail', itemCount: 15, isActive: true, sortOrder: 4, isHeaderNav: true },
+  { id: 'CAT-05', name: 'Về chúng tôi', slug: 've-chung-toi', linkUrl: '#ve-chung-toi', description: 'Giới thiệu năng lực và quy mô nhà rạp', iconName: 'users', itemCount: 8, isActive: true, sortOrder: 5, isHeaderNav: true },
+  { id: 'CAT-06', name: 'Liên hệ – Chỉ đường', slug: 'lien-he', linkUrl: '#lien-he', description: 'Thông tin liên hệ, bản đồ và hotline', iconName: 'map-pin', itemCount: 9, isActive: true, sortOrder: 6, isHeaderNav: true },
 ];
 
 // Ảnh liên kết & Thư viện mẫu rạp thực tế
@@ -1080,6 +1094,7 @@ export const INITIAL_COMPANY_INFO: CompanyInfo = {
   brandName: CONTACT_CONFIG.BRAND_NAME,
   slogan: CONTACT_CONFIG.SLOGAN,
   hotline: CONTACT_CONFIG.DEFAULT_HOTLINE,
+  secondaryPhone: '',
   zaloPhone: CONTACT_CONFIG.DEFAULT_ZALO,
   facebookFanpageUrl: CONTACT_CONFIG.FACEBOOK_URL,
   tiktokUrl: CONTACT_CONFIG.TIKTOK_URL,
@@ -1087,6 +1102,26 @@ export const INITIAL_COMPANY_INFO: CompanyInfo = {
   address: CONTACT_CONFIG.ADDRESS,
   email: CONTACT_CONFIG.EMAIL,
   workingHours: CONTACT_CONFIG.WORKING_HOURS,
+  googleMapsUrl: '',
+  // Footer CMS mặc định chuẩn xác theo Ảnh 3
+  footerSloganTitle: 'SỰ KIỆN TRỌN NIỀM VUI',
+  footerCol2Title: 'DỊCH VỤ TỔ CHỨC',
+  footerCol2Items: [
+    'Tiệc cưới hoành tráng',
+    'Lễ ăn hỏi & đính hôn',
+    'Lễ tân gia mừng nhà mới',
+    'Sự kiện khai trương & khánh thành',
+    'Cung cấp thiết bị bàn ghế & âm thanh',
+  ],
+  footerCol3Title: 'CHÍNH SÁCH & CAM KẾT',
+  footerCol3Items: [
+    'Khảo sát đo đạc mặt bằng miễn phí',
+    'Bảo đảm an toàn kết cấu rạp khẩu độ lớn',
+    'Cam kết đúng giờ hoàng đạo 100%',
+    'Dụng cụ bàn ghế sạch sẽ, khử khuẩn',
+  ],
+  footerCol4Title: 'LIÊN HỆ TRỰC TIẾP',
+  footerCopyright: '© 2026 • Tất cả các quyền được bảo lưu. Thiết kế & phát triển cho Nhà Rạp Thái Đăng.',
 };
 
 /**
@@ -1138,6 +1173,7 @@ class AppStateStore {
       localStorage.setItem('td_company_info', JSON.stringify(this.companyInfo));
       localStorage.setItem('td_cms_themes', JSON.stringify(this.cmsThemes));
       localStorage.setItem('td_cms_banner_slides', JSON.stringify(this.cmsBannerSlides));
+      localStorage.setItem('td_cms_categories', JSON.stringify(this.cmsCategories));
 
       // Lưu phiên đăng nhập Quản Trị Viên (Staff Session)
       if (this.authenticatedStaff) {
@@ -1180,26 +1216,35 @@ class AppStateStore {
       const sCustomers = localStorage.getItem('td_customers');
       if (sCustomers) this.customers = JSON.parse(sCustomers);
 
-      // ĐỒNG BỘ THÔNG TIN LIÊN HỆ TỪ NGUỒN DUY NHẤT (SINGLE SOURCE OF TRUTH)
-      // Dọn sạch giá trị rác trong localStorage của các trình duyệt cũ để mọi máy/trình duyệt đều hiển thị 1 số duy nhất
+      // ĐỒNG BỘ THÔNG TIN ĐƠN VỊ & CHÂN TRANG
       const sComp = localStorage.getItem('td_company_info');
       if (sComp) {
         try {
           const parsed = JSON.parse(sComp);
           this.companyInfo = {
+            ...INITIAL_COMPANY_INFO,
             ...parsed,
-            brandName: CONTACT_CONFIG.BRAND_NAME,
-            hotline: CONTACT_CONFIG.DEFAULT_HOTLINE,
-            zaloPhone: CONTACT_CONFIG.DEFAULT_ZALO,
-            address: CONTACT_CONFIG.ADDRESS,
-            email: CONTACT_CONFIG.EMAIL,
+            brandName: parsed.brandName || CONTACT_CONFIG.BRAND_NAME,
+            hotline: parsed.hotline || CONTACT_CONFIG.DEFAULT_HOTLINE,
+            zaloPhone: parsed.zaloPhone || CONTACT_CONFIG.DEFAULT_ZALO,
+            address: parsed.address || CONTACT_CONFIG.ADDRESS,
+            email: parsed.email || CONTACT_CONFIG.EMAIL,
           };
-          localStorage.setItem('td_company_info', JSON.stringify(this.companyInfo));
         } catch {
           this.companyInfo = JSON.parse(JSON.stringify(INITIAL_COMPANY_INFO));
         }
       } else {
         this.companyInfo = JSON.parse(JSON.stringify(INITIAL_COMPANY_INFO));
+      }
+
+      const sCats = localStorage.getItem('td_cms_categories');
+      if (sCats) {
+        try {
+          const parsedCats = JSON.parse(sCats);
+          if (Array.isArray(parsedCats) && parsedCats.length > 0) {
+            this.cmsCategories = parsedCats;
+          }
+        } catch {}
       }
 
       const sThemes = localStorage.getItem('td_cms_themes');
@@ -1291,6 +1336,12 @@ class AppStateStore {
   public getArticles(): ArticleRecord[] { return [...this.articles]; }
   public getPromotions(): PromotionBanner[] { return [...this.promotions]; }
   public getCompanyInfo(): CompanyInfo { return { ...this.companyInfo }; }
+  public updateCompanyInfo(updates: Partial<CompanyInfo>) {
+    this.companyInfo = { ...this.companyInfo, ...updates };
+    this.saveToLocalStorage();
+    this.notify();
+    return { success: true, message: 'Đã lưu cấu hình thông tin chân trang và thương hiệu thành công!' };
+  }
   public getStaffMembers(): (UserProfile & { username?: string; password?: string })[] { return [...this.staffMembers]; }
   public getAuthenticatedStaff(): UserProfile | null { return this.authenticatedStaff; }
   public getAuthenticatedCustomer(): CustomerAccount | null { return this.authenticatedCustomer; }

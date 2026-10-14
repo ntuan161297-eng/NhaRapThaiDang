@@ -41,9 +41,27 @@ export const Header: React.FC<HeaderProps> = ({
   companyInfo,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'trang-chu' | 'mau-rap' | 'dich-vu' | 'thiep-cuoi' | 've-chung-toi' | 'lien-he'>('trang-chu');
+  const [activeTab, setActiveTab] = useState<string>('trang-chu');
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const hotline = getOfficialContactHotline(companyInfo?.hotline);
+
+  // Danh mục chuyên mục thanh Menu Header quản trị từ CMS
+  const [navCategories, setNavCategories] = useState(() => 
+    appStore.getCmsCategories()
+      .filter(c => c.isActive && c.isHeaderNav !== false)
+      .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+  );
+
+  useEffect(() => {
+    const unsub = appStore.subscribe(() => {
+      setNavCategories(
+        appStore.getCmsCategories()
+          .filter(c => c.isActive && c.isHeaderNav !== false)
+          .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+      );
+    });
+    return unsub;
+  }, []);
 
   // Khóa cuộn trang trên mobile khi Menu mở & hỗ trợ phím Escape
   useEffect(() => {
@@ -163,79 +181,22 @@ export const Header: React.FC<HeaderProps> = ({
           />
         </div>
 
-        {/* MENU TRUNG TÂM TRÊN 1 HÀNG DUY NHẤT (CHUẨN ẢNH) */}
+        {/* MENU TRUNG TÂM TRÊN 1 HÀNG DUY NHẤT (QUẢN TRỊ NỘI DUNG TỪ CMS) */}
         <nav className="hidden md:flex items-center gap-3 lg:gap-6 text-xs lg:text-sm font-semibold text-stone-700 whitespace-nowrap shrink-0">
-          <button
-            onClick={() => handleNavClick('trang-chu', '#top')}
-            className={`py-2 relative transition-colors cursor-pointer whitespace-nowrap ${
-              activeTab === 'trang-chu' ? 'text-stone-900 font-bold' : 'hover:text-[#ee5a45]'
-            }`}
-          >
-            Trang chủ
-            {activeTab === 'trang-chu' && (
-              <span className="absolute bottom-0 left-0 w-full h-[2.5px] bg-[#ee5a45] rounded-full" />
-            )}
-          </button>
-
-          <button
-            onClick={() => handleNavClick('mau-rap', '#mau-rap')}
-            className={`py-2 relative transition-colors cursor-pointer whitespace-nowrap ${
-              activeTab === 'mau-rap' ? 'text-stone-900 font-bold' : 'hover:text-[#ee5a45]'
-            }`}
-          >
-            Mẫu rạp
-            {activeTab === 'mau-rap' && (
-              <span className="absolute bottom-0 left-0 w-full h-[2.5px] bg-[#ee5a45] rounded-full" />
-            )}
-          </button>
-
-          <button
-            onClick={() => handleNavClick('dich-vu', '#dich-vu')}
-            className={`py-2 relative transition-colors cursor-pointer whitespace-nowrap ${
-              activeTab === 'dich-vu' ? 'text-stone-900 font-bold' : 'hover:text-[#ee5a45]'
-            }`}
-          >
-            Dịch vụ
-            {activeTab === 'dich-vu' && (
-              <span className="absolute bottom-0 left-0 w-full h-[2.5px] bg-[#ee5a45] rounded-full" />
-            )}
-          </button>
-
-          <button
-            onClick={() => handleNavClick('thiep-cuoi', '#thiep-cuoi')}
-            className={`py-2 relative transition-colors cursor-pointer whitespace-nowrap ${
-              activeTab === 'thiep-cuoi' ? 'text-stone-900 font-bold' : 'hover:text-[#ee5a45]'
-            }`}
-          >
-            Thiệp cưới
-            {activeTab === 'thiep-cuoi' && (
-              <span className="absolute bottom-0 left-0 w-full h-[2.5px] bg-[#ee5a45] rounded-full" />
-            )}
-          </button>
-
-          <button
-            onClick={() => handleNavClick('ve-chung-toi', '#ve-chung-toi')}
-            className={`py-2 relative transition-colors cursor-pointer whitespace-nowrap ${
-              activeTab === 've-chung-toi' ? 'text-stone-900 font-bold' : 'hover:text-[#ee5a45]'
-            }`}
-          >
-            Về chúng tôi
-            {activeTab === 've-chung-toi' && (
-              <span className="absolute bottom-0 left-0 w-full h-[2.5px] bg-[#ee5a45] rounded-full" />
-            )}
-          </button>
-
-          <button
-            onClick={() => handleNavClick('lien-he', '#lien-he')}
-            className={`py-2 relative transition-colors cursor-pointer whitespace-nowrap ${
-              activeTab === 'lien-he' ? 'text-stone-900 font-bold' : 'hover:text-[#ee5a45]'
-            }`}
-          >
-            Liên hệ – Chỉ đường
-            {activeTab === 'lien-he' && (
-              <span className="absolute bottom-0 left-0 w-full h-[2.5px] bg-[#ee5a45] rounded-full" />
-            )}
-          </button>
+          {navCategories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => handleNavClick(cat.slug, cat.linkUrl || `#${cat.slug}`)}
+              className={`py-2 relative transition-colors cursor-pointer whitespace-nowrap ${
+                activeTab === cat.slug ? 'text-stone-900 font-bold' : 'hover:text-[#ee5a45]'
+              }`}
+            >
+              {cat.name}
+              {activeTab === cat.slug && (
+                <span className="absolute bottom-0 left-0 w-full h-[2.5px] bg-[#ee5a45] rounded-full" />
+              )}
+            </button>
+          ))}
 
           {/* Nút Trợ năng Accessibility (Kèm Menu Popover Chuẩn Ảnh) */}
           <div className="flex items-center pl-2 border-l border-stone-200">
@@ -465,67 +426,20 @@ export const Header: React.FC<HeaderProps> = ({
                 </button>
               </div>
 
-              {/* Danh sách các liên kết menu */}
+              {/* Danh sách các liên kết menu (Quản trị trực tiếp từ CMS) */}
               <div className="p-4 space-y-1 text-sm font-semibold">
-                <button 
-                  onClick={() => handleNavClick('trang-chu', '#top')} 
-                  className={`w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between transition-colors ${
-                    activeTab === 'trang-chu' ? 'bg-[#0e4b44]/10 text-[#0e4b44] font-bold' : 'hover:bg-stone-100 text-stone-800'
-                  }`}
-                >
-                  <span>Trang chủ</span>
-                  <ChevronRight className="w-4 h-4 text-stone-400" />
-                </button>
-                
-                <button 
-                  onClick={() => handleNavClick('mau-rap', '#mau-rap')} 
-                  className={`w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between transition-colors ${
-                    activeTab === 'mau-rap' ? 'bg-[#0e4b44]/10 text-[#0e4b44] font-bold' : 'hover:bg-stone-100 text-stone-800'
-                  }`}
-                >
-                  <span>Mẫu rạp</span>
-                  <ChevronRight className="w-4 h-4 text-stone-400" />
-                </button>
-                
-                <button 
-                  onClick={() => handleNavClick('dich-vu', '#dich-vu')} 
-                  className={`w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between transition-colors ${
-                    activeTab === 'dich-vu' ? 'bg-[#0e4b44]/10 text-[#0e4b44] font-bold' : 'hover:bg-stone-100 text-stone-800'
-                  }`}
-                >
-                  <span>Dịch vụ trọn gói</span>
-                  <ChevronRight className="w-4 h-4 text-stone-400" />
-                </button>
-                
-                <button 
-                  onClick={() => handleNavClick('thiep-cuoi', '#thiep-cuoi')} 
-                  className={`w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between transition-colors ${
-                    activeTab === 'thiep-cuoi' ? 'bg-[#0e4b44]/10 text-[#0e4b44] font-bold' : 'hover:bg-stone-100 text-stone-800'
-                  }`}
-                >
-                  <span>Thiệp cưới trực tuyến</span>
-                  <ChevronRight className="w-4 h-4 text-stone-400" />
-                </button>
-                
-                <button 
-                  onClick={() => handleNavClick('ve-chung-toi', '#ve-chung-toi')} 
-                  className={`w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between transition-colors ${
-                    activeTab === 've-chung-toi' ? 'bg-[#0e4b44]/10 text-[#0e4b44] font-bold' : 'hover:bg-stone-100 text-stone-800'
-                  }`}
-                >
-                  <span>Về chúng tôi</span>
-                  <ChevronRight className="w-4 h-4 text-stone-400" />
-                </button>
-                
-                <button 
-                  onClick={() => handleNavClick('lien-he', '#lien-he')} 
-                  className={`w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between transition-colors ${
-                    activeTab === 'lien-he' ? 'bg-[#0e4b44]/10 text-[#0e4b44] font-bold' : 'hover:bg-stone-100 text-stone-800'
-                  }`}
-                >
-                  <span>Liên hệ – Chỉ đường</span>
-                  <ChevronRight className="w-4 h-4 text-stone-400" />
-                </button>
+                {navCategories.map((cat) => (
+                  <button 
+                    key={cat.id}
+                    onClick={() => handleNavClick(cat.slug, cat.linkUrl || `#${cat.slug}`)} 
+                    className={`w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between transition-colors ${
+                      activeTab === cat.slug ? 'bg-[#0e4b44]/10 text-[#0e4b44] font-bold' : 'hover:bg-stone-100 text-stone-800'
+                    }`}
+                  >
+                    <span>{cat.name}</span>
+                    <ChevronRight className="w-4 h-4 text-stone-400" />
+                  </button>
+                ))}
 
                 {/* NÚT ĐẶT LỊCH NỔI BẬT TRONG MENU */}
                 <div className="pt-2">

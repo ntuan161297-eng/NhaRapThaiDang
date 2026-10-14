@@ -1792,12 +1792,12 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
               <Crown className="w-6 h-6 text-[#c59b4c]" />
             </div>
             <h4 className="font-bold text-[#0e4b44] text-sm tracking-wider uppercase">
-              SỰ KIỆN TRỌN NIỀM VUI
+              {companyInfo.footerSloganTitle || 'SỰ KIỆN TRỌN NIỀM VUI'}
             </h4>
             <div className="flex items-center gap-2.5 pt-1">
               {/* Nút Chia sẻ / Fanpage */}
               <a
-                href={companyInfo.facebookFanpage || 'https://facebook.com'}
+                href={companyInfo.facebookFanpageUrl || companyInfo.facebookFanpage || 'https://facebook.com'}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-full bg-[#f4ece1] hover:bg-[#ebdcc8] text-[#8c6b3e] flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
@@ -1807,7 +1807,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
               </a>
               {/* Nút Zalo */}
               <a
-                href={companyInfo.zaloChat || 'https://zalo.me'}
+                href={companyInfo.zaloPhone ? (companyInfo.zaloPhone.startsWith('http') ? companyInfo.zaloPhone : `https://zalo.me/${companyInfo.zaloPhone.replace(/\D/g, '')}`) : 'https://zalo.me'}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-full bg-[#f4ece1] hover:bg-[#ebdcc8] text-[#8c6b3e] flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
@@ -1838,37 +1838,55 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
             </div>
           </div>
 
-          {/* Cột 2: Dịch Vụ Tổ Chức */}
+          {/* Cột 2: Dịch Vụ Tổ Chức (Quản trị được nội dung từ CMS) */}
           <div className="space-y-3">
             <h4 className="font-bold text-[#0e4b44] uppercase tracking-wider text-sm">
-              DỊCH VỤ TỔ CHỨC
+              {companyInfo.footerCol2Title || 'DỊCH VỤ TỔ CHỨC'}
             </h4>
             <ul className="space-y-2.5 text-stone-600 font-medium">
-              <li>Tiệc cưới hoành tráng</li>
-              <li>Lễ ăn hỏi &amp; đính hôn</li>
-              <li>Lễ tân gia mừng nhà mới</li>
-              <li>Sự kiện khai trương &amp; khánh thành</li>
-              <li>Cung cấp thiết bị bàn ghế &amp; âm thanh</li>
+              {(companyInfo.footerCol2Items && companyInfo.footerCol2Items.length > 0
+                ? companyInfo.footerCol2Items
+                : [
+                    'Tiệc cưới hoành tráng',
+                    'Lễ ăn hỏi & đính hôn',
+                    'Lễ tân gia mừng nhà mới',
+                    'Sự kiện khai trương & khánh thành',
+                    'Cung cấp thiết bị bàn ghế & âm thanh',
+                  ]
+              ).map((item, idx) => (
+                <li key={idx} className="hover:text-stone-900 transition-colors">
+                  {item}
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Cột 3: Chính Sách & Cam Kết */}
+          {/* Cột 3: Chính Sách & Cam Kết (Quản trị được nội dung từ CMS) */}
           <div className="space-y-3">
             <h4 className="font-bold text-[#0e4b44] uppercase tracking-wider text-sm">
-              CHÍNH SÁCH &amp; CAM KẾT
+              {companyInfo.footerCol3Title || 'CHÍNH SÁCH & CAM KẾT'}
             </h4>
             <ul className="space-y-2.5 text-stone-600 font-medium">
-              <li>Khảo sát đo đạc mặt bằng miễn phí</li>
-              <li>Bảo đảm an toàn kết cấu rạp khẩu độ lớn</li>
-              <li>Cam kết đúng giờ hoàng đạo 100%</li>
-              <li>Dụng cụ bàn ghế sạch sẽ, khử khuẩn</li>
+              {(companyInfo.footerCol3Items && companyInfo.footerCol3Items.length > 0
+                ? companyInfo.footerCol3Items
+                : [
+                    'Khảo sát đo đạc mặt bằng miễn phí',
+                    'Bảo đảm an toàn kết cấu rạp khẩu độ lớn',
+                    'Cam kết đúng giờ hoàng đạo 100%',
+                    'Dụng cụ bàn ghế sạch sẽ, khử khuẩn',
+                  ]
+              ).map((item, idx) => (
+                <li key={idx} className="hover:text-stone-900 transition-colors">
+                  {item}
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Cột 4: Liên Hệ Trực Tiếp */}
+          {/* Cột 4: Liên Hệ Trực Tiếp (Quản trị được nội dung từ CMS) */}
           <div className="space-y-3">
             <h4 className="font-bold text-[#0e4b44] uppercase tracking-wider text-sm">
-              LIÊN HỆ TRỰC TIẾP
+              {companyInfo.footerCol4Title || 'LIÊN HỆ TRỰC TIẾP'}
             </h4>
             <p className="text-stone-600 font-medium leading-relaxed">
               Trụ sở kho bãi &amp; văn phòng: {companyInfo.address || 'Thôn Trực Đông, xã Cổ Lễ, tỉnh Ninh Bình'}
@@ -1883,10 +1901,10 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
 
         </div>
 
-        {/* Thanh bản quyền phía chân trang */}
+        {/* Thanh bản quyền phía chân trang (Quản trị được nội dung từ CMS) */}
         <div className="max-w-7xl mx-auto px-4 sm:px-8 pt-6 flex flex-wrap items-center justify-between text-stone-500 text-xs font-medium gap-2">
-          <p>© 2026 • Tất cả các quyền được bảo lưu.</p>
-          <p>Thiết kế &amp; phát triển cho Nhà Rạp Thái Đăng.</p>
+          <p>{companyInfo.footerCopyright || '© 2026 • Tất cả các quyền được bảo lưu. Thiết kế & phát triển cho Nhà Rạp Thái Đăng.'}</p>
+          <p>Hệ Thống Sự Kiện &amp; Rạp Cưới Thái Đăng Ninh Bình.</p>
         </div>
       </footer>
 
