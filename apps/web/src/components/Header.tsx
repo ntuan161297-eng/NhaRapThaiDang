@@ -17,6 +17,8 @@ import {
   LogOut,
   ChevronDown,
   CheckCircle,
+  ChevronRight,
+  Crown,
 } from 'lucide-react';
 import { CompanyInfo, appStore } from '../services/store';
 import { UserProfile } from '@thai-dang/shared';
@@ -428,9 +430,9 @@ export const Header: React.FC<HeaderProps> = ({
 
               {/* Danh sách các liên kết menu (Quản trị trực tiếp từ CMS) */}
               <div className="p-4 space-y-1 text-sm font-semibold">
-                {navCategories.map((cat) => (
+                {(navCategories || []).map((cat, idx) => (
                   <button 
-                    key={cat.id}
+                    key={cat.id || cat.slug || idx}
                     onClick={() => handleNavClick(cat.slug, cat.linkUrl || `#${cat.slug}`)} 
                     className={`w-full text-left py-3 px-3.5 rounded-xl flex items-center justify-between transition-colors ${
                       activeTab === cat.slug ? 'bg-[#0e4b44]/10 text-[#0e4b44] font-bold' : 'hover:bg-stone-100 text-stone-800'
