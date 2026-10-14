@@ -1,5 +1,6 @@
 // apps/web/src/components/Header.tsx
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   Phone, 
   Calendar, 
@@ -394,42 +395,43 @@ export const Header: React.FC<HeaderProps> = ({
 
       </div>
 
-      {/* MOBILE SLIDE-OVER DRAWER VỚI BACKDROP VÀ NÚT ĐÓNG RÕ RÀNG (KHÔNG TRẮNG MÀN HÌNH) */}
-      {mobileMenuOpen && (
-        <>
-          {/* Lớp nền đen bán trong suốt (Backdrop) */}
+      {/* MOBILE SLIDE-OVER DRAWER VỚI PORTAL ĐỘC LẬP (KHÔNG BỊ ẢNH HƯỞNG BỞI HEADER HOẶC CUỘN ĐÈ) */}
+      {mobileMenuOpen && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[99999] flex justify-end">
+          {/* Lớp nền đen bán trong suốt (Backdrop) phủ kín toàn màn hình */}
           <div 
-            className="fixed inset-0 bg-black/60 z-[9998] transition-opacity duration-300 backdrop-blur-xs"
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity duration-300"
             onClick={() => setMobileMenuOpen(false)}
             aria-hidden="true"
           />
 
-          {/* Drawer trượt từ bên phải */}
+          {/* Panel Drawer trượt từ bên phải */}
           <div 
-            className="fixed inset-y-0 right-0 w-[320px] max-w-[88vw] bg-white z-[9999] shadow-2xl flex flex-col justify-between overflow-y-auto text-stone-800"
+            className="relative w-[320px] max-w-[85vw] h-full bg-white shadow-2xl flex flex-col justify-between text-stone-800 z-10"
             role="dialog"
             aria-modal="true"
             aria-label="Menu điều hướng di động"
           >
-            {/* Header Drawer có logo + NÚT ĐÓNG RÕ RÀNG */}
-            <div>
-              <div className="p-4 border-b border-stone-200 flex items-center justify-between bg-stone-50/90 sticky top-0 z-10">
-                <div className="flex items-center gap-2.5">
-                  <img src="/logo_thai_dang.png" alt="Nhà Rạp Thái Đăng" className="h-8 w-auto object-contain" />
-                  <span className="font-bold text-stone-900 text-sm">Danh Mục Menu</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="w-9 h-9 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 flex items-center justify-center transition-colors cursor-pointer border border-stone-200"
-                  aria-label="Đóng menu điều hướng"
-                >
-                  <X className="w-5 h-5 stroke-[2.5]" />
-                </button>
+            {/* 1. Header cố định nền đặc (Không bị chữ trượt qua đè lên) */}
+            <div className="p-4 border-b border-stone-200 flex items-center justify-between bg-stone-50 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <img src="/logo_thai_dang.png" alt="Nhà Rạp Thái Đăng" className="h-8 w-auto object-contain" />
+                <span className="font-bold text-stone-900 text-sm">Danh Mục Menu</span>
               </div>
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-9 h-9 rounded-full bg-stone-200 hover:bg-stone-300 text-stone-700 flex items-center justify-center transition-colors cursor-pointer border border-stone-300"
+                aria-label="Đóng menu điều hướng"
+              >
+                <X className="w-5 h-5 stroke-[2.5]" />
+              </button>
+            </div>
 
-              {/* Danh sách các liên kết menu (Quản trị trực tiếp từ CMS) */}
-              <div className="p-4 space-y-1 text-sm font-semibold">
+            {/* 2. Phần thân có thể cuộn riêng biệt (flex-1 overflow-y-auto) */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 text-sm font-semibold">
+              {/* Danh sách các chuyên mục CMS */}
+              <div className="space-y-1">
                 {(navCategories || []).map((cat, idx) => (
                   <button 
                     key={cat.id || cat.slug || idx}
@@ -442,118 +444,118 @@ export const Header: React.FC<HeaderProps> = ({
                     <ChevronRight className="w-4 h-4 text-stone-400" />
                   </button>
                 ))}
+              </div>
 
-                {/* NÚT ĐẶT LỊCH NỔI BẬT TRONG MENU */}
-                <div className="pt-2">
-                  <button
-                    onClick={() => handleNavClick('dich-vu', '#dat-lich')}
-                    className="w-full py-3 px-4 rounded-xl bg-[#ee5a45] hover:bg-[#e04530] text-white font-bold text-sm flex items-center justify-center gap-2 cursor-pointer shadow-sm transition-colors"
-                  >
-                    <Calendar className="w-4 h-4" />
-                    <span>ĐẶT LỊCH KHẢO SÁT NGAY</span>
-                  </button>
-                </div>
+              {/* NÚT ĐẶT LỊCH NỔI BẬT TRONG MENU */}
+              <div className="pt-1">
+                <button
+                  onClick={() => handleNavClick('dich-vu', '#dat-lich')}
+                  className="w-full py-3 px-4 rounded-xl bg-[#ee5a45] hover:bg-[#e04530] text-white font-bold text-sm flex items-center justify-center gap-2 cursor-pointer shadow-sm transition-colors"
+                >
+                  <Calendar className="w-4 h-4" />
+                  <span>ĐẶT LỊCH KHẢO SÁT NGAY</span>
+                </button>
+              </div>
 
-                {/* MỤC ĐĂNG NHẬP / PHIÊN LÀM VIỆC TRÊN MOBILE */}
-                <div className="pt-2">
-                  {authenticatedStaff ? (
-                    <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-2.5">
-                      <div className="flex items-center gap-2 text-xs font-bold text-[#0e4b44]">
-                        <Crown className="w-4 h-4 text-amber-500" />
-                        <span>Quản trị viên: {authenticatedStaff.fullName}</span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          onClick={() => {
-                            setMobileMenuOpen(false);
-                            window.location.hash = '#admin';
-                            onViewChange('admin');
-                          }}
-                          className="py-2.5 px-3 rounded-xl bg-[#0e4b44] text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
-                        >
-                          Vào Quản trị
-                        </button>
-                        <button
-                          onClick={() => {
-                            showConfirm({
-                              title: 'Xác nhận đăng xuất',
-                              message: `Bạn có chắc chắn muốn đăng xuất tài khoản quản trị viên (${authenticatedStaff.fullName})?`,
-                              confirmText: 'Đăng xuất',
-                              cancelText: 'Hủy bỏ',
-                              isDanger: true,
-                              onConfirm: () => {
-                                appStore.logoutStaff();
-                                setMobileMenuOpen(false);
-                                window.location.hash = '';
-                                onViewChange('customer');
-                                toast.success('Đã đăng xuất tài khoản quản trị thành công!');
-                              }
-                            });
-                          }}
-                          className="py-2.5 px-3 rounded-xl bg-white border border-rose-200 text-rose-700 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
-                        >
-                          Đăng xuất
-                        </button>
-                      </div>
+              {/* MỤC ĐĂNG NHẬP / PHIÊN LÀM VIỆC TRÊN MOBILE */}
+              <div className="pt-1">
+                {authenticatedStaff ? (
+                  <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-2.5">
+                    <div className="flex items-center gap-2 text-xs font-bold text-[#0e4b44]">
+                      <Crown className="w-4 h-4 text-amber-500" />
+                      <span>Quản trị viên: {authenticatedStaff.fullName}</span>
                     </div>
-                  ) : authenticatedCustomer ? (
-                    <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 space-y-2.5">
-                      <div className="flex items-center gap-2 text-xs font-bold text-stone-800">
-                        <User className="w-4 h-4 text-amber-700" />
-                        <span>Khách hàng: {authenticatedCustomer.fullName}</span>
-                      </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          window.location.hash = '#admin';
+                          onViewChange('admin');
+                        }}
+                        className="py-2.5 px-3 rounded-xl bg-[#0e4b44] text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                      >
+                        Vào Quản trị
+                      </button>
                       <button
                         onClick={() => {
                           showConfirm({
                             title: 'Xác nhận đăng xuất',
-                            message: `Quý khách có chắc chắn muốn đăng xuất tài khoản (${authenticatedCustomer.fullName})?`,
+                            message: `Bạn có chắc chắn muốn đăng xuất tài khoản quản trị viên (${authenticatedStaff.fullName})?`,
                             confirmText: 'Đăng xuất',
                             cancelText: 'Hủy bỏ',
-                            isDanger: false,
+                            isDanger: true,
                             onConfirm: () => {
-                              appStore.logoutCustomer();
+                              appStore.logoutStaff();
                               setMobileMenuOpen(false);
-                              toast.success('Đã đăng xuất tài khoản khách hàng thành công!');
+                              window.location.hash = '';
+                              onViewChange('customer');
+                              toast.success('Đã đăng xuất tài khoản quản trị thành công!');
                             }
                           });
                         }}
-                        className="w-full py-2.5 px-3 rounded-xl bg-white border border-rose-200 text-rose-700 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                        className="py-2.5 px-3 rounded-xl bg-white border border-rose-200 text-rose-700 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
                       >
-                        Đăng xuất tài khoản
+                        Đăng xuất
                       </button>
                     </div>
-                  ) : (
+                  </div>
+                ) : authenticatedCustomer ? (
+                  <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 space-y-2.5">
+                    <div className="flex items-center gap-2 text-xs font-bold text-stone-800">
+                      <User className="w-4 h-4 text-amber-700" />
+                      <span>Khách hàng: {authenticatedCustomer.fullName}</span>
+                    </div>
                     <button
                       onClick={() => {
-                        setMobileMenuOpen(false);
-                        window.location.hash = '#login';
-                        onViewChange('login');
+                        showConfirm({
+                          title: 'Xác nhận đăng xuất',
+                          message: `Quý khách có chắc chắn muốn đăng xuất tài khoản (${authenticatedCustomer.fullName})?`,
+                          confirmText: 'Đăng xuất',
+                          cancelText: 'Hủy bỏ',
+                          isDanger: false,
+                          onConfirm: () => {
+                            appStore.logoutCustomer();
+                            setMobileMenuOpen(false);
+                            toast.success('Đã đăng xuất tài khoản khách hàng thành công!');
+                          }
+                        });
                       }}
-                      className="w-full py-3 px-4 rounded-xl bg-stone-900 hover:bg-black text-white font-bold text-sm flex items-center justify-center gap-2 cursor-pointer shadow-sm transition-colors"
+                      className="w-full py-2.5 px-3 rounded-xl bg-white border border-rose-200 text-rose-700 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
                     >
-                      <Lock className="w-4 h-4 text-amber-300" />
-                      <span>Đăng nhập hệ thống</span>
+                      Đăng xuất tài khoản
                     </button>
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      window.location.hash = '#login';
+                      onViewChange('login');
+                    }}
+                    className="w-full py-3 px-4 rounded-xl bg-stone-900 hover:bg-black text-white font-bold text-sm flex items-center justify-center gap-2 cursor-pointer shadow-sm transition-colors"
+                  >
+                    <Lock className="w-4 h-4 text-amber-300" />
+                    <span>Đăng nhập hệ thống</span>
+                  </button>
+                )}
+              </div>
 
-                {/* Cụm Trợ Năng trên Mobile */}
-                <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200 space-y-2 text-xs mt-3">
-                  <div className="font-bold text-stone-700 flex items-center justify-between">
-                    <span>TRỢ NĂNG (CỠ CHỮ: {fontScale}%)</span>
-                    <button onClick={handleResetDefault} className="text-[#ee5a45] underline cursor-pointer">Mặc định</button>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    <button onClick={handleIncreaseFont} className="p-2 bg-white rounded-xl border border-stone-200 font-bold text-center cursor-pointer">+ Tăng</button>
-                    <button onClick={handleDecreaseFont} className="p-2 bg-white rounded-xl border border-stone-200 font-bold text-center cursor-pointer">− Giảm</button>
-                    <button onClick={handleToggleContrast} className={`p-2 rounded-xl border font-bold text-center cursor-pointer ${highContrast ? 'bg-emerald-600 text-white' : 'bg-white border-stone-200'}`}>Tương phản</button>
-                  </div>
+              {/* Cụm Trợ Năng trên Mobile */}
+              <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200 space-y-2 text-xs">
+                <div className="font-bold text-stone-700 flex items-center justify-between">
+                  <span>TRỢ NĂNG (CỠ CHỮ: {fontScale}%)</span>
+                  <button onClick={handleResetDefault} className="text-[#ee5a45] underline cursor-pointer">Mặc định</button>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <button onClick={handleIncreaseFont} className="p-2 bg-white rounded-xl border border-stone-200 font-bold text-center cursor-pointer">+ Tăng</button>
+                  <button onClick={handleDecreaseFont} className="p-2 bg-white rounded-xl border border-stone-200 font-bold text-center cursor-pointer">− Giảm</button>
+                  <button onClick={handleToggleContrast} className={`p-2 rounded-xl border font-bold text-center cursor-pointer ${highContrast ? 'bg-emerald-600 text-white' : 'bg-white border-stone-200'}`}>Tương phản</button>
                 </div>
               </div>
             </div>
 
-            {/* Chân Drawer: Hotline 24/7 */}
-            <div className="p-4 border-t border-stone-200 bg-stone-50 text-xs">
+            {/* 3. Chân Drawer cố định: Hotline 24/7 */}
+            <div className="p-4 border-t border-stone-200 bg-stone-50 text-xs shrink-0">
               <a 
                 href={`tel:${hotline.replace(/\D/g, '')}`} 
                 className="w-full py-2.5 px-3 rounded-xl bg-white border border-rose-200 text-[#ee5a45] font-bold flex items-center justify-center gap-2 shadow-2xs hover:bg-rose-50 transition-colors"
@@ -563,7 +565,8 @@ export const Header: React.FC<HeaderProps> = ({
               </a>
             </div>
           </div>
-        </>
+        </div>,
+        document.body
       )}
     </header>
   );
