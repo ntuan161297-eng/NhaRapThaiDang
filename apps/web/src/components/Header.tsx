@@ -93,7 +93,7 @@ export const Header: React.FC<HeaderProps> = ({
       const saved = localStorage.getItem('td_font_scale');
       if (saved) return parseInt(saved, 10);
     } catch {}
-    return 100;
+    return 120;
   });
 
   const [highContrast, setHighContrast] = useState<boolean>(() => {
@@ -147,10 +147,10 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   const handleResetDefault = () => {
-    setFontScale(100);
+    setFontScale(120);
     setHighContrast(false);
     try {
-      localStorage.setItem('td_font_scale', '100');
+      localStorage.setItem('td_font_scale', '120');
       localStorage.setItem('td_high_contrast', 'false');
     } catch {}
   };
@@ -171,10 +171,10 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-stone-200/70 shadow-xs transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         
-        {/* LOGO: ĐỒNG BỘ CHUẨN XÁC VỚI LOGO NHÀ RẠP THÁI ĐĂNG */}
+        {/* LOGO: ĐỒNG BỘ CHUẨN XÁC VỚI LOGO NHÀ RẠP THÁI ĐĂNG (CÓ KHOẢNG CÁCH RÕ RÀNG VỚI MENU) */}
         <div 
           onClick={() => { setActiveTab('trang-chu'); onViewChange('customer'); }}
-          className="flex items-center gap-3 cursor-pointer select-none group shrink-0"
+          className="flex items-center gap-3 cursor-pointer select-none group shrink-0 mr-4 sm:mr-6 md:mr-8 lg:mr-10 xl:mr-14"
         >
           <img 
             src="/logo_thai_dang.png" 
@@ -207,7 +207,7 @@ export const Header: React.FC<HeaderProps> = ({
                 type="button"
                 onClick={() => setAccessibilityOpen(!accessibilityOpen)}
                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-2xs ${
-                  accessibilityOpen || fontScale !== 100 || highContrast
+                  accessibilityOpen || fontScale !== 120 || highContrast
                     ? 'bg-[#0e4b44] text-white ring-2 ring-emerald-300'
                     : 'bg-stone-100 hover:bg-stone-200 text-stone-700'
                 }`}
