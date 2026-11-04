@@ -38,103 +38,65 @@ import {
   Mail,
   Lock,
   HelpCircle,
-  Users
+  Users,
+  Pause,
+  Play,
+  ClipboardCheck,
+  Tent,
+  Flower2,
 } from 'lucide-react';
-import { 
-  ServiceType, 
-  TableChairConfigItem, 
-  TentConfigItem, 
-  IntakeRecord 
-} from '@thai-dang/shared';
-import { convertTableChairConfigs } from '@thai-dang/shared';
-import { appStore, ArticleRecord, PromotionBanner, CompanyInfo, ThemeModel, CmsBannerSlide } from '../services/store';
+import { appStore, ArticleRecord, CompanyInfo, ThemeModel, CmsBannerSlide } from '../services/store';
 import { CONTACT_CONFIG, getOfficialContactHotline } from '../config/contact';
 import { DragonPhoenixBackground } from './DragonPhoenixBackground';
+import { PublicImage } from './PublicImage';
+import { PublicServiceCards } from './PublicServiceCards';
+import { SimpleBookingForm } from './SimpleBookingForm';
+import { WeddingServiceIntro } from './WeddingServiceIntro';
+import type { EventService } from '@thai-dang/shared';
+import { ARTICLE_CATEGORIES, articleCategoryLabel, navigatePublicLink, publicLink, vietnamDateAfter } from '../utils/publicSite';
+import './PublicSite.css';
 
 export interface CustomerPortalProps {
   articles: ArticleRecord[];
-  promotions: PromotionBanner[];
   companyInfo: CompanyInfo;
 }
 
-// Danh mục mẫu chủ đề phông rạp đẳng cấp
-const LUXURY_THEMES = [
-  {
-    id: 'hoang_gia',
-    name: 'Tone Trắng Vàng Hoàng Gia',
-    titleEn: 'Royal Ivory & Champagne Gold',
-    service: 'dam_cuoi',
-    desc: 'Không gian quý phái với trần rèm lụa trắng sữa xếp ly, hoa tú cầu vàng champagne, điểm xuyết đèn chùm pha lê thả rạp lộng lẫy và thảm đỏ tiếp đón.',
-    badge: 'Bộ Sưu Tập Nổi Bật Nhất',
-    specs: 'Khẩu độ rạp 6m - 18m • Đèn chùm pha lê • Thảm trải sàn cao cấp',
-    imageBg: 'from-amber-900/60 via-amber-800/40 to-[#161c2b]',
-    accentColor: '#c5a059',
-  },
-  {
-    id: 'rustic_green',
-    name: 'Tone Xanh Lá Rustic Cổ Điển',
-    titleEn: 'Romantic Forest & Rustic Garden',
-    service: 'dam_cuoi',
-    desc: 'Lấy cảm hứng từ những khu vườn cổ tích châu Âu, kết hợp dải dây leo xanh biếc, hoa hồng kem pastel, trụ gỗ mộc và hệ thống đèn búp mờ ảo.',
-    badge: 'Xu Hướng Cưới 2026',
-    specs: 'Phù hợp sân vườn rộng • Hoa tươi phối cành khô • Ánh sáng ấm 3000K',
-    imageBg: 'from-emerald-950/70 via-teal-900/40 to-[#161c2b]',
-    accentColor: '#059669',
-  },
-  {
-    id: 'truyen_thong_do',
-    name: 'Tone Đỏ Hỷ Sự Truyền Thống',
-    titleEn: 'Traditional Red & Gold Heritage',
-    service: 'dam_cuoi',
-    desc: 'Sắc đỏ tượng trưng cho hạnh phúc viên mãn và may mắn trường cửu. Chữ Song Hỷ dát kim tuyến, đèn lồng cung đình kết hợp voan rèm thanh lịch.',
-    badge: 'Đậm Nét Văn Hóa Việt',
-    specs: 'Rạp khẩu độ lớn • Chữ Song Hỷ dát vàng • Bàn đón khách sơn mài',
-    imageBg: 'from-rose-950/80 via-red-900/40 to-[#161c2b]',
-    accentColor: '#dc2626',
-  },
-  {
-    id: 'hien_dai_tangiay',
-    name: 'Rạp Che Nắng Hiện Đại (Tân Gia)',
-    titleEn: 'Modern Pavilion & Housewarming',
-    service: 'nha_moi',
-    desc: 'Hệ khung sắt mạ kẽm kiên cố khẩu độ lớn, bạt 2 da chống nóng Hàn Quốc, trần thả lụa ghi sáng trang nhã phục vụ tiệc mừng nhà mới khang trang.',
-    badge: 'Kiên Cố & Thoáng Mát',
-    specs: 'Cách nhiệt chống nóng 95% • Lắp dựng nhanh • Phù hợp mặt đường lớn',
-    imageBg: 'from-blue-950/70 via-slate-900/50 to-[#161c2b]',
-    accentColor: '#2563eb',
-  },
-  {
-    id: 'gia_tien_thanh_lich',
-    name: 'Phông Lễ Ăn Hỏi Gia Tiên Thanh Lịch',
-    titleEn: 'Heritage Engagement & Tea Ceremony',
-    service: 'dam_hoi',
-    desc: 'Phông gia tiên chữ Hỷ dát vàng, hoa lụa cao cấp phối đèn lồng cung đình ấm cúng, bàn dài đại biểu hai họ trang trọng chuẩn nghi thức.',
-    badge: 'Nghi Lễ Gia Tiên Chu Đáo',
-    specs: 'Phù hợp tư gia • Khăn trải ren thêu • Bàn ghế bọc nơ lụa',
-    imageBg: 'from-amber-950/80 via-rose-900/40 to-[#161c2b]',
-    accentColor: '#e11d48',
-  },
-];
+const FALLBACK_SLIDE: CmsBannerSlide = {
+  id: 'public-fallback', slideNumber: 'NHÀ RẠP & TỔ CHỨC SỰ KIỆN',
+  title: 'Dựng nên ngày vui trọn vẹn', subtitle: 'Rạp đẹp, thiết bị đầy đủ, đội ngũ tận tâm.',
+  locationTag: 'Phục vụ tại Ninh Bình', imageUrl: '/public-wedding-hero.jpg',
+  ctaText1: 'Đặt lịch tư vấn', ctaLink1: '#dat-lich',
+  ctaText2: 'Khám phá mẫu rạp', ctaLink2: '#mau-rap', isActive: true,
+};
 
+// Danh mục mẫu chủ đề phông rạp đẳng cấp
 export const CustomerPortal: React.FC<CustomerPortalProps> = ({
   articles = [],
-  promotions = [],
   companyInfo: propCompanyInfo,
 }) => {
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>(propCompanyInfo || appStore.getCompanyInfo());
 
   // Slider State (Cấu hình Banner Hero từ CMS)
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [carouselPaused, setCarouselPaused] = useState(false);
+  const [heroHovered, setHeroHovered] = useState(false);
+  const [heroFocused, setHeroFocused] = useState(false);
   const [cmsBannerSlides, setCmsBannerSlides] = useState<CmsBannerSlide[]>(appStore.getCmsBannerSlides());
 
-  // Lọc các slide được bật (isActive) trong CMS, nếu chưa bật cái nào thì dùng toàn bộ danh sách
+  // Chỉ hiển thị banner đang bật; ảnh dự phòng khi CMS chưa có banner.
   const activeBannerSlides = cmsBannerSlides.filter(s => s.isActive);
-  const slidesToDisplay = activeBannerSlides.length > 0 ? activeBannerSlides : cmsBannerSlides;
+  const slidesToDisplay = activeBannerSlides.length > 0 ? activeBannerSlides : [FALLBACK_SLIDE];
+  const visibleSlideIndex = currentSlideIndex % slidesToDisplay.length;
+  const currentSlide = slidesToDisplay[visibleSlideIndex];
+  const hotline = getOfficialContactHotline(companyInfo.hotline);
+  const zaloUrl = companyInfo.zaloPhone?.startsWith('https://')
+    ? companyInfo.zaloPhone : `https://zalo.me/${(companyInfo.zaloPhone || CONTACT_CONFIG.DEFAULT_ZALO).replace(/\D/g, '')}`;
+  const facebookUrl = publicLink(companyInfo.facebookFanpageUrl, CONTACT_CONFIG.FACEBOOK_URL);
 
   // CMS & Modal States
   const [selectedArticle, setSelectedArticle] = useState<ArticleRecord | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [copiedPromoCode, setCopiedPromoCode] = useState<string | null>(null);
+  const filteredArticles = articles.filter(article => article.isPublished && article.category !== 'uu_dai_su_kien' && (selectedCategory === 'all' || article.category === selectedCategory));
   const [contactSubmitted, setContactSubmitted] = useState(false);
   const [contactName, setContactName] = useState('');
   const [contactPhone, setContactPhone] = useState('');
@@ -148,22 +110,41 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
   // Khóa cuộn trang khi mở modal chi tiết bài viết hoặc chi tiết mẫu rạp & hỗ trợ Escape
   useEffect(() => {
     if (viewingThemeDetail || selectedArticle) {
+      const previousFocus = document.activeElement as HTMLElement | null;
+      const previousOverflow = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
+      const dialog = document.querySelector<HTMLElement>('.public-dialog');
+      dialog?.focus();
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
           setViewingThemeDetail(null);
           setSelectedArticle(null);
         }
+        if (e.key === 'Tab' && dialog) {
+          const items = dialog.querySelectorAll<HTMLElement>('button, a[href], [tabindex="0"]');
+          const first = items[0];
+          const last = items[items.length - 1];
+          if (e.shiftKey && (document.activeElement === first || document.activeElement === dialog)) { e.preventDefault(); last?.focus(); }
+          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
+        }
       };
       window.addEventListener('keydown', handleKeyDown);
       return () => {
-        document.body.style.overflow = '';
+        document.body.style.overflow = previousOverflow;
+        previousFocus?.focus({ preventScroll: true });
         window.removeEventListener('keydown', handleKeyDown);
       };
     } else {
       document.body.style.overflow = '';
     }
   }, [viewingThemeDetail, selectedArticle]);
+
+  useEffect(() => {
+    const id = window.location.hash.slice(1);
+    if (!id) return;
+    const frame = requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView({ block: 'start', behavior: 'instant' }));
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   useEffect(() => {
     const unsub = appStore.subscribe(() => {
@@ -182,12 +163,13 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
 
   // Tự động chuyển slide mượt mà theo thời gian (4.5 giây)
   useEffect(() => {
-    if (slidesToDisplay.length <= 1) return;
+    if (slidesToDisplay.length <= 1 || carouselPaused || heroHovered || heroFocused || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const interval = setInterval(() => {
+      if (document.hidden) return;
       setCurrentSlideIndex(prev => (prev + 1) % slidesToDisplay.length);
-    }, 4500);
+    }, 6500);
     return () => clearInterval(interval);
-  }, [slidesToDisplay.length]);
+  }, [slidesToDisplay.length, carouselPaused, heroHovered, heroFocused]);
 
   const handleOpenThemeDetail = (theme: ThemeModel) => {
     setViewingThemeDetail(theme);
@@ -197,183 +179,20 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
   // Touch Gesture State cho Banner Slideshow
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
 
-  // Form State
-  const [customerName, setCustomerName] = useState('');
-  const [customerPhone, setCustomerPhone] = useState('');
-  const [customerEmail, setCustomerEmail] = useState('');
-  const [serviceType, setServiceType] = useState<ServiceType>('dam_cuoi');
-  const [selectedThemeId, setSelectedThemeId] = useState('hoang_gia');
-  const [eventStartDate, setEventStartDate] = useState('2026-11-15');
-  const [eventStartTime, setEventStartTime] = useState('10:30');
-  const [setupDate, setSetupDate] = useState('2026-11-14');
-  const [setupTime, setSetupTime] = useState('02:00');
-  const [teardownDate, setTeardownDate] = useState('2026-11-15');
-  const [teardownTime, setTeardownTime] = useState('06:00');
-  const [eventAddress, setEventAddress] = useState('');
-  const [note, setNote] = useState('');
+  const [serviceType, setServiceType] = useState<EventService>('dam_cuoi');
+  const [selectedThemeId, setSelectedThemeId] = useState('');
   const [contactEmail, setContactEmail] = useState('');
-
-  // Helper áp dụng ưu đãi vào đơn đặt lịch
-  const handleApplyPromo = (promo: PromotionBanner) => {
-    if (promo.code) {
-      setNote(prev => prev ? `${prev} [Mã ưu đãi: ${promo.code}]` : `[Mã ưu đãi: ${promo.code} - ${promo.discountText}]`);
-    }
-    const target = document.getElementById('dat-lich');
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  const handleCopyCode = (code: string) => {
-    navigator.clipboard?.writeText(code);
-    setCopiedPromoCode(code);
-    setTimeout(() => setCopiedPromoCode(null), 2500);
-  };
 
   const handleSendContact = (e: React.FormEvent) => {
     e.preventDefault();
+    const subject = encodeURIComponent(`Tư vấn dịch vụ — ${contactName.trim()}`);
+    const body = encodeURIComponent(`Họ tên: ${contactName.trim()}\nĐiện thoại: ${contactPhone.trim()}\nEmail: ${contactEmail.trim()}\n\n${contactMsg.trim()}`);
+    window.location.href = `mailto:${companyInfo.email || CONTACT_CONFIG.EMAIL}?subject=${subject}&body=${body}`;
     setContactSubmitted(true);
-    setTimeout(() => {
-      setContactName('');
-      setContactPhone('');
-      setContactEmail('');
-      setContactMsg('');
-    }, 400);
-  };
-
-  // Cấu hình Bàn Ghế động
-  const [tableConfigs, setTableConfigs] = useState<TableChairConfigItem[]>([
-    {
-      area: 'Rạp chính',
-      tableType: 'ban_tron',
-      chairType: 'ghe_inox',
-      tableCount: 20,
-      chairsPerTable: 6,
-      extraChairs: 0,
-      backupTables: 0,
-    },
-    {
-      area: 'Rạp gia đình',
-      tableType: 'ban_tron',
-      chairType: 'ghe_nhua_do',
-      tableCount: 10,
-      chairsPerTable: 6,
-      extraChairs: 0,
-      backupTables: 0,
-    },
-  ]);
-
-  // Kết quả gửi booking
-  const [submissionResult, setSubmissionResult] = useState<{
-    success: boolean;
-    code?: string;
-    message: string;
-  } | null>(null);
-
-  // Tra cứu hồ sơ
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResult, setSearchResult] = useState<IntakeRecord | null>(null);
-  const [hasSearched, setHasSearched] = useState(false);
-
-  // Tính toán quy đổi thời gian thực
-  const convertedDemands = convertTableChairConfigs(tableConfigs);
-  const totalTables = tableConfigs.reduce((s, c) => s + c.tableCount + (c.backupTables || 0), 0);
-  const totalChairs = tableConfigs.reduce((s, c) => s + (c.tableCount * c.chairsPerTable) + (c.extraChairs || 0), 0);
-  const inoxCount = tableConfigs
-    .filter(c => c.chairType === 'ghe_inox')
-    .reduce((sum, c) => sum + (c.tableCount * c.chairsPerTable) + (c.extraChairs || 0), 0);
-  const nhuaCount = tableConfigs
-    .filter(c => c.chairType === 'ghe_nhua_do')
-    .reduce((sum, c) => sum + (c.tableCount * c.chairsPerTable) + (c.extraChairs || 0), 0);
-
-  // Thêm khu vực bàn ghế mới
-  const handleAddConfigRow = () => {
-    setTableConfigs([
-      ...tableConfigs,
-      {
-        area: `Khu vực ${tableConfigs.length + 1}`,
-        tableType: 'ban_tron',
-        chairType: 'ghe_inox',
-        tableCount: 5,
-        chairsPerTable: 6,
-        extraChairs: 0,
-        backupTables: 0,
-      },
-    ]);
-  };
-
-  const handleRemoveConfigRow = (index: number) => {
-    if (tableConfigs.length <= 1) return;
-    setTableConfigs(tableConfigs.filter((_, i) => i !== index));
-  };
-
-  const handleUpdateConfigRow = (index: number, field: keyof TableChairConfigItem, value: any) => {
-    const updated = [...tableConfigs];
-    updated[index] = { ...updated[index], [field]: value };
-    setTableConfigs(updated);
-  };
-
-  // Submit Booking
-  const handleSubmitBooking = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const selectedTheme = LUXURY_THEMES.find(t => t.id === selectedThemeId);
-    const tentConfigs: TentConfigItem[] = [
-      {
-        tentType: 'rap_chinh',
-        themeId: selectedThemeId,
-        themeName: selectedTheme?.name,
-        bayCount: Math.max(3, Math.ceil(totalTables / 5)), // Ước tính 5 bàn/khoang
-      },
-    ];
-
-    const eventDateStart = `${eventStartDate}T${eventStartTime}:00+07:00`;
-    const eventDateEnd = `${eventStartDate}T14:30:00+07:00`;
-    const setupDateStart = `${setupDate}T${setupTime}:00+07:00`;
-    const teardownDateEnd = `${teardownDate}T${teardownTime}:00+07:00`;
-
-    const result = appStore.submitPublicBooking({
-      customerName,
-      customerPhone,
-      customerEmail: customerEmail || undefined,
-      serviceType,
-      eventDateStart,
-      eventDateEnd,
-      setupDateStart,
-      teardownDateEnd,
-      eventAddress,
-      tableChairConfigs: tableConfigs,
-      tentConfigs,
-      note,
-    });
-
-    setSubmissionResult(result);
-
-    if (result.success) {
-      window.scrollTo({ top: document.getElementById('booking-result')?.offsetTop || 0, behavior: 'smooth' });
-    }
-  };
-
-  // Tìm kiếm hồ sơ
-  const handleSearchBooking = (e: React.FormEvent) => {
-    e.preventDefault();
-    setHasSearched(true);
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) {
-      setSearchResult(null);
-      return;
-    }
-
-    const allIntakes = appStore.getIntakes();
-    const found = allIntakes.find(i => 
-      i.code.toLowerCase() === q || 
-      i.customerPhone.includes(q)
-    );
-    setSearchResult(found || null);
   };
 
   return (
-    <div className="relative bg-[#f7f3ec] text-[#1a1f2c] overflow-x-hidden w-full max-w-full">
+    <main id="public-content" tabIndex={-1} className="public-site relative bg-[#f7f3ec] text-[#1a1f2c] w-full max-w-full">
       {/* Họa tiết rồng phượng ẩn chìm phía sau nền theo yêu cầu người dùng */}
       <DragonPhoenixBackground />
       
@@ -382,7 +201,13 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
       {/* ======================================================== */}
       <section 
         id="top"
-        className="relative overflow-hidden w-full max-w-full h-[380px] sm:h-[480px] md:h-[580px] lg:h-[660px] bg-stone-900 group select-none touch-pan-y"
+        className="public-hero relative overflow-hidden w-full max-w-full bg-stone-900 group touch-pan-y"
+        aria-label="Không gian và dịch vụ Thái Đăng"
+        aria-roledescription="Trình chiếu"
+        onMouseEnter={() => setHeroHovered(true)}
+        onMouseLeave={() => setHeroHovered(false)}
+        onFocusCapture={() => setHeroFocused(true)}
+        onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setHeroFocused(false); }}
         onTouchStart={(e) => setTouchStartX(e.touches[0].clientX)}
         onTouchEnd={(e) => {
           if (touchStartX === null) return;
@@ -402,18 +227,37 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
           <div
             key={slide.id || idx}
             className={`absolute inset-0 transition-opacity duration-500 ease-in-out ${
-              currentSlideIndex === idx ? 'opacity-100 z-10 pointer-events-auto visible' : 'opacity-0 pointer-events-none z-0 invisible'
+              visibleSlideIndex === idx ? 'opacity-100 z-10 pointer-events-auto visible' : 'opacity-0 pointer-events-none z-0 invisible'
             }`}
           >
-            <img
+            <PublicImage
               src={slide.imageUrl}
               alt={slide.title || `Banner ${idx + 1}`}
+              loading={idx === 0 ? 'eager' : 'lazy'}
+              fetchPriority={idx === 0 ? 'high' : 'low'}
               className="w-full h-full object-cover object-center transform scale-100 transition-transform duration-7000 ease-out"
             />
             {/* Lớp phủ chuyển sắc nhẹ ở đáy để làm nổi bật các chấm mờ */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/15 pointer-events-none" />
+            <div className="public-hero-shade absolute inset-0 pointer-events-none" />
           </div>
         ))}
+
+        <div className="public-hero-content" key={currentSlide.id}>
+          <span className="public-eyebrow">NHÀ RẠP &amp; TỔ CHỨC SỰ KIỆN</span>
+          <h1>{currentSlide.title || FALLBACK_SLIDE.title}</h1>
+          <p>{currentSlide.subtitle || FALLBACK_SLIDE.subtitle}</p>
+          <span className="public-hero-location"><MapPin size={16} aria-hidden="true" />{(currentSlide.locationTag || 'Phục vụ tại Ninh Bình').replace(/^📍\s*/, '')}</span>
+          <div className="public-hero-actions">
+            <a className="public-button public-button-coral" href={publicLink(currentSlide.ctaLink1)}
+              onClick={event => { event.preventDefault(); navigatePublicLink(currentSlide.ctaLink1 || '#dat-lich'); }}>
+              <Calendar size={17} aria-hidden="true" />{currentSlide.ctaText1 || 'Đặt lịch tư vấn'}<ArrowRight size={17} aria-hidden="true" />
+            </a>
+            <a className="public-button public-button-glass" href={publicLink(currentSlide.ctaLink2, '#mau-rap')}
+              onClick={event => { event.preventDefault(); navigatePublicLink(currentSlide.ctaLink2 || '#mau-rap'); }}>
+              {currentSlide.ctaText2 || 'Khám phá mẫu rạp'}<ArrowRight size={17} aria-hidden="true" />
+            </a>
+          </div>
+        </div>
 
         {/* Nút lùi/tiến 2 bên tinh tế (chỉ hiện khi hover trên desktop để không che ảnh) */}
         {slidesToDisplay.length > 1 && (
@@ -440,29 +284,43 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
           </>
         )}
 
-        {/* CÁC DẤU CHẤM MỜ THỂ HIỆN ĐANG Ở ẢNH NÀO (THEO YÊU CẦU NGƯỜI DÙNG: KHÔNG HIỂN THỊ TIÊU ĐỀ Ở GIỮA) */}
-        <div className="absolute bottom-5 sm:bottom-6 left-0 right-0 z-20 flex items-center justify-center gap-2 pointer-events-auto">
+        <div className="public-carousel-controls">
+          <span className="public-carousel-counter">{String(visibleSlideIndex + 1).padStart(2, '0')}<span>/ {String(slidesToDisplay.length).padStart(2, '0')}</span></span>
+          <div className="public-carousel-dots">
           {slidesToDisplay.map((_, idx) => (
             <button
               key={idx}
               type="button"
               onClick={() => setCurrentSlideIndex(idx)}
               className={`transition-all duration-300 rounded-full cursor-pointer py-1.5 px-0.5 ${
-                currentSlideIndex === idx
+                visibleSlideIndex === idx
                   ? 'w-7 h-2 bg-white/90 shadow-md ring-1 ring-white/50'
                   : 'w-2 h-2 bg-white/35 hover:bg-white/70'
               }`}
               title={`Ảnh ${idx + 1} / ${slidesToDisplay.length}`}
               aria-label={`Chuyển tới ảnh ${idx + 1}`}
+              aria-current={visibleSlideIndex === idx ? 'true' : undefined}
             />
           ))}
+          </div>
+          {slidesToDisplay.length > 1 && <button className="public-carousel-pause" type="button"
+            onClick={() => setCarouselPaused(value => !value)}
+            aria-label={carouselPaused ? 'Tiếp tục trình chiếu' : 'Tạm dừng trình chiếu'} aria-pressed={carouselPaused}>
+            {carouselPaused ? <Play size={15} /> : <Pause size={15} />}
+          </button>}
         </div>
       </section>
+
+      <div className="public-assurances" aria-label="Dịch vụ đồng hành">
+        <div><MapPin /><span><strong>Tư vấn theo mặt bằng</strong><small>Phương án phù hợp với không gian của bạn</small></span></div>
+        <div><Tent /><span><strong>Đồng bộ từng chi tiết</strong><small>Phông rạp, bàn ghế và thiết bị sự kiện</small></span></div>
+        <div><ClipboardCheck /><span><strong>Chuẩn bị theo lịch tiệc</strong><small>Khảo sát, lắp dựng và thu hồi rõ ràng</small></span></div>
+      </div>
 
       {/* ======================================================== */}
       {/* 2. DỊCH VỤ CỦA THÁI ĐĂNG (CHUẨN XÁC ẢNH 1)                 */}
       {/* ======================================================== */}
-      <section id="dich-vu" className="relative z-10 bg-[#faf8f5]/60 py-16 px-4 sm:px-6 lg:px-8 border-b border-[#ece7de]/70">
+      <section id="dich-vu" className="public-services relative z-10 bg-[#faf8f5]/60 py-16 px-4 sm:px-6 lg:px-8 border-b border-[#ece7de]/70">
         <div className="max-w-7xl mx-auto space-y-9">
           
           {/* Tiêu đề mục hoa sen vàng (Chuẩn Ảnh 1) */}
@@ -485,149 +343,8 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
           </div>
 
           {/* 4 Cards hàng ngang bo góc mềm mại (Chuẩn Ảnh 1) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            
-            {/* Card 1: Đám cưới */}
-            <div 
-              onClick={() => {
-                setServiceType('dam_cuoi');
-                document.getElementById('dat-lich')?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="bg-white rounded-2xl border border-stone-200/90 shadow-xs hover:shadow-lg transition-all transform hover:-translate-y-1 cursor-pointer overflow-hidden flex flex-col group"
-            >
-              <div className="h-44 w-full overflow-hidden bg-stone-100 relative">
-                <img 
-                  src="/card_dam_cuoi.jpg" 
-                  alt="Đám cưới Thái Đăng" 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                />
-              </div>
-              <div className="p-4 flex items-center justify-between gap-3 flex-1 bg-white">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-amber-50 text-[#b38338] border border-amber-200/60 flex items-center justify-center shrink-0 text-lg">
-                    💍
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-stone-900 text-base group-hover:text-[#ee5a45] transition-colors">
-                      Đám cưới
-                    </h3>
-                    <p className="text-xs sm:text-[13px] text-stone-600 leading-snug">
-                      Rạp cưới trọn gói, sang trọng, ấm cúng
-                    </p>
-                  </div>
-                </div>
-                <div className="w-7 h-7 rounded-full bg-stone-50 text-stone-400 group-hover:bg-[#ee5a45] group-hover:text-white flex items-center justify-center shrink-0 transition-colors">
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </div>
-              </div>
-            </div>
-
-            {/* Card 2: Đám hỏi */}
-            <div 
-              onClick={() => {
-                setServiceType('dam_hoi');
-                document.getElementById('dat-lich')?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="bg-white rounded-2xl border border-stone-200/90 shadow-xs hover:shadow-lg transition-all transform hover:-translate-y-1 cursor-pointer overflow-hidden flex flex-col group"
-            >
-              <div className="h-44 w-full overflow-hidden bg-stone-100 relative">
-                <img 
-                  src="/card_dam_hoi.jpg" 
-                  alt="Đám hỏi Thái Đăng" 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                />
-              </div>
-              <div className="p-4 flex items-center justify-between gap-3 flex-1 bg-white">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-rose-50 text-rose-600 border border-rose-200/60 flex items-center justify-center shrink-0 text-lg">
-                    ❤️
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-stone-900 text-base group-hover:text-[#ee5a45] transition-colors">
-                      Đám hỏi
-                    </h3>
-                    <p className="text-xs sm:text-[13px] text-stone-600 leading-snug">
-                      Tinh tế, trang trọng, đúng phong tục
-                    </p>
-                  </div>
-                </div>
-                <div className="w-7 h-7 rounded-full bg-stone-50 text-stone-400 group-hover:bg-[#ee5a45] group-hover:text-white flex items-center justify-center shrink-0 transition-colors">
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </div>
-              </div>
-            </div>
-
-            {/* Card 3: Nhà mới */}
-            <div 
-              onClick={() => {
-                setServiceType('nha_moi');
-                document.getElementById('dat-lich')?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="bg-white rounded-2xl border border-stone-200/90 shadow-xs hover:shadow-lg transition-all transform hover:-translate-y-1 cursor-pointer overflow-hidden flex flex-col group"
-            >
-              <div className="h-44 w-full overflow-hidden bg-stone-100 relative">
-                <img 
-                  src="/card_nha_moi.jpg" 
-                  alt="Nhà mới Thái Đăng" 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                />
-              </div>
-              <div className="p-4 flex items-center justify-between gap-3 flex-1 bg-white">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0 text-lg">
-                    🏡
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-stone-900 text-base group-hover:text-[#ee5a45] transition-colors">
-                      Nhà mới
-                    </h3>
-                    <p className="text-xs sm:text-[13px] text-stone-600 leading-snug">
-                      Không gian ấm cúng, khởi đầu may mắn
-                    </p>
-                  </div>
-                </div>
-                <div className="w-7 h-7 rounded-full bg-stone-50 text-stone-400 group-hover:bg-[#ee5a45] group-hover:text-white flex items-center justify-center shrink-0 transition-colors">
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </div>
-              </div>
-            </div>
-
-            {/* Card 4: Thiệp cưới online */}
-            <div 
-              onClick={() => {
-                document.getElementById('thiep-cuoi')?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="bg-white rounded-2xl border border-stone-200/90 shadow-xs hover:shadow-lg transition-all transform hover:-translate-y-1 cursor-pointer overflow-hidden flex flex-col group"
-            >
-              <div className="h-44 w-full overflow-hidden bg-stone-100 relative">
-                <img 
-                  src="/card_thiep_cuoi.jpg" 
-                  alt="Thiệp cưới online Thái Đăng" 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                />
-              </div>
-              <div className="p-4 flex items-center justify-between gap-3 flex-1 bg-white">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-700 border border-amber-200/60 flex items-center justify-center shrink-0 text-lg">
-                    ✉️
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-stone-900 text-base group-hover:text-[#ee5a45] transition-colors">
-                      Thiệp cưới online
-                    </h3>
-                    <p className="text-xs sm:text-[13px] text-stone-600 leading-snug">
-                      Mẫu đẹp, cá nhân hoá theo yêu cầu
-                    </p>
-                  </div>
-                </div>
-                <div className="w-7 h-7 rounded-full bg-stone-50 text-stone-400 group-hover:bg-[#ee5a45] group-hover:text-white flex items-center justify-center shrink-0 transition-colors">
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </div>
-              </div>
-            </div>
-
-          </div>
-
+          <PublicServiceCards onSelect={setServiceType} />
+          <p className="public-image-note">Hình ảnh gợi ý phong cách. Phương án được điều chỉnh theo mặt bằng thực tế.</p>
         </div>
       </section>
 
@@ -647,13 +364,13 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
+          <div className="public-theme-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
             {cmsThemes.filter(t => t.isActive).map((theme) => {
               const isSelected = selectedThemeId === theme.id;
               return (
                 <div
                   key={theme.id}
-                  className={`rounded-3xl bg-white border-2 transition-all p-5 flex flex-col justify-between group shadow-xs ${
+                  className={`public-theme-card rounded-3xl bg-white border-2 transition-all p-5 flex flex-col justify-between group shadow-xs ${
                     isSelected
                       ? 'border-[#c5a059] shadow-xl ring-2 ring-amber-200 transform -translate-y-1'
                       : 'border-[#ede4d4] hover:border-[#c5a059]/70 hover:shadow-lg'
@@ -662,7 +379,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                   <div className="space-y-4">
                     {/* Visual Photo Banner */}
                     <div className="h-48 rounded-2xl relative overflow-hidden bg-slate-900 group">
-                      <img 
+                      <PublicImage
                         src={theme.imageUrl} 
                         alt={theme.name} 
                         className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700" 
@@ -715,6 +432,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                       type="button"
                       onClick={() => {
                         setSelectedThemeId(theme.id);
+                        setServiceType(theme.service);
                         const target = document.getElementById('dat-lich');
                         if (target) target.scrollIntoView({ behavior: 'smooth' });
                       }}
@@ -723,6 +441,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                           ? 'bg-[#e05638] text-white shadow-xs'
                           : 'bg-amber-50 hover:bg-amber-100 text-[#946517] border border-amber-200'
                       }`}
+                      aria-pressed={isSelected}
                     >
                       {isSelected ? '✓ Đã Chọn Mẫu' : 'Bấm Chọn Mẫu'}
                     </button>
@@ -735,751 +454,34 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
         </div>
       </section>
 
+      <section id="ve-chung-toi" className="public-about">
+        <div className="public-about-inner">
+          <figure className="public-about-photo">
+            <PublicImage src="/public-wedding-hero.jpg" alt="Minh họa không gian tiệc cưới sân vườn với rạp trắng và hoa tươi" width={1536} height={1024} />
+            <figcaption>Gợi ý không gian cho ngày vui của bạn · Ảnh minh họa</figcaption>
+          </figure>
+          <div className="public-about-copy">
+            <span className="public-eyebrow">VỀ NHÀ RẠP THÁI ĐĂNG</span>
+            <h2>Chỉn chu từng chi tiết.<br /><span>Ấm áp mỗi ngày vui.</span></h2>
+            <p>Mỗi gia đình có một câu chuyện, mỗi ngày vui xứng đáng có một không gian riêng. Thái Đăng đồng hành từ phương án phông rạp đến bàn ghế và thiết bị, phù hợp với mặt bằng và nhu cầu tổ chức.</p>
+            <ol className="public-process">
+              <li><span>01</span><div><h3>Lắng nghe &amp; khảo sát</h3><p>Trao đổi mong muốn, quy mô và điều kiện mặt bằng.</p></div></li>
+              <li><span>02</span><div><h3>Thống nhất phương án</h3><p>Chọn mẫu rạp, cấu hình bàn ghế và thời gian chuẩn bị.</p></div></li>
+              <li><span>03</span><div><h3>Chuẩn bị cho ngày vui</h3><p>Lắp dựng, phục vụ và thu hồi theo lịch đã xác nhận.</p></div></li>
+            </ol>
+            <a className="public-text-link" href="#dat-lich" onClick={event => { event.preventDefault(); navigatePublicLink('#dat-lich'); }}>Cùng lên kế hoạch cho sự kiện <ArrowRight size={17} /></a>
+          </div>
+        </div>
+      </section>
+
       {/* SECTION: CHƯƠNG TRÌNH KHUYẾN MẠI & ƯU ĐÃI (TONE MÀU TRẮNG SÁNG HOÀNG GIA ĐỒNG BỘ) */}
-      <section id="uu-dai" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="bg-gradient-to-br from-white via-[#fffdf9] to-[#faf5ea] rounded-3xl p-8 sm:p-12 border-2 border-[#e8dfcf] shadow-xl relative overflow-hidden">
-          {/* Background decorative glow */}
-          <div className="absolute top-0 right-0 w-96 h-96 bg-[#c5a059]/10 rounded-full blur-3xl pointer-events-none"></div>
-
-          <div className="relative space-y-8">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div className="space-y-2">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 text-[#b38338] text-[11px] font-bold tracking-widest uppercase border border-amber-200">
-                  <Tag className="w-3.5 h-3.5" />
-                  <span>ƯU ĐÃI ĐỘC QUYỀN MÙA CƯỚI 2026</span>
-                </div>
-                <h2 className="text-2xl sm:text-3xl lg:text-[34px] font-bold text-stone-900 tracking-tight">
-                  Chương Trình Khuyến Mại &amp; Gói Quà Tặng
-                </h2>
-                <p className="text-sm sm:text-base text-stone-600 max-w-2xl font-normal">
-                  Nhận ngay voucher chiết khấu trực tiếp và gói quà tặng trang trí sân khấu tiệc cưới khi đăng ký dịch vụ sớm tại Nhà Rạp Thái Đăng.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2 text-xs text-amber-800 font-semibold bg-white/80 px-4 py-2 rounded-2xl border border-amber-200 shadow-xs">
-                <Sparkles className="w-4 h-4 text-amber-600" />
-                <span>Số lượng ưu đãi có hạn theo tháng</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-              {(promotions || []).filter(p => p.isActive).map((promo) => (
-                <div
-                  key={promo.id}
-                  className="bg-white rounded-2xl p-5 sm:p-6 border border-[#e8dfcf] hover:border-[#c5a059] transition-all duration-300 space-y-4 hover:shadow-lg flex flex-col justify-between group shadow-xs w-full"
-                >
-                  <div className="space-y-3">
-                    {/* Hàng 1: Badge + Hạn dùng */}
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-[#ffece7] text-[#e05638] uppercase tracking-wider border border-[#fbd3c7]">
-                        {promo.badge || 'HOT DEAL'}
-                      </span>
-                      <span className="text-xs text-stone-500 flex items-center gap-1 font-medium">
-                        <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                        <span>Hạn dùng: {promo.validUntil}</span>
-                      </span>
-                    </div>
-
-                    {/* Hàng 2: Tiêu đề riêng biệt full-width - Cho phép xuống dòng tự nhiên, không ngắt từng từ */}
-                    <div>
-                      <h3 className="text-base sm:text-lg font-bold text-stone-900 group-hover:text-[#ee5a45] transition-colors leading-snug">
-                        {promo.title}
-                      </h3>
-                    </div>
-
-                    {/* Hàng 3: Badge mức giảm giá to bản, rõ ràng, không bị co ép */}
-                    <div>
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50 text-[#0e4b44] border border-emerald-200 text-sm sm:text-base font-extrabold">
-                        <span>🎁</span>
-                        <span>{promo.discountText}</span>
-                      </span>
-                    </div>
-
-                    {/* Hàng 4: Mô tả chi tiết */}
-                    <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-normal">
-                      {promo.description}
-                    </p>
-                  </div>
-
-                  {/* Chân thẻ: Mã ưu đãi + Nút Áp Dụng Ngay */}
-                  <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
-                    {promo.code ? (
-                      <div className="flex items-center gap-2">
-                        <div className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs font-bold text-[#b38338] tracking-widest">
-                          {promo.code}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleCopyCode(promo.code!)}
-                          className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
-                          title="Sao chép mã"
-                        >
-                          {copiedPromoCode === promo.code ? (
-                            <>
-                              <CheckCheck className="w-3.5 h-3.5 text-emerald-600" />
-                              <span className="text-emerald-700 text-[11px]">Đã chép</span>
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="w-3.5 h-3.5" />
-                              <span className="text-[11px]">Chép mã</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    ) : <div />}
-
-                    <button
-                      type="button"
-                      onClick={() => handleApplyPromo(promo)}
-                      className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#0e4b44] hover:bg-[#155e55] text-white font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-                    >
-                      <span>Áp Dụng Ngay</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* 4. ĐẶT LỊCH & DỰ TÍNH CHI PHÍ (CHUẨN ẢNH 1) */}
-      <section id="dat-lich" className="py-20 px-4 sm:px-6 lg:px-8 bg-[#fdfbf7] relative border-b border-[#ece5d8]">
-        <div className="max-w-5xl mx-auto space-y-8">
-          
-          {/* Header với Logo chuẩn và Tiêu đề */}
-          <div className="text-center space-y-2">
-            <img 
-              src="/logo_thai_dang.png" 
-              alt="Nhà Rạp Thái Đăng" 
-              className="h-16 mx-auto object-contain drop-shadow-2xs" 
-            />
-            <h2 className="text-2xl sm:text-3xl lg:text-[34px] font-bold text-[#0e4b44] tracking-tight">
-              Đặt lịch &amp; dự tính chi phí
-            </h2>
-            <p className="text-sm sm:text-base text-stone-600 font-normal max-w-xl mx-auto">
-              Chọn dịch vụ, cấu hình rạp và để lại thông tin — Thái Đăng sẽ liên hệ tư vấn.
-            </p>
-          </div>
-
-          {/* Stepper Indicator (Chuẩn Ảnh 1) */}
-          <div className="max-w-2xl mx-auto pt-2 pb-4">
-            <div className="relative flex items-center justify-between">
-              {/* Connecting Line */}
-              <div className="absolute top-4 left-6 right-6 h-0.5 bg-slate-200 z-0" />
-              <div className="absolute top-4 left-6 w-1/3 h-0.5 bg-[#f06148] z-0" />
-
-              {/* Step 1 */}
-              <div className="relative z-10 flex flex-col items-center">
-                <div className="w-8 h-8 rounded-full bg-[#f06148] text-white font-bold text-xs flex items-center justify-center shadow-md">
-                  1
-                </div>
-                <span className="text-[11px] sm:text-xs font-bold text-[#f06148] mt-2 text-center max-w-[85px] sm:max-w-none">
-                  1. Dịch vụ &amp; quy mô
-                </span>
-                <div className="w-12 h-0.5 bg-[#f06148] rounded-full mt-1" />
-              </div>
-
-              {/* Step 2 */}
-              <div className="relative z-10 flex flex-col items-center">
-                <div className="w-8 h-8 rounded-full bg-white border-2 border-slate-300 text-slate-500 font-bold text-xs flex items-center justify-center">
-                  2
-                </div>
-                <span className="text-[11px] sm:text-xs font-medium text-slate-500 mt-2 text-center max-w-[85px] sm:max-w-none">
-                  2. Thời gian &amp; địa điểm
-                </span>
-              </div>
-
-              {/* Step 3 */}
-              <div className="relative z-10 flex flex-col items-center">
-                <div className="w-8 h-8 rounded-full bg-white border-2 border-slate-300 text-slate-500 font-bold text-xs flex items-center justify-center">
-                  3
-                </div>
-                <span className="text-[11px] sm:text-xs font-medium text-slate-500 mt-2 text-center max-w-[85px] sm:max-w-none">
-                  3. Thông tin liên hệ
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Main White Card Form */}
-          <div className="bg-white rounded-3xl border border-stone-200/90 shadow-md p-6 sm:p-10 space-y-8">
-            <form onSubmit={handleSubmitBooking} className="space-y-8">
-
-              {/* MỤC 1: Chọn dịch vụ tổ chức */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-full bg-emerald-100 text-[#0e4b44] font-bold text-xs flex items-center justify-center">
-                    1
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-sm text-slate-900">Chọn dịch vụ tổ chức</h3>
-                    <p className="text-[11px] text-slate-500 font-medium">Chọn loại hình sự kiện của gia đình.</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  {[
-                    { id: 'dam_cuoi', label: 'Đám cưới', sub: 'Rạp cưới trọn gói', icon: '💍' },
-                    { id: 'dam_hoi', label: 'Đám hỏi', sub: 'Dàn dựng không gian', icon: '🌸' },
-                    { id: 'nha_moi', label: 'Nhà mới', sub: 'Nhà đài nay niên', icon: '🏡' },
-                    { id: 'su_kien_khac', label: 'Sự kiện khác', sub: 'Khánh thành, lễ tạ...', icon: '🎉' },
-                  ].map((s) => {
-                    const isSelected = serviceType === s.id;
-                    return (
-                      <button
-                        key={s.id}
-                        type="button"
-                        onClick={() => setServiceType(s.id as ServiceType)}
-                        className={`p-4 rounded-2xl border text-center transition-all cursor-pointer relative ${
-                          isSelected
-                            ? 'border-2 border-[#f06148] bg-[#fff6f4] shadow-xs'
-                            : 'border-slate-200 bg-white hover:border-slate-300'
-                        }`}
-                      >
-                        {isSelected && (
-                          <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-[#f06148] text-white flex items-center justify-center shadow-2xs">
-                            <Check className="w-3 h-3 stroke-[3]" />
-                          </div>
-                        )}
-                        <div className="text-2xl mb-1.5">{s.icon}</div>
-                        <div className="font-bold text-xs text-slate-900">{s.label}</div>
-                        <div className="text-[10px] text-slate-500 mt-0.5">{s.sub}</div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* MỤC 2: Cấu hình rạp và bàn ghế */}
-              <div className="space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-full bg-emerald-100 text-[#0e4b44] font-bold text-xs flex items-center justify-center shrink-0">
-                      2
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-sm text-slate-900">Cấu hình rạp và bàn ghế</h3>
-                      <p className="text-[11px] text-slate-500 font-medium">
-                        Chọn khu vực, loại bàn và loại ghế. Có thể thêm nhiều khu vực khác nhau nếu cần.
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleAddConfigRow}
-                    className="px-4 py-1.5 rounded-full border border-amber-300 bg-[#fffdf7] hover:bg-amber-100/60 text-amber-900 font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer shrink-0"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Thêm khu vực</span>
-                  </button>
-                </div>
-
-                {/* Table Cấu hình chuẩn Ảnh 1 */}
-                <div className="overflow-x-auto w-full max-w-full border border-slate-200/80 rounded-2xl">
-                  <table className="w-full min-w-[560px] text-xs text-left">
-                    <thead>
-                      <tr className="text-[11px] font-bold text-slate-500 border-b border-slate-100">
-                        <th className="py-2 px-2 w-8 text-center">#</th>
-                        <th className="py-2 px-2">Khu vực</th>
-                        <th className="py-2 px-2">Loại bàn</th>
-                        <th className="py-2 px-2">Loại ghế</th>
-                        <th className="py-2 px-2 w-20">Số bàn</th>
-                        <th className="py-2 px-2 w-20">Ghế / bàn</th>
-                        <th className="py-2 px-2 w-16 text-center">Thao tác</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {tableConfigs.map((cfg, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50/50">
-                          <td className="py-2.5 px-2 text-center font-bold text-slate-400">
-                            {idx + 1}
-                          </td>
-                          <td className="py-2.5 px-2">
-                            <input
-                              type="text"
-                              value={cfg.area}
-                              onChange={(e) => handleUpdateConfigRow(idx, 'area', e.target.value)}
-                              className="w-full px-3 py-1.5 rounded-xl border border-slate-200 bg-white font-medium text-slate-800 focus:outline-[#0e4b44]"
-                              placeholder="Rạp chính"
-                            />
-                          </td>
-                          <td className="py-2.5 px-2">
-                            <select
-                              value={cfg.tableType}
-                              onChange={(e) => handleUpdateConfigRow(idx, 'tableType', e.target.value)}
-                              className="w-full px-3 py-1.5 rounded-xl border border-slate-200 bg-white font-medium text-slate-800"
-                            >
-                              <option value="ban_tron">Bàn tròn 1,2 m</option>
-                              <option value="ban_dai">Bàn dài 1,6 m</option>
-                            </select>
-                          </td>
-                          <td className="py-2.5 px-2">
-                            <select
-                              value={cfg.chairType}
-                              onChange={(e) => handleUpdateConfigRow(idx, 'chairType', e.target.value)}
-                              className="w-full px-3 py-1.5 rounded-xl border border-slate-200 bg-white font-medium text-slate-800"
-                            >
-                              <option value="ghe_inox">Ghế inox</option>
-                              <option value="ghe_nhua_do">Ghế nhựa đỏ</option>
-                            </select>
-                          </td>
-                          <td className="py-2.5 px-2">
-                            <input
-                              type="number"
-                              min="1"
-                              max="150"
-                              value={cfg.tableCount}
-                              onChange={(e) => handleUpdateConfigRow(idx, 'tableCount', parseInt(e.target.value) || 0)}
-                              className="w-full px-3 py-1.5 rounded-xl border border-slate-200 bg-white font-bold text-slate-900 text-center"
-                            />
-                          </td>
-                          <td className="py-2.5 px-2">
-                            <input
-                              type="number"
-                              min="4"
-                              max="12"
-                              value={cfg.chairsPerTable}
-                              onChange={(e) => handleUpdateConfigRow(idx, 'chairsPerTable', parseInt(e.target.value) || 6)}
-                              className="w-full px-3 py-1.5 rounded-xl border border-slate-200 bg-white font-bold text-slate-900 text-center"
-                            />
-                          </td>
-                          <td className="py-2.5 px-2 text-center">
-                            {tableConfigs.length > 1 ? (
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveConfigRow(idx)}
-                                className="p-1.5 text-slate-400 hover:text-[#f06148] transition-colors cursor-pointer"
-                                title="Xóa khu vực này"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            ) : (
-                              <span className="text-slate-300 text-xs">-</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Banner Tổng quy mô bàn ghế chuẩn Ảnh 1 */}
-                <div className="p-3.5 rounded-2xl bg-[#eaf5ef] border border-[#d0ebd9] flex flex-wrap items-center justify-between gap-3 text-xs">
-                  <div className="flex items-center gap-2 font-bold text-[#0e4b44]">
-                    <Users className="w-4 h-4 text-[#0e4b44]" />
-                    <span>Tổng dự kiến: {totalTables} bàn • {totalChairs} ghế</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="px-3 py-1 rounded-full bg-[#fff9ea] border border-[#fce6b6] text-amber-900 font-bold flex items-center gap-1.5 shadow-2xs">
-                      <span>🪑</span>
-                      <span>Ghế inox: {inoxCount}</span>
-                    </span>
-                    <span className="px-3 py-1 rounded-full bg-[#fff9ea] border border-[#fce6b6] text-amber-900 font-bold flex items-center gap-1.5 shadow-2xs">
-                      <span>🪑</span>
-                      <span>Ghế nhựa đỏ: {nhuaCount}</span>
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* MỤC 3: Thời gian tổ chức & địa điểm sự kiện */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-full bg-emerald-100 text-[#0e4b44] font-bold text-xs flex items-center justify-center">
-                    3
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-sm text-slate-900">Thời gian tổ chức & địa điểm sự kiện</h3>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Khối 1: Thời gian diễn ra tiệc chính */}
-                  <div className="p-4 rounded-2xl bg-[#fffbf9] border border-rose-200/80 space-y-2.5">
-                    <div className="flex items-center gap-1.5 font-bold text-xs text-[#e05638]">
-                      <Calendar className="w-4 h-4" />
-                      <span>Thời gian diễn ra tiệc chính</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3 text-xs">
-                      <div>
-                        <label className="block text-[11px] text-slate-500 mb-1 font-medium">Ngày bắt đầu</label>
-                        <input
-                          type="date"
-                          value={eventStartDate}
-                          onChange={(e) => setEventStartDate(e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium text-slate-800"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[11px] text-slate-500 mb-1 font-medium">Giờ bắt đầu</label>
-                        <input
-                          type="time"
-                          value={eventStartTime}
-                          onChange={(e) => setEventStartTime(e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium text-slate-800"
-                          required
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Khối 2: Thời gian chuẩn bị (lắp dựng & thu hồi) */}
-                  <div className="p-4 rounded-2xl bg-[#fffdf7] border border-amber-200/80 space-y-2.5">
-                    <div className="flex items-center gap-1.5 font-bold text-xs text-amber-900">
-                      <Calendar className="w-4 h-4" />
-                      <span>Thời gian chuẩn bị (lắp dựng & thu hồi)</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3 text-xs">
-                      <div>
-                        <label className="block text-[11px] text-slate-500 mb-1 font-medium">Bắt đầu lắp dựng</label>
-                        <div className="space-y-1.5">
-                          <input
-                            type="date"
-                            value={setupDate}
-                            onChange={(e) => setSetupDate(e.target.value)}
-                            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800"
-                            required
-                          />
-                          <input
-                            type="time"
-                            value={setupTime}
-                            onChange={(e) => setSetupTime(e.target.value)}
-                            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800"
-                            required
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-[11px] text-slate-500 mb-1 font-medium">Hoàn tất thu hồi</label>
-                        <div className="space-y-1.5">
-                          <input
-                            type="date"
-                            value={teardownDate}
-                            onChange={(e) => setTeardownDate(e.target.value)}
-                            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800"
-                            required
-                          />
-                          <input
-                            type="time"
-                            value={teardownTime}
-                            onChange={(e) => setTeardownTime(e.target.value)}
-                            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800"
-                            required
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Địa điểm tổ chức */}
-                <div className="space-y-1.5">
-                  <label className="block font-bold text-xs text-slate-800 flex items-center gap-1.5">
-                    <MapPin className="w-4 h-4 text-[#e05638]" />
-                    <span>Địa điểm tổ chức sự kiện</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Nhập địa chỉ tổ chức của gia đình (thôn/xóm, xã, huyện...)"
-                    value={eventAddress}
-                    onChange={(e) => setEventAddress(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-[#0e4b44]"
-                  />
-                  <p className="text-[11px] text-stone-500 font-normal">
-                    Địa chỉ nơi dựng rạp sự kiện (Quý khách nhập cụ thể thôn/xóm, xã, huyện nơi tổ chức).
-                  </p>
-                </div>
-              </div>
-
-              {/* MỤC 4: Thông tin người đại diện đặt tiệc */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-full bg-emerald-100 text-[#0e4b44] font-bold text-xs flex items-center justify-center">
-                    4
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-sm text-slate-900">Thông tin người đại diện đặt tiệc</h3>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Họ và tên *</label>
-                    <div className="relative">
-                      <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-                      <input
-                        type="text"
-                        required
-                        placeholder="Anh Nam / Chị Lan"
-                        value={customerName}
-                        onChange={(e) => setCustomerName(e.target.value)}
-                        className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Số điện thoại *</label>
-                    <div className="relative">
-                      <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-                      <input
-                        type="tel"
-                        required
-                        placeholder="0988 123 456"
-                        value={customerPhone}
-                        onChange={(e) => setCustomerPhone(e.target.value)}
-                        className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Email</label>
-                    <div className="relative">
-                      <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-                      <input
-                        type="email"
-                        placeholder="khachhang@gmail.com"
-                        value={customerEmail}
-                        onChange={(e) => setCustomerEmail(e.target.value)}
-                        className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Ghi chú / yêu cầu đặc biệt (nếu có)</label>
-                  <div className="relative">
-                    <FileText className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-                    <textarea
-                      rows={2}
-                      placeholder="Ví dụ: Cần thêm dàn âm thanh 4 sub 4 full, đường vào ngõ rộng 4m..."
-                      value={note}
-                      onChange={(e) => setNote(e.target.value)}
-                      className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 leading-relaxed"
-                    />
-                  </div>
-                </div>
-
-                {/* Submit button chuẩn Ảnh 1 */}
-                <button
-                  type="submit"
-                  className="w-full py-3.5 rounded-xl bg-[#f06148] hover:bg-[#e05038] text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md shadow-rose-900/10 transition-all cursor-pointer hover:scale-101"
-                >
-                  <Send className="w-4 h-4" />
-                  <span>GỬI YÊU CẦU ĐẶT LỊCH</span>
-                </button>
-
-                <p className="text-[11px] text-slate-500 text-center flex items-center justify-center gap-1.5">
-                  <Info className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Đây là yêu cầu tư vấn, lịch sẽ được xác nhận sau khi nhân viên kiểm tra.</span>
-                </p>
-              </div>
-
-            </form>
-
-            {/* KẾT QUẢ GỬI YÊU CẦU */}
-            {submissionResult && (
-              <div id="booking-result" className="p-6 bg-amber-50/70 border border-amber-200 rounded-2xl">
-                <div className="flex items-start gap-4">
-                  <CheckCircle className="w-7 h-7 text-emerald-600 shrink-0 mt-0.5" />
-                  <div className="space-y-2">
-                    <h4 className="text-base font-bold text-slate-900">
-                      {submissionResult.message}
-                    </h4>
-                    {submissionResult.code && (
-                      <div className="p-3.5 rounded-xl bg-white border border-amber-200 inline-block font-mono">
-                        <span className="text-xs text-slate-500 block">Mã hồ sơ tiếp nhận của gia đình:</span>
-                        <strong className="text-xl text-[#b8860b] font-extrabold">{submissionResult.code}</strong>
-                      </div>
-                    )}
-                    <p className="text-xs text-slate-700 leading-relaxed">
-                      Trạng thái hiện tại: <strong className="text-amber-800">Chờ nhân viên liên hệ xác nhận</strong>.<br />
-                      <em>Đội ngũ kỹ thuật Thái Đăng sẽ liên hệ để khảo sát mặt bằng thực tế trước khi chốt lịch và điều phối kho.</em>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-        </div>
-      </section>
+      <SimpleBookingForm themeId={selectedThemeId} preferredService={serviceType} />
 
       {/* 5. PHẦN THIỆP CƯỚI ONLINE (CHUẨN ẢNH 2: TONE TRẮNG SANG TRỌNG & HOA VĂN THỰC VẬT) */}
-      <section id="thiep-cuoi" className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="bg-white rounded-3xl border border-stone-200/90 shadow-md p-8 sm:p-12 relative overflow-hidden">
-          
-          {/* Họa tiết lá xanh / thực vật trang nhã ở góc trên & dưới bên phải (Chuẩn Ảnh 2) */}
-          <div className="absolute top-0 right-0 w-72 h-72 pointer-events-none opacity-40">
-            <svg viewBox="0 0 200 200" fill="none" className="w-full h-full">
-              <path d="M190 10 C140 40 120 90 130 140 C140 100 170 50 190 10Z" fill="#2d6a4f" opacity="0.6"/>
-              <path d="M200 60 C150 85 135 125 145 165 C155 125 180 90 200 60Z" fill="#52b788" opacity="0.5"/>
-              <path d="M140 25 C120 60 110 100 120 130 C130 90 150 60 140 25Z" fill="#74c69d" opacity="0.4"/>
-              <circle cx="110" cy="110" r="4" fill="#eedcc2"/>
-              <circle cx="160" cy="80" r="3" fill="#eedcc2"/>
-            </svg>
-          </div>
-          <div className="absolute bottom-0 right-0 w-56 h-56 pointer-events-none opacity-30">
-            <svg viewBox="0 0 200 200" fill="none" className="w-full h-full">
-              <path d="M160 190 C130 145 110 110 120 65 C130 110 150 145 160 190Z" fill="#2d6a4f" opacity="0.5"/>
-              <path d="M190 170 C150 130 135 95 145 60 C155 95 180 130 190 170Z" fill="#52b788" opacity="0.4"/>
-            </svg>
-          </div>
-
-          <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-            
-            {/* Cột trái: Nội dung giới thiệu */}
-            <div className="md:col-span-8 space-y-5">
-              {/* Badge tính năng đang phát triển (Chuẩn Ảnh 2) */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#fdeee9] border border-[#fbdcd3] text-[#d3523b] text-xs font-bold uppercase tracking-wider">
-                <Settings className="w-3.5 h-3.5" />
-                <span>TÍNH NĂNG ĐANG PHÁT TRIỂN</span>
-              </div>
-
-              {/* Tiêu đề 2 dòng màu xanh lục đậm */}
-              <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#0e4b44] leading-tight tracking-tight">
-                Thiệp cưới online &amp;<br />quản lý khách mời
-              </h3>
-
-              {/* Đoạn văn mô tả */}
-              <div className="space-y-2 text-sm sm:text-base text-stone-600 leading-relaxed font-normal max-w-xl">
-                <p>
-                  Dành riêng cho các cặp đôi đặt trọn gói dịch vụ rạp cưới tại <strong className="text-stone-900 font-semibold">Thái Đăng Palace</strong>.
-                </p>
-                <p>
-                  Tạo thiệp cưới số sang trọng với ảnh cưới, lời mời, bản đồ định vị Google Maps và nhận phản hồi tham dự từ đồng ý, đến bạn bè, người thân.
-                </p>
-              </div>
-
-              {/* Thông báo khóa vàng gold (Chuẩn Ảnh 2) */}
-              <div className="pt-3 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#faedd8] border border-[#f2dac0] flex items-center justify-center shrink-0 shadow-2xs">
-                  <Lock className="w-4 h-4 text-[#996515]" />
-                </div>
-                <div className="h-6 w-[1.5px] bg-[#eedcc2]" />
-                <span className="text-xs sm:text-sm text-[#996515] font-semibold">
-                  Sẽ mở sau khi Job tổ chức cưới được xác nhận.
-                </span>
-              </div>
-            </div>
-
-            {/* Cột phải: Khung Mẫu thiệp số Thái Đăng với đồ họa mã QR cách điệu vàng gold (Chuẩn Ảnh 2) */}
-            <div className="md:col-span-4 flex justify-center md:justify-end">
-              <div className="w-56 p-6 sm:p-7 rounded-3xl bg-[#faf8f5] border-2 border-[#eedcc2] text-center shadow-md relative group hover:border-[#c59b4c] transition-all">
-                
-                {/* Đồ họa QR Monogram cách điệu màu vàng gold */}
-                <div className="w-28 h-28 mx-auto flex items-center justify-center mb-3">
-                  <svg viewBox="0 0 100 100" fill="none" className="w-full h-full text-[#c59b4c]">
-                    {/* Ô vuông bo góc trên-trái kèm chấm */}
-                    <rect x="10" y="10" width="34" height="34" rx="8" stroke="currentColor" strokeWidth="6" fill="none"/>
-                    <circle cx="27" cy="27" r="4" fill="currentColor"/>
-                    {/* Ô vuông bo góc trên-phải kèm chấm */}
-                    <rect x="56" y="10" width="34" height="34" rx="8" stroke="currentColor" strokeWidth="6" fill="none"/>
-                    <circle cx="73" cy="27" r="4" fill="currentColor"/>
-                    {/* Ô vuông bo góc dưới-trái kèm chấm */}
-                    <rect x="10" y="56" width="34" height="34" rx="8" stroke="currentColor" strokeWidth="6" fill="none"/>
-                    <circle cx="27" cy="73" r="4" fill="currentColor"/>
-                    {/* Cung bo góc dưới-phải */}
-                    <path d="M56 56 H90 V76 C90 83.7 83.7 90 76 90 H56 V56Z" stroke="currentColor" strokeWidth="6" fill="none"/>
-                    <circle cx="73" cy="73" r="4" fill="currentColor"/>
-                  </svg>
-                </div>
-
-                {/* Trái tim vàng gold */}
-                <div className="flex items-center justify-center gap-2 my-2 text-[#c59b4c]">
-                  <div className="h-[1px] w-5 bg-[#eedcc2]" />
-                  <Heart className="w-3.5 h-3.5 fill-[#c59b4c] text-[#c59b4c]" />
-                  <div className="h-[1px] w-5 bg-[#eedcc2]" />
-                </div>
-
-                {/* Nhãn chữ MẪU THIỆP SỐ THÁI ĐĂNG */}
-                <div className="space-y-0.5 pt-1">
-                  <div className="text-[11px] font-bold text-[#0e4b44] uppercase tracking-wider">
-                    MẪU THIỆP SỐ
-                  </div>
-                  <div className="text-xs font-bold text-[#0e4b44] tracking-widest uppercase">
-                    THÁI ĐĂNG
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
+      <WeddingServiceIntro />
 
       {/* 6. TRA CỨU HỒ SƠ ĐÃ GỬI */}
-      <section id="tra-cuu" className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="bg-white rounded-3xl shadow-xl border border-[#ede8de] p-8 space-y-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-[#b8860b]">
-              <Search className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-xl sm:text-2xl font-bold text-stone-900">
-                Tra Cứu Hồ Sơ &amp; Lịch Trình Sự Kiện
-              </h3>
-              <p className="text-sm text-stone-600 mt-0.5">
-                Nhập mã hồ sơ (ví dụ: TD-202610-001) hoặc số điện thoại để kiểm tra tình trạng xử lý.
-              </p>
-            </div>
-          </div>
-
-          <form onSubmit={handleSearchBooking} className="flex gap-2.5">
-            <input
-              type="text"
-              placeholder="Nhập mã hồ sơ hoặc số điện thoại đã đăng ký..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 px-4 py-3 rounded-2xl border border-stone-300 text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-[#0e4b44]"
-            />
-            <button
-              type="submit"
-              className="px-6 py-3 rounded-2xl bg-[#0e4b44] hover:bg-[#155e55] text-white font-bold text-sm uppercase tracking-wider transition-colors cursor-pointer"
-            >
-              Tra Cứu
-            </button>
-          </form>
-
-          {hasSearched && (
-            <div className="pt-2">
-              {searchResult ? (
-                <div className="p-5 rounded-2xl bg-[#faf8f5] border border-[#ede8de] space-y-3">
-                  <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                    <div>
-                      <span className="font-mono font-bold text-[#b8860b] text-base">{searchResult.code}</span>
-                      <strong className="text-slate-900 text-sm ml-2">{searchResult.customerName}</strong>
-                    </div>
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 uppercase">
-                      {searchResult.status.replace(/_/g, ' ')}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs text-slate-700">
-                    <div><strong>Dịch vụ:</strong> {searchResult.serviceType.replace('_', ' ')}</div>
-                    <div><strong>Số điện thoại:</strong> {searchResult.customerPhone}</div>
-                    <div><strong>Ngày tiệc:</strong> {new Date(searchResult.eventDateStart).toLocaleDateString('vi-VN')}</div>
-                    <div className="col-span-2"><strong>Địa chỉ:</strong> {searchResult.eventAddress}</div>
-                    <div><strong>Mã Job:</strong> {searchResult.confirmedJobId || 'Đang chờ duyệt Job'}</div>
-                  </div>
-                </div>
-              ) : (
-                <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 text-center">
-                  Không tìm thấy hồ sơ nào khớp với từ khóa tìm kiếm. Vui lòng kiểm tra lại mã hoặc số điện thoại!
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </section>
 
       {/* 7. TIN TỨC SỰ KIỆN & CẨM NĂNG QUẢNG BÁ (CMS ARTICLES) */}
       <section id="tin-tuc" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 space-y-12">
@@ -1487,7 +489,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 text-[#b8860b] text-xs font-bold tracking-wider uppercase">
               <FileText className="w-3.5 h-3.5" />
-              <span>CẨM NĂNG & DỰ ÁN THỰC TẾ</span>
+              <span>GÓC CHUẨN BỊ NGÀY VUI</span>
             </div>
             <h2 className="text-2xl sm:text-3xl lg:text-[34px] font-bold text-stone-900 tracking-tight">
               Xu Hướng Rạp Cưới &amp; Tin Tức Sự Kiện
@@ -1499,16 +501,12 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
 
           {/* Category Filter Pills */}
           <div className="flex flex-wrap items-center gap-2">
-            {[
-              { id: 'all', label: 'Tất Cả Bài Viết' },
-              { id: 'xu_huong_rap', label: 'Xu Hướng Rạp' },
-              { id: 'kinh_nghiem_cuoi', label: 'Kinh Nghiệm Cưới' },
-              { id: 'du_an_thuc_te', label: 'Dự Án Thực Tế' },
-            ].map(cat => (
+            {ARTICLE_CATEGORIES.map(cat => (
               <button
                 key={cat.id}
                 type="button"
                 onClick={() => setSelectedCategory(cat.id)}
+                aria-pressed={selectedCategory === cat.id}
                 className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
                   selectedCategory === cat.id
                     ? 'gold-gradient text-[#121722] shadow-md'
@@ -1522,19 +520,22 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
         </div>
 
         {/* Articles Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {(articles || [])
-            .filter(a => a.isPublished && (selectedCategory === 'all' || a.category === selectedCategory))
+        <div className="public-article-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {filteredArticles.length === 0 && <div className="public-empty-state"><FileText /><h3>Bài viết đang được cập nhật</h3><p>Bạn có thể chọn chuyên mục khác hoặc liên hệ Thái Đăng để được tư vấn.</p></div>}
+          {filteredArticles
             .map(art => (
               <div
                 key={art.id}
                 onClick={() => setSelectedArticle(art)}
+                role="button" tabIndex={0}
+                onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setSelectedArticle(art); } }}
+                aria-label={`Đọc bài viết: ${art.title}`}
                 className="bg-white rounded-3xl border border-[#ede8de] overflow-hidden shadow-xs hover:shadow-2xl transition-all duration-300 flex flex-col justify-between group cursor-pointer transform hover:-translate-y-1"
               >
                 <div>
                   <div className="h-52 relative overflow-hidden bg-slate-100">
                     {art.imageUrl ? (
-                      <img
+                      <PublicImage
                         src={art.imageUrl}
                         alt={art.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
@@ -1543,10 +544,10 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                       <div className="w-full h-full flex items-center justify-center text-slate-400">Ảnh bài viết</div>
                     )}
                     <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-bold bg-[#121722]/85 text-[#dfba73] backdrop-blur-md uppercase tracking-wider">
-                      {art.category === 'xu_huong_rap' ? 'Xu hướng' : art.category === 'kinh_nghiem_cuoi' ? 'Kinh nghiệm' : art.category === 'du_an_thuc_te' ? 'Dự án thực tế' : 'Ưu đãi'}
+                      {articleCategoryLabel(art.category)}
                     </span>
                     <span className="absolute bottom-3 right-3 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-black/60 text-white backdrop-blur-md">
-                      {art.viewCount} lượt xem
+                      {art.views} lượt xem
                     </span>
                   </div>
 
@@ -1582,7 +583,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
           
           {/* Header với Logo chuẩn và Tiêu đề */}
           <div className="text-center space-y-2">
-            <img 
+            <PublicImage
               src="/logo_thai_dang.png" 
               alt="Nhà Rạp Thái Đăng" 
               className="h-16 mx-auto object-contain drop-shadow-2xs" 
@@ -1641,7 +642,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
               </div>
               <div className="mt-4 pt-2">
                 <a
-                  href={companyInfo.facebookFanpageUrl || companyInfo.facebookFanpage || 'https://facebook.com'}
+                  href={facebookUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full py-2.5 rounded-xl bg-[#0e4b44] hover:bg-[#155e55] text-white font-bold text-xs uppercase tracking-wider text-center flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
@@ -1666,7 +667,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
               </div>
               <div className="mt-4 pt-2">
                 <a
-                  href={companyInfo.zaloChat || (companyInfo.zaloPhone ? `https://zalo.me/${companyInfo.zaloPhone.replace(/\D/g, '')}` : 'https://zalo.me')}
+                  href={zaloUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full py-2.5 rounded-xl bg-[#0e4b44] hover:bg-[#155e55] text-white font-bold text-xs uppercase tracking-wider text-center flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
@@ -1706,13 +707,15 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
           {/* Form để lại thông tin tư vấn chuẩn Ảnh 2 */}
           <div className="bg-white rounded-3xl border border-stone-200/90 shadow-md p-6 sm:p-10 max-w-3xl mx-auto space-y-6">
             <h3 className="font-bold text-stone-900 text-lg sm:text-xl text-center">
-              Để lại thông tin, Thái Đăng sẽ liên hệ tư vấn
+              Trao đổi thêm qua email
             </h3>
 
             {contactSubmitted ? (
-              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-sm font-semibold text-center flex items-center justify-center gap-2">
+              <div role="status" className="p-4 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-sm font-semibold text-center flex flex-col items-center justify-center gap-2">
                 <CheckCircle className="w-5 h-5 text-emerald-600" />
-                <span>Cảm ơn quý khách! Đội ngũ Nhà Rạp Thái Đăng đã nhận thông tin và sẽ gọi lại ngay.</span>
+                <span>Nội dung đã được chuyển sang ứng dụng email. Vui lòng bấm gửi trong ứng dụng để hoàn tất.</span>
+                <a href={`mailto:${companyInfo.email || CONTACT_CONFIG.EMAIL}`}>{companyInfo.email || CONTACT_CONFIG.EMAIL}</a>
+                <button type="button" className="underline" onClick={() => setContactSubmitted(false)}>Quay lại chỉnh sửa nội dung</button>
               </div>
             ) : (
               <form onSubmit={handleSendContact} className="space-y-4 text-sm">
@@ -1723,6 +726,8 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                       type="text"
                       required
                       placeholder="Họ và tên *"
+                      aria-label="Họ và tên liên hệ"
+                      autoComplete="name"
                       value={contactName}
                       onChange={(e) => setContactName(e.target.value)}
                       className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-stone-300 bg-white font-medium text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#0e4b44] text-sm"
@@ -1734,6 +739,8 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                       type="tel"
                       required
                       placeholder="Số điện thoại *"
+                      aria-label="Số điện thoại liên hệ"
+                      autoComplete="tel"
                       value={contactPhone}
                       onChange={(e) => setContactPhone(e.target.value)}
                       className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-stone-300 bg-white font-medium text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#0e4b44] text-sm"
@@ -1746,6 +753,8 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                   <input
                     type="email"
                     placeholder="Email (không bắt buộc)"
+                    aria-label="Email liên hệ"
+                    autoComplete="email"
                     value={contactEmail || ''}
                     onChange={(e) => setContactEmail(e.target.value)}
                     className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-stone-300 bg-white font-medium text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#0e4b44] text-sm"
@@ -1758,6 +767,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                     rows={3}
                     placeholder="Nội dung cần hỗ trợ (ví dụ: ngày cưới dự kiến, địa điểm sân ngõ, quy mô bàn tiệc...)"
                     value={contactMsg}
+                    aria-label="Nội dung cần tư vấn"
                     onChange={(e) => setContactMsg(e.target.value)}
                     className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-stone-300 bg-white font-medium text-stone-900 placeholder-stone-400 leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#0e4b44] text-sm"
                   />
@@ -1768,12 +778,12 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                   className="w-full py-3.5 rounded-xl bg-[#ee5a45] hover:bg-[#e04530] text-white font-bold text-sm uppercase tracking-wider shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer hover:shadow-md"
                 >
                   <Send className="w-4 h-4" />
-                  <span>GỬI YÊU CẦU TƯ VẤN</span>
+                  <span>SOẠN EMAIL TƯ VẤN</span>
                 </button>
 
                 <p className="text-xs text-stone-500 text-center flex items-center justify-center gap-1.5 pt-1">
                   <Lock className="w-3.5 h-3.5 text-stone-400" />
-                  <span>Thông tin chỉ dùng để liên hệ tư vấn dịch vụ.</span>
+                  <span>Mở ứng dụng email của bạn. Bạn sẽ xem lại nội dung trước khi gửi.</span>
                 </p>
               </form>
             )}
@@ -1783,21 +793,22 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
       </section>
 
       {/* FOOTER ĐẲNG CẤP: TONE MÀU SÁNG TRANG NHÃ, DỄ ĐỌC */}
-      <footer className="bg-[#fbf9f6] text-stone-700 pt-16 pb-10 border-t border-[#ede5d8] text-sm">
+      <footer className="public-footer bg-[#fbf9f6] text-stone-700 pt-16 pb-10 border-t border-[#ede5d8] text-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 pb-12 border-b border-[#ede5d8]">
           
           {/* Cột 1: Vương miện, Slogan & Các biểu tượng mạng xã hội */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <Crown className="w-6 h-6 text-[#c59b4c]" />
+              <PublicImage src="/logo_thai_dang.png" fallbackSrc="/logo_thai_dang.png" alt="Nhà Rạp Thái Đăng" className="public-footer-logo" width={180} height={94} />
             </div>
             <h4 className="font-bold text-[#0e4b44] text-sm tracking-wider uppercase">
               {companyInfo.footerSloganTitle || 'SỰ KIỆN TRỌN NIỀM VUI'}
             </h4>
+            <p className="public-footer-description">{companyInfo.slogan && companyInfo.slogan !== companyInfo.footerSloganTitle ? companyInfo.slogan : 'Phông rạp, bàn ghế và thiết bị sự kiện. Đồng hành cùng ngày vui của gia đình tại Ninh Bình.'}</p>
             <div className="flex items-center gap-2.5 pt-1">
               {/* Nút Chia sẻ / Fanpage */}
               <a
-                href={companyInfo.facebookFanpageUrl || companyInfo.facebookFanpage || 'https://facebook.com'}
+                href={facebookUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-full bg-[#f4ece1] hover:bg-[#ebdcc8] text-[#8c6b3e] flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
@@ -1817,7 +828,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
               </a>
               {/* Nút TikTok */}
               <a
-                href={companyInfo.tiktokUrl || '#'}
+                href={publicLink(companyInfo.tiktokUrl, CONTACT_CONFIG.TIKTOK_URL)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-full bg-[#f4ece1] hover:bg-[#ebdcc8] text-[#8c6b3e] font-bold text-xs flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
@@ -1827,7 +838,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
               </a>
               {/* Nút YouTube */}
               <a
-                href={companyInfo.youtubeUrl || '#'}
+                href={publicLink(companyInfo.youtubeUrl, CONTACT_CONFIG.YOUTUBE_URL)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-full bg-[#f4ece1] hover:bg-[#ebdcc8] text-[#8c6b3e] font-bold text-xs flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
@@ -1892,10 +903,10 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
               Trụ sở kho bãi &amp; văn phòng: {companyInfo.address || 'Thôn Trực Đông, xã Cổ Lễ, tỉnh Ninh Bình'}
             </p>
             <p className="text-stone-800 font-medium">
-              Hotline 24/7: <strong className="text-[#ee5a45] font-bold text-base">{getOfficialContactHotline(companyInfo.hotline)}</strong>
+              Hotline: <a href={`tel:${hotline.replace(/\D/g, '')}`} className="text-[#ee5a45] font-bold text-base">{hotline}</a>
             </p>
             <p className="text-stone-600 font-medium">
-              Email: {companyInfo.email || 'sukien@nharapthaidang.vn'}
+              Email: <a href={`mailto:${companyInfo.email || CONTACT_CONFIG.EMAIL}`}>{companyInfo.email || CONTACT_CONFIG.EMAIL}</a>
             </p>
           </div>
 
@@ -1911,11 +922,11 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
       {/* ======================================================== */}
       {/* PHẦN LIÊN HỆ CỐ ĐỊNH: TRÊN MOBILE GỌN GÀNG GÓC DƯỚI, KHÔNG CHE NỘI DUNG CHÍNH GIỮA */}
       {/* ======================================================== */}
-      <div className="fixed right-2.5 sm:right-5 bottom-20 sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 z-40 flex flex-col items-center gap-2 sm:gap-3 pointer-events-auto animate-fade-in">
+      <div className="public-contact-rail fixed right-2.5 sm:right-5 bottom-20 sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 z-40 flex flex-col items-center gap-2 sm:gap-3 pointer-events-auto animate-fade-in">
         
         {/* 1. NÚT GỌI HOTLINE: TRÒN MÀU VÀNG GOLD, ICON ĐIỆN THOẠI ĐEN */}
         <a
-          href={`tel:${companyInfo.hotline.replace(/[^0-9]/g, '')}`}
+          href={`tel:${hotline.replace(/[^0-9]/g, '')}`}
           className="w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-gradient-to-b from-[#e8c676] to-[#cba048] text-stone-900 shadow-lg flex items-center justify-center hover:scale-108 active:scale-95 transition-all group relative border-2 border-white/60 cursor-pointer"
           title={`Hotline: ${companyInfo.hotline}`}
         >
@@ -1927,7 +938,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
 
         {/* 2. NÚT CHAT ZALO: TRÒN MÀU XANH NGỌC/CYAN */}
         <a
-          href={companyInfo.zaloChat}
+          href={zaloUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-[#0098b9] hover:bg-[#008ba9] text-white shadow-lg flex items-center justify-center hover:scale-108 active:scale-95 transition-all group relative border-2 border-white/60 cursor-pointer"
@@ -1941,7 +952,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
 
         {/* 3. NÚT FACEBOOK FANPAGE: TRÒN MÀU XANH DƯƠNG */}
         <a
-          href={companyInfo.facebookFanpage}
+          href={facebookUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-[#1877F2] hover:bg-[#166fe5] text-white shadow-lg flex items-center justify-center hover:scale-108 active:scale-95 transition-all group relative border-2 border-white/60 cursor-pointer"
@@ -1956,7 +967,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
       </div>
 
       {/* LÊN ĐẦU TRANG (SCROLL TO TOP): BỐ TRÍ DƯỚI CÙNG GÓC PHẢI KHÔNG VA CHẠM */}
-      <div className="fixed bottom-5 right-2.5 sm:right-5 z-40 pointer-events-auto">
+      <div className="public-back-to-top fixed bottom-5 right-2.5 sm:right-5 z-40 pointer-events-auto">
         <button
           type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
@@ -1974,29 +985,30 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
       {/* ARTICLE READER MODAL (FULL EXPERIENCE)                   */}
       {/* ======================================================== */}
       {selectedArticle && (
-        <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 text-slate-800 animate-fade-in relative">
+        <div className="public-modal-backdrop fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overflow-y-auto" onClick={event => { if (event.target === event.currentTarget) setSelectedArticle(null); }}>
+          <div className="public-dialog bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 text-slate-800 animate-fade-in relative" role="dialog" aria-modal="true" aria-labelledby="public-article-title" tabIndex={-1}>
             
             <button
               onClick={() => setSelectedArticle(null)}
+              aria-label="Đóng bài viết"
               className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-black/60 hover:bg-black text-white flex items-center justify-center transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
 
-            {selectedArticle.imageUrl && (
+            {(
               <div className="h-64 sm:h-80 w-full relative overflow-hidden bg-slate-100">
-                <img
-                  src={selectedArticle.imageUrl}
+                <PublicImage
+                  src={selectedArticle.imageUrl || '/public-wedding-hero.jpg'}
                   alt={selectedArticle.title}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-6">
                   <div className="space-y-2">
                     <span className="px-3 py-1 rounded-full text-[10px] font-bold gold-gradient text-[#121722] uppercase tracking-wider">
-                      {selectedArticle.category === 'xu_huong_rap' ? 'Xu hướng rạp' : selectedArticle.category === 'kinh_nghiem_cuoi' ? 'Kinh nghiệm cưới' : selectedArticle.category === 'du_an_thuc_te' ? 'Dự án thực tế' : 'Ưu đãi'}
+                      {articleCategoryLabel(selectedArticle.category)}
                     </span>
-                    <h2 className="text-xl sm:text-2xl font-bold text-white leading-tight">
+                    <h2 id="public-article-title" className="text-xl sm:text-2xl font-bold text-white leading-tight">
                       {selectedArticle.title}
                     </h2>
                   </div>
@@ -2011,7 +1023,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                   <span>•</span>
                   <span>{new Date(selectedArticle.publishedAt).toLocaleDateString('vi-VN')}</span>
                 </div>
-                <div>{selectedArticle.viewCount} lượt xem</div>
+                <div>{selectedArticle.views} lượt xem</div>
               </div>
 
               <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200/70 text-slate-700 font-medium italic leading-relaxed">
@@ -2024,7 +1036,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
 
               <div className="p-4 sm:p-6 rounded-2xl bg-[#faf8f5] border border-stone-200/90 text-stone-900 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-6">
                 <div>
-                  <h4 className="font-bold text-stone-900 text-sm sm:text-base">Bạn cần tư vấn phong cách rạp cưới này?</h4>
+                  <h4 className="font-bold text-stone-900 text-sm sm:text-base">Cùng chuẩn bị cho sự kiện của bạn</h4>
                   <p className="text-xs sm:text-sm text-stone-600 mt-0.5">Đội ngũ kỹ thuật Thái Đăng Palace sẽ đo đạc và lên phương án tận nơi.</p>
                 </div>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto shrink-0">
@@ -2055,8 +1067,8 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
 
       {/* MODAL CHI TIẾT MẪU RẠP & TƯ VẤN PHONG THỦY TUỔI TÁC HỢP MỆNH */}
       {viewingThemeDetail && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-3xl w-full my-8 shadow-2xl overflow-hidden border border-[#e8dfcf] animate-fade-in text-slate-800">
+        <div className="public-modal-backdrop fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto" onClick={event => { if (event.target === event.currentTarget) setViewingThemeDetail(null); }}>
+          <div className="public-dialog bg-white rounded-3xl max-w-3xl w-full my-8 shadow-2xl overflow-hidden border border-[#e8dfcf] animate-fade-in text-slate-800" role="dialog" aria-modal="true" aria-labelledby="public-theme-title" tabIndex={-1}>
             
             {/* Modal Header */}
             <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between bg-[#fcfaf6]">
@@ -2064,7 +1076,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                 <span className="text-[10px] uppercase font-bold text-amber-700 bg-amber-100/80 px-2.5 py-0.5 rounded-full">
                   {viewingThemeDetail.badge}
                 </span>
-                <h3 className="text-xl sm:text-2xl font-bold text-stone-900 mt-1">
+                <h3 id="public-theme-title" className="text-xl sm:text-2xl font-bold text-stone-900 mt-1">
                   {viewingThemeDetail.name}
                 </h3>
                 <p className="text-xs text-[#b8860b] font-medium tracking-wide">
@@ -2074,6 +1086,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
               <button
                 type="button"
                 onClick={() => setViewingThemeDetail(null)}
+                aria-label="Đóng chi tiết mẫu rạp"
                 className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
@@ -2086,7 +1099,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
               {/* Image Preview & Gallery */}
               <div className="space-y-3">
                 <div className="h-64 sm:h-80 w-full rounded-2xl overflow-hidden bg-slate-900 border border-slate-200 shadow-inner">
-                  <img
+                  <PublicImage
                     src={activeThemeDetailImg || viewingThemeDetail.imageUrl}
                     alt={viewingThemeDetail.name}
                     className="w-full h-full object-cover transition-all duration-300"
@@ -2100,11 +1113,12 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                         key={idx}
                         type="button"
                         onClick={() => setActiveThemeDetailImg(img)}
+                        aria-label={`Xem ảnh mẫu rạp ${idx + 1}`}
                         className={`w-20 h-14 rounded-xl overflow-hidden shrink-0 border-2 transition-all cursor-pointer ${
                           activeThemeDetailImg === img ? 'border-[#e05638] ring-2 ring-rose-200' : 'border-slate-200 opacity-70 hover:opacity-100'
                         }`}
                       >
-                        <img src={img} alt="" className="w-full h-full object-cover" />
+                        <PublicImage src={img} alt="" className="w-full h-full object-cover" />
                       </button>
                     ))}
                   </div>
@@ -2182,6 +1196,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
                   type="button"
                   onClick={() => {
                     setSelectedThemeId(viewingThemeDetail.id);
+                    setServiceType(viewingThemeDetail.service);
                     setViewingThemeDetail(null);
                     const target = document.getElementById('dat-lich');
                     if (target) target.scrollIntoView({ behavior: 'smooth' });
@@ -2199,6 +1214,6 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
         </div>
       )}
 
-    </div>
+    </main>
   );
 };

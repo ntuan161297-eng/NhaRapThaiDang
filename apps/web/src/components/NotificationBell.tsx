@@ -63,7 +63,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
   const notifications: ReminderNotificationItem[] = [];
 
   // 1. CÓ NGƯỜI ĐẶT LỊCH MỚI (Trạng thái 'received' hoặc chưa khảo sát)
-  const newIntakes = intakes.filter((i) => i.status === 'received' || !i.survey?.surveyDate);
+  const newIntakes = intakes.filter((i) => i.status === 'moi_gui' || !i.survey?.surveyDate);
   newIntakes.slice(0, 10).forEach((item) => {
     notifications.push({
       id: `intake-${item.id}`,

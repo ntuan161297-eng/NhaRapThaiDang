@@ -6,3 +6,4 @@ export * from './inventoryEngine.ts';
 export * from './workflowEngine.ts';
 export * from './rbac.ts';
 export * from './contracts.ts';
+export * from './eventWorkflow.ts';

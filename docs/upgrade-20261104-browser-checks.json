@@ -1,0 +1,27 @@
+{
+  "checks": [
+    "Quản trị ngoài public dùng avatar và menu mới, không còn nút cũ",
+    "Tài khoản mới chưa đặt lịch xuất hiện trong quản trị",
+    "Cấp lại mật khẩu qua quản trị thành công",
+    "Mật khẩu cũ bị từ chối, khách đăng nhập được bằng mật khẩu mới",
+    "Lắp ngày 26 và thu hồi chiều ngày 28 cho đám chính 28/11",
+    "Popup đặt lịch có tên khách, mã, ngày chính, lắp đặt và thu hồi",
+    "Trình sửa thiệp có đủ năm phong cách",
+    "Xem trước phong cách quan_ho",
+    "Xem trước phong cách cong_nghe",
+    "Xem trước phong cách hoang_gia",
+    "Xem trước phong cách thanh_lich",
+    "Xem trước phong cách sang_trong",
+    "Phong cách và lời mời bổ sung được lưu cùng thiệp",
+    "Thiệp công khai hiển thị quan_ho",
+    "Thiệp công khai hiển thị cong_nghe",
+    "Thiệp công khai hiển thị hoang_gia",
+    "Thiệp công khai hiển thị thanh_lich",
+    "Thiệp công khai hiển thị sang_trong",
+    "Thiệp sang trọng mobile không tràn ngang",
+    "Nút RSVP giữ đúng trang thiệp",
+    "RSVP lưu thêm nhà khách và ghi chú riêng",
+    "Không có lỗi JavaScript"
+  ],
+  "errors": []
+}

@@ -179,13 +179,52 @@ export interface InventoryItem {
   code: string;                 // e.g., 'BAN_TRON', 'GHE_INOX', 'GHE_NHUA_DO'
   name: string;
   category: InventoryCategory;
-  unit: string;                 // 'cái', 'bộ', 'kg', 'khoang'
+  unit: string;                 // 'cái', 'bộ', 'kg', 'khoang', 'cây', 'thanh', 'tấm'
+  imageUrl?: string;            // Hình ảnh dụng cụ thực tế
+  purchaseDate?: string;        // Thời điểm mua (YYYY-MM-DD)
+  purchasePriceVND?: number;    // Đơn giá mua / nguyên giá (VND)
+  rentalPriceVND?: number;      // Đơn giá cho thuê lẻ (VND)
   totalOwnedQuantity: number;   // Số lượng sở hữu
   inRepairQuantity: number;     // Đang bảo dưỡng / sửa chữa
   scrappedQuantity: number;     // Đã thanh lý
   externalRentedQuantity: number; // Thuê ngoài bổ sung (đã xác nhận)
   bufferRatio: number;          // Tỷ lệ dự phòng an toàn (e.g., 0.1 = 10%)
   cleaningTurnaroundHours: number; // Thời gian vệ sinh kiểm tra trước khi dùng lại (giờ)
+  notes?: string;               // Ghi chú thông số kỹ thuật, bảo quản
+}
+
+export interface TentBomComponent {
+  itemCode: string;             // Mã dụng cụ thành phần (e.g. COT_RAP, KEO_RAP, XA_GO_GIANG, BAT_MAI_KHOANG)
+  itemName: string;             // Tên dụng cụ thành phần
+  quantityPerBay: number;       // Số lượng cần cho 1 khung/khoang rạp (e.g. 4 cột, 2 kèo, 4 giằng, 1 bạt nóc)
+  unit: string;                 // Đơn vị tính (cây, thanh, tấm, bộ...)
+}
+
+export interface TentFrameConfig {
+  id: string;
+  code: string;                 // e.g. 'KHUNG_RAP_6M'
+  name: string;                 // 'Khung rạp khẩu độ 6m (tiêu chuẩn)'
+  bayWidthMeters: number;       // e.g. 6m
+  bayLengthMeters: number;      // e.g. 3m
+  rentalPricePerBayVND: number; // Đơn giá thuê 1 khung (VND/khoang)
+  imageUrl?: string;
+  description?: string;
+  bomComponents: TentBomComponent[]; // Danh sách các dụng cụ thành phần ghép thành
+}
+
+export interface TableChairCombo {
+  id: string;
+  code: string;                 // e.g. 'COMBO_BAN_INOX_GHE_NHUA', 'COMBO_BAN_INOX_GHE_INOX'
+  name: string;                 // e.g. 'Bộ bàn tròn Inox + 6 Ghế nhựa đỏ'
+  tableItemCode: string;        // Mã bàn gốc
+  tableName: string;            // Tên bàn
+  chairItemCode: string;        // Mã ghế gốc
+  chairName: string;            // Tên ghế
+  chairsPerTable: number;       // Số ghế mỗi bàn (e.g. 6 hoặc 10)
+  rentalPriceVND: number;       // Đơn giá cho thuê 1 bộ hoàn chỉnh (VND)
+  imageUrl?: string;
+  description?: string;
+  isPopular?: boolean;
 }
 
 export type ReservationStatus = 'held' | 'dispatched' | 'returned' | 'cancelled';
@@ -254,6 +293,7 @@ export interface PaymentReceipt {
   recordedBy: string;
   notes?: string;
   receiptNumber: string;
+  createdAt?: string;
 }
 
 export interface JobFinancialSummary {

@@ -1,0 +1,24 @@
+{
+  "checks": [
+    "Public không còn mục khuyến mại hoặc đám hiếu",
+    "Bốn loại hình đặt lịch",
+    "Đăng ký tài khoản giữ loại hình, ngày và ghi chú đang nhập",
+    "Lưu lịch và trạng thái Mới đăng ký hiển thị trong tài khoản",
+    "Chi tiết lịch có modal bên ngoài public và khóa cuộn",
+    "Dashboard có hai biểu đồ năm và lịch Âm Dương",
+    "Menu không có nhân viên hoặc khuyến mại",
+    "Tiếp nhận → Đã liên hệ → Hợp đồng giữ một mã và một bản ghi",
+    "Hoàn thành vẫn Chưa thanh toán",
+    "Biên tập thiệp, công bố và cấp quyền người cùng quản lý",
+    "Ảnh bìa, album và QR cả hai bên được lưu",
+    "Nút RSVP cuộn đúng vị trí và giữ trang thiệp",
+    "RSVP khách không đăng nhập cập nhật một phản hồi",
+    "Tài khoản người cùng quản lý thấy RSVP nhưng không thấy lịch người khác",
+    "Lời chúc đã duyệt công khai, số điện thoại khách được giữ riêng",
+    "Thiệp trên mobile không tràn ngang",
+    "Trang public trên mobile không tràn ngang",
+    "Dữ liệu lịch và RSVP tồn tại sau tải lại",
+    "Không có lỗi JavaScript khi thao tác"
+  ],
+  "errors": []
+}

@@ -22,16 +22,20 @@ import {
   Crown,
 } from 'lucide-react';
 import { CompanyInfo, appStore } from '../services/store';
-import { UserProfile } from '@thai-dang/shared';
+import { UserProfile, type EventAccount } from '@thai-dang/shared';
+import { CustomerAccountMenu, customerAccountLinks } from './CustomerAccountMenu';
 import { toast, showConfirm } from '../services/notification';
 import { CONTACT_CONFIG, getOfficialContactHotline } from '../config/contact';
+import { navigatePublicLink } from '../utils/publicSite';
+import './PublicSite.css';
+import { accountService } from '../services/accountService';
 
 interface HeaderProps {
-  currentView: 'customer' | 'admin' | 'login' | 'customer_auth' | 'admin_auth';
+  currentView: 'customer' | 'account' | 'admin' | 'login' | 'customer_auth' | 'admin_auth';
   onViewChange: (view: 'customer' | 'admin' | 'login') => void;
   currentUser: UserProfile;
   authenticatedStaff: UserProfile | null;
-  authenticatedCustomer: any | null;
+  authenticatedCustomer: EventAccount | null;
   companyInfo?: CompanyInfo;
 }
 
@@ -45,13 +49,27 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('trang-chu');
-  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const hotline = getOfficialContactHotline(companyInfo?.hotline);
+
+  useEffect(() => {
+    const updateActiveTab = () => {
+      const hash = window.location.hash || '#top';
+      const category = appStore.getCmsCategories().find(item => item.linkUrl === hash);
+      if (category) setActiveTab(category.slug);
+    };
+    updateActiveTab();
+    window.addEventListener('hashchange', updateActiveTab);
+    window.addEventListener('public-navigation', updateActiveTab);
+    return () => {
+      window.removeEventListener('hashchange', updateActiveTab);
+      window.removeEventListener('public-navigation', updateActiveTab);
+    };
+  }, []);
 
   // Danh mục chuyên mục thanh Menu Header quản trị từ CMS
   const [navCategories, setNavCategories] = useState(() => 
     appStore.getCmsCategories()
-      .filter(c => c.isActive && c.isHeaderNav !== false)
+      .filter(c => c.isActive && c.isHeaderNav !== false && !/uu[-_]dai|khuyen[-_]mai/.test(`${c.slug} ${c.linkUrl}`))
       .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
   );
 
@@ -59,25 +77,53 @@ export const Header: React.FC<HeaderProps> = ({
     const unsub = appStore.subscribe(() => {
       setNavCategories(
         appStore.getCmsCategories()
-          .filter(c => c.isActive && c.isHeaderNav !== false)
+          .filter(c => c.isActive && c.isHeaderNav !== false && !/uu[-_]dai|khuyen[-_]mai/.test(`${c.slug} ${c.linkUrl}`))
           .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
       );
     });
     return unsub;
   }, []);
 
+  useEffect(() => {
+    const categories = navCategories.map(category => ({
+      category,
+      element: category.linkUrl?.startsWith('#') ? document.getElementById(category.linkUrl.slice(1)) : null,
+    })).filter(item => item.element);
+    const observer = new IntersectionObserver(entries => {
+      const visible = entries.filter(entry => entry.isIntersecting)
+        .sort((a, b) => Math.abs(a.boundingClientRect.top) - Math.abs(b.boundingClientRect.top))[0];
+      if (!visible) return;
+      const match = categories.find(item => item.element === visible.target);
+      if (match) setActiveTab(match.category.slug);
+    }, { rootMargin: '-90px 0px -55% 0px', threshold: 0 });
+    categories.forEach(item => observer.observe(item.element!));
+    return () => observer.disconnect();
+  }, [navCategories]);
+
   // Khóa cuộn trang trên mobile khi Menu mở & hỗ trợ phím Escape
   useEffect(() => {
     if (mobileMenuOpen) {
+      const previousFocus = document.activeElement as HTMLElement | null;
+      const previousOverflow = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
+      const drawer = document.getElementById('public-mobile-menu');
+      drawer?.querySelector<HTMLButtonElement>('button')?.focus();
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
           setMobileMenuOpen(false);
         }
+        if (e.key === 'Tab' && drawer) {
+          const items = drawer.querySelectorAll<HTMLElement>('button, a[href]');
+          const first = items[0];
+          const last = items[items.length - 1];
+          if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
+          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
+        }
       };
       window.addEventListener('keydown', handleKeyDown);
       return () => {
-        document.body.style.overflow = '';
+        document.body.style.overflow = previousOverflow;
+        previousFocus?.focus();
         window.removeEventListener('keydown', handleKeyDown);
       };
     } else {
@@ -159,36 +205,37 @@ export const Header: React.FC<HeaderProps> = ({
   const handleNavClick = (tabKey: any, hash: string) => {
     setActiveTab(tabKey);
     setMobileMenuOpen(false);
-    if (currentView !== 'customer') {
+    if (currentView !== 'customer' && !hash.startsWith('#tai-khoan')) {
       onViewChange('customer');
     }
-    const elem = document.querySelector(hash);
-    if (elem) {
-      elem.scrollIntoView({ behavior: 'smooth' });
-    }
+    navigatePublicLink(hash);
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-stone-200/70 shadow-xs transition-all">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+    <header className={`public-header ${fontScale > 120 ? 'public-header-zoomed' : ''} sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-stone-200/70 shadow-xs transition-all`}>
+      <a className="public-skip-link" href="#public-content" onClick={event => { event.preventDefault(); const content = document.getElementById('public-content'); content?.focus({ preventScroll: true }); content?.scrollIntoView({ block: 'start' }); }}>Chuyển đến nội dung</a>
+      <div className="public-header-inner max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         
         {/* LOGO: ĐỒNG BỘ CHUẨN XÁC VỚI LOGO NHÀ RẠP THÁI ĐĂNG (CÓ KHOẢNG CÁCH RÕ RÀNG VỚI MENU) */}
-        <div 
-          onClick={() => { setActiveTab('trang-chu'); onViewChange('customer'); }}
-          className="flex items-center gap-3 cursor-pointer select-none group shrink-0 mr-4 sm:mr-6 md:mr-8 lg:mr-10 xl:mr-14"
+        <button type="button"
+          aria-label="Nhà Rạp Thái Đăng — về đầu trang"
+          onClick={() => handleNavClick('trang-chu', '#top')}
+          className="public-brand flex items-center gap-3 cursor-pointer select-none group shrink-0"
         >
           <img 
             src="/logo_thai_dang.png" 
             alt="Nhà Rạp Thái Đăng" 
             className="h-11 sm:h-13 md:h-16 w-auto object-contain transform group-hover:scale-102 transition-transform drop-shadow-2xs" 
           />
-        </div>
+        </button>
 
         {/* MENU TRUNG TÂM TRÊN 1 HÀNG DUY NHẤT (QUẢN TRỊ NỘI DUNG TỪ CMS) */}
-        <nav className="hidden md:flex items-center gap-3 lg:gap-6 text-xs lg:text-sm font-semibold text-stone-700 whitespace-nowrap shrink-0">
+        <nav aria-label="Điều hướng chính" className="public-desktop-nav hidden md:flex items-center gap-3 lg:gap-6 text-xs lg:text-sm font-semibold text-stone-700 whitespace-nowrap shrink-0">
           {navCategories.map((cat) => (
             <button
               key={cat.id}
+              type="button"
+              aria-current={activeTab === cat.slug ? 'page' : undefined}
               onClick={() => handleNavClick(cat.slug, cat.linkUrl || `#${cat.slug}`)}
               className={`py-2 relative transition-colors cursor-pointer whitespace-nowrap ${
                 activeTab === cat.slug ? 'text-stone-900 font-bold' : 'hover:text-[#ee5a45]'
@@ -213,6 +260,8 @@ export const Header: React.FC<HeaderProps> = ({
                     : 'bg-stone-100 hover:bg-stone-200 text-stone-700'
                 }`}
                 title="Cấu hình trợ năng (Cỡ chữ & tương phản)"
+                aria-label="Cấu hình trợ năng"
+                aria-expanded={accessibilityOpen}
               >
                 <Accessibility className="w-4 h-4" />
               </button>
@@ -277,12 +326,12 @@ export const Header: React.FC<HeaderProps> = ({
         </nav>
 
         {/* CỤM BÊN PHẢI: HOTLINE + ĐẶT LỊCH NGAY + NÚT ĐĂNG NHẬP (DESKTOP) + NÚT HAMBURGER (MOBILE) */}
-        <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 shrink-0">
+        <div className="public-header-actions flex items-center gap-2 sm:gap-3 lg:gap-4 shrink-0">
           
           {/* Hotline (chỉ hiện trên màn hình rộng) */}
           <a
             href={`tel:${hotline.replace(/\D/g, '')}`}
-            className="hidden xl:flex items-center gap-2 text-stone-800 hover:text-[#ee5a45] transition-colors py-1.5 px-2 font-bold text-sm"
+            className="public-header-hotline hidden xl:flex items-center gap-2 text-stone-800 hover:text-[#ee5a45] transition-colors py-1.5 px-2 font-bold text-sm"
           >
             <div className="w-7 h-7 rounded-full bg-stone-100 flex items-center justify-center text-[#ee5a45]">
               <Phone className="w-3.5 h-3.5 fill-[#ee5a45]" />
@@ -293,7 +342,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Nút "ĐẶT LỊCH NGAY" màu cam đỏ bo tròn vừa vặn */}
           <button
             onClick={() => handleNavClick('dich-vu', '#dat-lich')}
-            className="px-3.5 sm:px-4 lg:px-5 py-2 sm:py-2.5 rounded-full bg-[#ee5a45] hover:bg-[#e04530] text-white font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+            className="public-book-button px-3.5 sm:px-4 lg:px-5 py-2 sm:py-2.5 rounded-full bg-[#ee5a45] hover:bg-[#e04530] text-white font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
           >
             <Calendar className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">ĐẶT LỊCH NGAY</span>
@@ -301,72 +350,8 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           {/* NÚT ĐĂNG NHẬP / PHIÊN USER TRÊN DESKTOP (Ẩn trên mobile để menu gọn, không bị ép xuống dòng) */}
-          <div className="hidden md:flex items-center">
-            {authenticatedStaff ? (
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => {
-                    window.location.hash = '#admin';
-                    onViewChange('admin');
-                  }}
-                  className="p-2 sm:px-3 sm:py-2 rounded-xl bg-[#0e4b44] hover:bg-[#093530] text-white font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
-                  title={`Vào trang quản trị (${authenticatedStaff.fullName})`}
-                >
-                  <Lock className="w-3.5 h-3.5 text-amber-300" />
-                  <span>Quản trị ({authenticatedStaff.fullName.split(' ').pop()})</span>
-                </button>
-                <button
-                  onClick={() => {
-                    showConfirm({
-                      title: 'Xác nhận đăng xuất',
-                      message: `Bạn có chắc chắn muốn đăng xuất tài khoản quản trị viên (${authenticatedStaff.fullName})?`,
-                      confirmText: 'Đăng xuất',
-                      cancelText: 'Hủy bỏ',
-                      isDanger: true,
-                      onConfirm: () => {
-                        appStore.logoutStaff();
-                        window.location.hash = '';
-                        onViewChange('customer');
-                        toast.success('Đã đăng xuất tài khoản quản trị thành công!');
-                      }
-                    });
-                  }}
-                  className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-colors cursor-pointer"
-                  title="Đăng xuất quản trị"
-                >
-                  <LogOut className="w-3.5 h-3.5 text-rose-600" />
-                </button>
-              </div>
-            ) : authenticatedCustomer ? (
-              <div className="flex items-center gap-1.5">
-                <div 
-                  className="px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-stone-800 text-xs font-bold flex items-center gap-1.5 shadow-2xs"
-                  title="Khách hàng đã đăng nhập"
-                >
-                  <User className="w-3.5 h-3.5 text-amber-700" />
-                  <span className="max-w-[100px] truncate">{authenticatedCustomer.fullName}</span>
-                </div>
-                <button
-                  onClick={() => {
-                    showConfirm({
-                      title: 'Xác nhận đăng xuất',
-                      message: `Quý khách có chắc chắn muốn đăng xuất tài khoản (${authenticatedCustomer.fullName})?`,
-                      confirmText: 'Đăng xuất',
-                      cancelText: 'Hủy bỏ',
-                      isDanger: false,
-                      onConfirm: () => {
-                        appStore.logoutCustomer();
-                        toast.success('Đã đăng xuất tài khoản khách hàng thành công!');
-                      }
-                    });
-                  }}
-                  className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-colors cursor-pointer"
-                  title="Đăng xuất khách hàng"
-                >
-                  <LogOut className="w-3.5 h-3.5 text-rose-600" />
-                </button>
-              </div>
-            ) : (
+          <div className="public-desktop-account hidden md:flex items-center">
+            {authenticatedStaff || authenticatedCustomer ? null : (
               <button
                 onClick={() => {
                   window.location.hash = '#login';
@@ -381,12 +366,16 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </div>
 
+          {(authenticatedStaff || authenticatedCustomer) && <CustomerAccountMenu account={authenticatedCustomer || { id: authenticatedStaff!.id, fullName: authenticatedStaff!.fullName, email: authenticatedStaff!.email, phone: authenticatedStaff!.phone || '', role: 'admin' }} onNavigate={href => { if (href.startsWith('#admin')) { window.location.hash = href; onViewChange('admin'); } else handleNavClick('tai-khoan', href); }} />}
+
           {/* Nút Menu Hamburger Mobile (Nhận diện rõ ràng, dễ chạm) */}
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden w-10 h-10 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 flex items-center justify-center transition-colors cursor-pointer"
+            className="public-menu-toggle md:hidden w-10 h-10 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 flex items-center justify-center transition-colors cursor-pointer"
             aria-label="Menu điều hướng"
+            aria-expanded={mobileMenuOpen}
+            aria-controls="public-mobile-menu"
           >
             {mobileMenuOpen ? <X className="w-5 h-5 stroke-[2.5]" /> : <Menu className="w-5 h-5 stroke-[2.5]" />}
           </button>
@@ -407,7 +396,8 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Panel Drawer trượt từ bên phải */}
           <div 
-            className="relative w-[320px] max-w-[85vw] h-full bg-white shadow-2xl flex flex-col justify-between text-stone-800 z-10"
+            id="public-mobile-menu"
+            className="public-mobile-menu relative w-[320px] max-w-[85vw] h-full bg-white shadow-2xl flex flex-col justify-between text-stone-800 z-10"
             role="dialog"
             aria-modal="true"
             aria-label="Menu điều hướng di động"
@@ -485,7 +475,7 @@ export const Header: React.FC<HeaderProps> = ({
                             cancelText: 'Hủy bỏ',
                             isDanger: true,
                             onConfirm: () => {
-                              appStore.logoutStaff();
+                              void accountService.signOut();
                               setMobileMenuOpen(false);
                               window.location.hash = '';
                               onViewChange('customer');
@@ -500,31 +490,11 @@ export const Header: React.FC<HeaderProps> = ({
                     </div>
                   </div>
                 ) : authenticatedCustomer ? (
-                  <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 space-y-2.5">
-                    <div className="flex items-center gap-2 text-xs font-bold text-stone-800">
-                      <User className="w-4 h-4 text-amber-700" />
-                      <span>Khách hàng: {authenticatedCustomer.fullName}</span>
-                    </div>
-                    <button
-                      onClick={() => {
-                        showConfirm({
-                          title: 'Xác nhận đăng xuất',
-                          message: `Quý khách có chắc chắn muốn đăng xuất tài khoản (${authenticatedCustomer.fullName})?`,
-                          confirmText: 'Đăng xuất',
-                          cancelText: 'Hủy bỏ',
-                          isDanger: false,
-                          onConfirm: () => {
-                            appStore.logoutCustomer();
-                            setMobileMenuOpen(false);
-                            toast.success('Đã đăng xuất tài khoản khách hàng thành công!');
-                          }
-                        });
-                      }}
-                      className="w-full py-2.5 px-3 rounded-xl bg-white border border-rose-200 text-rose-700 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
-                    >
-                      Đăng xuất tài khoản
-                    </button>
-                  </div>
+                  <nav className="customer-mobile-account-links" aria-label="Tài khoản khách hàng">
+                    <strong>{authenticatedCustomer.fullName}</strong>
+                    {customerAccountLinks.map(({ href, label, icon: Icon }) => <button type="button" key={href} onClick={() => handleNavClick('tai-khoan', href)}><Icon size={18} />{label}</button>)}
+                    <button type="button" onClick={async () => { try { await accountService.signOut(); handleNavClick('trang-chu', '#top'); toast.success('Đã đăng xuất tài khoản.'); } catch (error) { toast.error(error instanceof Error ? error.message : 'Chưa thể đăng xuất.'); } }}><LogOut size={18} />Đăng xuất</button>
+                  </nav>
                 ) : (
                   <button
                     onClick={() => {

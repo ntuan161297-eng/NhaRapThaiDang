@@ -1,0 +1,24 @@
+{
+  "checks": [
+    "Trang public không còn khối tài khoản riêng ở dưới thiệp",
+    "Menu avatar có đúng bốn chức năng",
+    "Escape đóng menu và trả focus về avatar",
+    "Bàn phím mở menu và chọn mục đầu",
+    "Phím End chọn đăng xuất",
+    "Thông tin cá nhân mở trang riêng và đóng menu",
+    "Lưu họ tên, điện thoại và cập nhật avatar/tên ở header",
+    "Thông tin cá nhân tồn tại sau khi tải lại",
+    "Menu lịch hẹn mở đúng lịch của tài khoản",
+    "Menu thiệp online tạo và mở đúng trình quản lý thiệp",
+    "Menu tài khoản trên mobile nằm trong màn hình",
+    "Trang thông tin cá nhân mobile không tràn ngang",
+    "Bấm ngoài đóng menu",
+    "Đăng xuất đưa về public và xóa phiên đăng nhập",
+    "Link tài khoản yêu cầu đăng nhập và giữ điểm đến",
+    "Đăng nhập bằng số điện thoại mới trở lại đúng mục thiệp",
+    "Từ lịch hẹn quay lại đặt lịch trên public",
+    "Header với avatar vừa màn hình 320px",
+    "Không phát sinh lỗi JavaScript"
+  ],
+  "errors": []
+}

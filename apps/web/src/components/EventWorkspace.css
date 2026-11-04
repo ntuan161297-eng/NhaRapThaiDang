@@ -1,0 +1,340 @@
+/* Compact public spacing; the business screens below use the same green/ivory palette. */
+.public-site > section:not(.public-hero):not(.public-about) { padding-top: 40px; padding-bottom: 40px; }
+.public-site > section > div.space-y-12 > :not(:last-child) { margin-block-end: 26px; }
+.public-about { padding-block: 44px; }
+.public-assurances { padding-block: 18px; }
+.public-service-grid { margin-top: 24px; }
+.public-site > #tin-tuc { padding-top: 36px; }
+.event-workspace, .event-dashboard, .customer-account-section, .simple-booking-section, .event-modal, .event-auth-page, .wedding-public { color: #203d30; font-size: 14px; line-height: 1.6; }
+:is(.event-workspace,.event-dashboard,.event-modal,.event-auth-page,.customer-account-section,.simple-booking-section,.wedding-public) button { cursor: pointer; }
+:is(.event-workspace,.event-dashboard,.event-modal,.event-auth-page,.customer-account-section,.simple-booking-section,.wedding-public) :is(button,a,input,select,textarea):focus-visible { outline: 3px solid #af873f; outline-offset: 3px; }
+:is(.event-workspace,.event-dashboard,.event-modal,.event-auth-page,.customer-account-section,.simple-booking-section,.wedding-public) :is(input,select,textarea) { min-width: 0; width: 100%; min-height: 40px; border: 1px solid #dce2d5; border-radius: 9px; padding: 9px 11px; background: white; color: #233d31; font-size: 13px; line-height: 1.5; }
+:is(.event-modal,.event-auth-page,.customer-account-section,.simple-booking-section,.wedding-public) label { display: grid; gap: 6px; font-size: 12px; font-weight: 500; margin-top: 12px; }
+:is(.event-modal,.event-workspace,.event-dashboard,.customer-account-section) button:not(.event-primary) { border: 1px solid #dbe3d4; border-radius: 9px; padding: 8px 12px; font-size: 12px; background: #fffdf9; color: #21533b; }
+:is(.event-modal,.event-workspace,.event-dashboard,.customer-account-section) button:not(.event-primary):hover { background: #eff4e9; }
+button:disabled { cursor: not-allowed; opacity: .55; }
+.event-primary, .public-site .event-primary { display: inline-flex; align-items: center; justify-content: center; gap: 9px; padding: 11px 18px; min-height: 42px; border-radius: 11px; border: 1px solid #086445; background: linear-gradient(#08794e,#07583f); color: white; font-size: 13px; font-weight: 600; text-align: center; }
+.event-primary:hover { filter: brightness(1.08); }
+.event-eyebrow { color: #8c7849; letter-spacing: .13em; font-size: 10px; font-weight: 600; }
+.event-module-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 22px; }
+.event-module-heading h2 { font-size: 25px; font-weight: 750; color: #103f2d; }
+.event-module-heading p { font-size: 12px; color: #76816f; margin-top: 5px; max-width: 700px; }
+.event-form-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 0 18px; }
+.event-error { display: block; padding: 12px 14px; border: 1px solid #efc6bd; border-radius: 10px; background: #fff0eb; color: #9a3929; font-size: 13px; margin: 14px 0; }
+.event-success { display: flex; align-items: center; gap: 10px; padding: 14px; background: #eaf5e7; border: 1px solid #cde3c6; color: #22583c; border-radius: 10px; margin-top: 14px; font-size: 13px; }
+.event-hint { font-size: 12px; color: #78836f; line-height: 1.7; }
+.connection-note { padding: 11px 14px; background: #f8f2df; border: 1px solid #e8dcae; border-radius: 10px; margin-block: 14px; color: #7c662f; }
+.event-lunar { display: flex; align-items: center; gap: 7px; font-size: 12px; color: #8b692e; margin-top: 10px; }
+.event-empty { padding: 30px 18px; text-align: center; color: #7b8871; font-size: 13px; }
+.event-status-line { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; margin-block: 12px; }
+.event-badge { display: inline-block; padding: 4px 10px; background: #e8efe2; color: #3c6749; border-radius: 20px; white-space: nowrap; font-size: 11px; font-weight: 600; }
+.event-badge.registered { background: #eaf1ff; color: #3c5d9e; }
+.event-badge.received { background: #fff0d7; color: #98651c; }
+.event-badge.cancelled { background: #f7e5e3; color: #a1463d; }
+.event-badge.unpaid { background: #fff0de; color: #a4671c; }
+.event-badge.paid, .event-badge.contacted { background: #e1f1e1; color: #2c6e3e; }
+.event-tabs { display: flex; flex-wrap: wrap; gap: 9px; margin: 20px 0; }
+.event-tabs button { display: inline-flex; gap: 9px; align-items: center; }
+.event-tabs button[aria-pressed="true"] { background: #155d40; color: #fff; border-color: #155d40; }
+.event-tabs button span { padding: 1px 7px; border-radius: 12px; background: #ffffff30; font-size: 11px; }
+.event-table-scroll { max-width: 100%; overflow-x: auto; background: #fffdf9; border: 1px solid #e5e8dc; border-radius: 14px; }
+.event-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; }
+.event-table th { padding: 12px 14px; background: #edf2e6; color: #506a50; font-size: 10px; white-space: nowrap; font-weight: 600; }
+.event-table td { padding: 13px 14px; border-top: 1px solid #edf0e6; vertical-align: middle; }
+.event-table td small { display: block; margin-top: 3px; color: #8a9382; font-size: 10px; }
+.event-table td strong { font-weight: 600; }
+.event-table td button { white-space: nowrap; }
+.event-filters { display: flex; align-items: end; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; }
+.event-filters > label { font-size: 11px; color: #7a856f; }
+.event-search { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 230px; }
+.event-search > svg { color: #829274; flex-shrink: 0; }
+.event-filters input, .event-filters select { display: block; margin-top: 3px; }
+.event-stats { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 17px; margin-bottom: 22px; }
+.event-stats article { padding: 21px; border-radius: 15px; border: 1px solid #fff; background: linear-gradient(135deg,#fffdf7,#f0f5e9); box-shadow: 0 5px 18px #3140260a; }
+.event-stats article small { display: block; color: #748168; font-size: 12px; }
+.event-stats article strong { display: block; margin-top: 8px; color: #124a32; font-size: clamp(19px,1.7vw,28px); font-weight: 750; white-space: nowrap; }
+.dashboard-stats { grid-template-columns: repeat(4,minmax(0,1fr)); }
+.dashboard-stats article { position: relative; }
+.dashboard-stats article > svg { position: absolute; right: 18px; top: 20px; color: #82a45e; width: 21px; }
+.dashboard-stats article small { padding-right: 28px; }
+.dashboard-period { display: flex; gap: 10px; align-items: end; }
+.dashboard-period label { font-size: 10px; color: #7b866f; }
+.dashboard-main-grid { display: grid; grid-template-columns: minmax(0,1.8fr) minmax(0,1fr); gap: 22px; margin-bottom: 22px; align-items: start; }
+.dashboard-chart-stack, .dashboard-calendar-stack { display: grid; gap: 20px; min-width: 0; }
+.event-chart-card { padding: 22px; background: #fffefa; border: 1px solid #e8e8dc; border-radius: 18px; box-shadow: 0 4px 20px #42532b06; }
+.event-chart-card > header { display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+.event-chart-card h3, .calendar-toolbar h3 { color: #244e33; font-size: 16px; font-weight: 700; }
+.event-chart-card header p { font-size: 11px; color: #8a927d; margin-top: 3px; }
+.event-chart-card header > span { color: #8a927d; font-size: 10px; }
+.event-chart-card svg { width: 100%; height: auto; }
+.chart-month-bar { cursor: pointer; }
+.chart-legend { display: flex; gap: 12px; font-size: 10px; color: #6c7b60; }
+.chart-legend span::before { content: ''; display: inline-block; width: 9px; height: 9px; background: #a8c7aa; border-radius: 2px; margin-right: 4px; }
+.chart-legend span:last-child::before { background: #1c7251; }
+.dashboard-debt > button { display: flex; justify-content: space-between; gap: 10px; width: 100%; border-width: 0 0 1px !important; border-radius: 0 !important; padding-inline: 0 !important; text-align: left; }
+.dashboard-debt small { display: block; font-size: 10px; color: #879278; }
+.dashboard-debt strong { color: #a66a34; font-size: 12px; white-space: nowrap; }
+.event-calendar { padding: 22px; background: #fffefa; border: 1px solid #e5e7da; border-radius: 18px; min-width: 0; }
+.calendar-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 19px; flex-wrap: wrap; }
+.calendar-toolbar > div > span { font-size: 11px; color: #8a947f; }
+.calendar-toolbar > div:last-child { display: flex; gap: 6px; }
+.calendar-toolbar button { padding: 6px 9px !important; font-size: 11px !important; }
+.calendar-weekdays, .calendar-grid { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); }
+.calendar-weekdays span { text-align: center; padding: 8px; font-size: 11px; color: #87927c; }
+.calendar-grid { gap: 4px; }
+.calendar-grid > button { min-height: 110px; padding: 9px 7px !important; position: relative; border: 1px solid #e6eadf !important; display: flex; flex-direction: column; align-items: start; background: #fffdf8; overflow: hidden; }
+.calendar-grid > button.outside-month { opacity: .4; }
+.calendar-solar { font-size: 16px; font-weight: 650; }
+.calendar-lunar { position: absolute; right: 7px; top: 9px; color: #ad8850; font-size: 10px; }
+.calendar-grid > button.calendar-today { background: #eff5e6; border-color: #9cba7a !important; }
+.calendar-grid > button.calendar-selected { outline: 2px solid #579066; outline-offset: -2px; }
+.calendar-day-work { display: grid; gap: 3px; width: 100%; margin-top: 10px; text-align: left; }
+.calendar-day-work > span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-radius: 4px; padding: 3px 5px; font-size: 10px; }
+.calendar-day-work small { font-size: 9px; color: #6f7e65; }
+.booking-work { background: #dbe9fa; color: #3c5b8c; }
+.confirmed-work { background: #dcebd6; color: #436a37; }
+.calendar-legend { display: flex; gap: 15px; flex-wrap: wrap; font-size: 10px; color: #7c896e; margin: 14px 0; }
+.calendar-legend > span { display: flex; align-items: center; gap: 5px; }
+.calendar-legend i { width: 8px; height: 8px; border-radius: 2px; }
+.calendar-agenda { border-top: 1px solid #e5e9dc; padding-top: 15px; }
+.calendar-agenda h4 { font-size: 12px; color: #5a744f; margin-bottom: 9px; }
+.calendar-agenda button { display: block; width: 100%; text-align: left; margin-top: 5px; }
+.calendar-agenda button span { display: block; font-size: 10px; color: #89937d; }
+.calendar-agenda p { font-size: 11px; color: #87937b; }
+.event-calendar-mini { padding: 18px; }
+.event-calendar-mini .calendar-grid > button { min-height: 48px; padding: 5px !important; align-items: center; }
+.event-calendar-mini .calendar-solar { font-size: 12px; }
+.event-calendar-mini .calendar-lunar { position: static; font-size: 8px; }
+.event-calendar-mini .calendar-weekdays span { padding: 4px; font-size: 9px; }
+.calendar-dots { display: flex; gap: 2px; height: 5px; margin-top: 2px; }
+.calendar-dots i { width: 4px; height: 4px; border-radius: 50%; }
+.event-modal-overlay { position: fixed; inset: 0; z-index: 1000; display: flex; justify-content: center; align-items: center; background: #16261ed1; padding: 22px; backdrop-filter: blur(5px); }
+.event-modal { width: 100%; max-width: 1000px; max-height: 92dvh; overflow: auto; border-radius: 20px; background: #fffdf8; box-shadow: 0 24px 70px #00000030; }
+.event-modal > header { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 20px 25px; border-bottom: 1px solid #e5e7dc; background: #f7f7ef; position: sticky; top: 0; z-index: 3; }
+.event-modal header small { font-size: 10px; color: #8b977c; }
+.event-modal header h2 { font-size: 21px; color: #174a32; }
+.event-modal > form, .wedding-editor-body { padding: 23px 26px; }
+.event-modal fieldset { padding: 0 0 18px; margin: 12px 0 22px; border-bottom: 1px solid #e8eadf; }
+.event-modal legend { font-size: 14px; color: #3b6544; font-weight: 700; padding: 0 0 8px; }
+.event-modal fieldset:disabled { opacity: .8; }
+.event-modal :is(input,textarea):read-only { background: #f6f7ef; }
+.event-modal footer { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 17px; border-top: 1px solid #e7e9dd; }
+.event-modal > footer { margin: 0; padding: 18px 25px; position: sticky; bottom: 0; background: #fffdf9; }
+.event-modal details summary { font-size: 12px; color: #75876b; cursor: pointer; }
+.event-history { margin-top: 12px; }
+.event-history li { display: grid; grid-template-columns: 150px 1fr; gap: 15px; padding: 9px 0; font-size: 11px; border-bottom: 1px solid #edf0e4; }
+.event-history time { color: #8a947e; }
+.event-checkbox { display: flex !important; align-items: center; gap: 8px; }
+.event-checkbox input { width: 16px !important; min-height: 16px !important; }
+.equipment-toolbar, .event-inline-form { display: flex; gap: 10px; align-items: center; margin: 15px 0; }
+.equipment-toolbar > select, .event-inline-form > input { flex: 1; }
+.equipment-toolbar button { display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+.equipment-table { min-width: 750px; }
+.equipment-table th:first-child { width: 35%; }
+.equipment-table td:nth-child(2) { width: 80px; }
+.equipment-table td:nth-child(3) { width: 85px; }
+.equipment-table td:nth-child(4) { width: 135px; }
+.equipment-table td:nth-child(5) { white-space: nowrap; }
+.event-modal .discount-label { max-width: 200px; margin-left: auto; }
+.contract-totals { display: flex; flex-wrap: wrap; gap: 20px; padding: 17px; background: #eff4e8; border-radius: 12px; margin-top: 16px; }
+.contract-totals > span { flex: 1; color: #7c876d; font-size: 11px; }
+.contract-totals strong { display: block; margin-top: 5px; color: #2c6542; font-size: 17px; }
+.event-payment-input { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+.event-payment-input label { flex: 1; min-width: 140px; }
+.event-alerts { position: relative; }
+.event-alerts > button { position: relative; width: 46px; height: 46px; display: grid; place-items: center; border-radius: 15px; border: 1px solid #e3e8dc; background: #fffefa; color: #145138; }
+.event-alerts > button > span { position: absolute; right: -4px; top: -6px; border-radius: 20px; padding: 2px 6px; background: #d35642; color: #fff; font-size: 10px; }
+.event-alerts > div { position: absolute; z-index: 50; top: 54px; right: 0; width: 270px; padding: 17px; border: 1px solid #e2e6d9; border-radius: 15px; box-shadow: 0 12px 25px #1c31201c; background: #fffefa; }
+.event-alerts h3 { font-size: 14px; margin-bottom: 9px; }
+.event-alerts > div button { display: block; font-size: 12px; padding: 10px; width: 100%; text-align: left; }
+#dat-lich.simple-booking-section { background: #f2f5ec; border: 1px solid #e4e8d9; padding: 40px 24px; }
+.simple-booking-heading { text-align: center; max-width: 650px; margin: 0 auto 25px; }
+.simple-booking-heading .public-eyebrow { color: #a38149; font-size: 10px; }
+.simple-booking-heading h2 { margin-top: 10px; }
+.simple-booking-heading p { color: #7d8871; font-size: 14px; margin-top: 10px; line-height: 1.8; }
+.simple-booking-form { max-width: 830px; padding: 28px 32px; margin: auto; background: #fffefa; border: 1px solid #e2e7d7; border-radius: 19px; box-shadow: 0 5px 18px #4c643109; }
+.simple-booking-form fieldset { margin-bottom: 20px; padding-bottom: 22px; border-bottom: 1px solid #e7ebdd; }
+.simple-booking-form legend { font-size: 15px; font-weight: 700; color: #315c3d; margin-bottom: 10px; }
+.event-service-options { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px; }
+.event-service-options button { padding: 14px 8px; border: 1px solid #dfe6d7; border-radius: 11px; background: #fffefa; color: #58704c; font-size: 13px; }
+.event-service-options button[aria-pressed="true"] { border-color: #7fa66c; background: #e9f2e2; color: #285934; font-weight: 700; }
+.booking-estimates { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: #f7f5e9; border: 1px solid #e9e4cd; border-radius: 11px; padding: 15px; margin-top: 12px; }
+.booking-estimates > div { display: flex; gap: 9px; align-items: center; }
+.booking-estimates svg { color: #a3834a; width: 20px; height: 20px; flex-shrink: 0; }
+.booking-estimates span { font-size: 11px; color: #8f8a70; }
+.booking-estimates strong { display: block; color: #75663d; margin-top: 3px; font-size: 12px; }
+.booking-estimates > small { grid-column: 1/-1; color: #989075; font-size: 10px; }
+.simple-booking-form > .event-primary { width: 100%; }
+.simple-booking-form > .event-hint { text-align: center; margin-top: 10px; }
+.public-site #thiep-cuoi.wedding-service-intro { display: grid; grid-template-columns: minmax(0,1.2fr) minmax(0,1fr); gap: 35px; align-items: center; max-width: 1150px; padding: 38px 24px; margin: 0 auto; }
+#thiep-cuoi.wedding-service-intro > div { padding: 0; border: 0; background: transparent; box-shadow: none; }
+.wedding-service-intro > img { border-radius: 18px; width: 100%; aspect-ratio: 1.5; object-fit: cover; }
+.wedding-service-intro p { font-size: 14px; color: #78846e; line-height: 1.9; margin: 15px 0 20px; }
+.wedding-service-intro small { display: block; color: #89957d; font-size: 11px; margin-top: 12px; }
+.wedding-service-intro .public-eyebrow { color: #a27e41; font-size: 10px; margin-bottom: 12px; }
+.public-site > .customer-account-section { max-width: 1190px; padding: 35px 24px; margin: auto; }
+.customer-account-section > header { display: flex; justify-content: space-between; align-items: center; gap: 14px; }
+.customer-account-section h2 { font-size: 28px; margin: 9px 0; }
+.customer-account-section > header p { color: #7b8871; font-size: 13px; }
+.customer-account-section > .event-primary { margin-top: 20px; }
+.my-events { display: grid; gap: 14px; }
+.my-events > article { border: 1px solid #e2e7d9; background: #fffefa; border-radius: 14px; padding: 20px; }
+.my-events > article > div:first-child { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.my-events > article > div:first-child > svg { color: #8d9e70; width: 24px; }
+.my-events > article > div:first-child > span:nth-child(2) { flex: 1; }
+.my-events small { display: block; color: #8b957e; font-size: 11px; margin-top: 4px; }
+.my-events p { color: #7b886e; font-size: 12px; margin-top: 8px; }
+.my-events footer { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+.my-events footer button { display: flex; gap: 7px; align-items: center; }
+.event-auth-page { display: flex; justify-content: center; align-items: center; min-height: 100dvh; padding: 30px 20px; background: #f5f3e9; }
+.event-auth-card { max-width: 440px; width: 100%; border: 1px solid #e4e7d9; padding: 28px; border-radius: 20px; background: #fffefa; box-shadow: 0 10px 40px #41572f0c; }
+.event-auth-card > button:first-child { display: flex; gap: 6px; font-size: 12px; color: #839274; }
+.event-auth-card > img { display: block; width: 150px; height: 80px; object-fit: contain; margin: 20px auto; }
+.event-auth-card h1 { font-size: 23px; color: #2c5b3b; text-align: center; }
+.event-auth-card > p { color: #879378; font-size: 12px; text-align: center; margin-top: 8px; }
+.event-auth-card form > .event-primary { width: 100%; margin-top: 20px; }
+.event-password { position: relative; }
+.event-password input { padding-right: 42px; }
+.event-password button { position: absolute; right: 10px; top: 12px; color: #839673; }
+.event-auth-switch { display: block; margin: 20px auto 0; color: #6c8954; font-size: 12px; }
+.wedding-editor { max-width: 1100px; }
+.wedding-ceremony-editor { padding: 15px; background: #f3f6eb; border-radius: 10px; margin: 10px 0; }
+.event-upload { display: inline-flex !important; align-items: center; gap: 7px; padding: 10px; border: 1px dashed #bccdac; border-radius: 8px; width: fit-content; cursor: pointer; }
+.event-upload input { width: 200px !important; min-height: 25px !important; border: 0 !important; padding: 0 !important; font-size: 11px !important; }
+.wedding-editor-cover { display: block; width: 220px; max-height: 180px; object-fit: cover; border-radius: 10px; margin: 15px 0; }
+.wedding-editor-gallery { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
+.wedding-editor-gallery > div { position: relative; }
+.wedding-editor-gallery img { width: 95px; height: 80px; object-fit: cover; border-radius: 8px; }
+.wedding-editor-gallery button { position: absolute; top: 2px; right: 2px; padding: 3px !important; background: white; }
+.wedding-bank-preview { width: 150px; height: 150px; object-fit: contain; margin-top: 15px; }
+.wedding-rsvp-stats { display: flex; gap: 14px; padding: 15px; background: #eef4e5; border-radius: 12px; margin: 13px 0; }
+.wedding-rsvp-stats span { font-size: 25px; font-weight: 700; color: #43713c; flex: 1; }
+.wedding-rsvp-stats small { display: block; font-size: 10px; font-weight: 400; color: #7f9070; }
+.guest-message { min-width: 200px; max-width: 400px; white-space: pre-wrap; }
+.event-invite-link { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 20px; padding: 13px; background: #eef4e6; border-radius: 10px; }
+.event-invite-link a, .event-invite-link button { display: inline-flex; align-items: center; gap: 6px; }
+.event-invite-link code { width: 100%; word-break: break-all; font-size: 11px; color: #718460; }
+.wedding-public { background: #fbf7ec; color: #36553e; min-height: 100dvh; }
+.wedding-local-note { text-align: center; font-size: 11px; padding: 10px; background: #f4eacb; color: #887044; }
+.wedding-paper-hero { display: flex; align-items: center; flex-direction: column; justify-content: center; min-height: 650px; padding: 65px 25px; background: radial-gradient(ellipse at top,#e9efd7,transparent),#214b3c; background-position: center; background-size: cover; text-align: center; color: #fff7e4; }
+.wedding-overline { display: block; color: #b59250; letter-spacing: .16em; font-size: 11px; text-transform: uppercase; }
+.wedding-paper-hero .wedding-overline { color: #e4d09b; }
+.wedding-paper-hero h1 { font-size: clamp(35px,5.5vw,75px); line-height: 1.2; font-weight: 500; margin: 28px 0; color: #fff8e7; text-wrap: balance; }
+.wedding-paper-hero h1 span { display: block; font-size: 26px; color: #e9d59f; margin: 12px 0; }
+.wedding-paper-hero > svg { color: #d7c28b; }
+.wedding-paper-hero > p { max-width: 570px; margin: 23px auto; color: #fff8e5; font-size: 15px; white-space: pre-line; }
+.wedding-paper-hero .event-primary { background: #f6e9c5; border-color: #f6e9c5; color: #436246; }
+.wedding-public > section:not(.wedding-paper-hero) { max-width: 1050px; margin: auto; padding: 55px 25px; }
+.wedding-families { display: grid; grid-template-columns: minmax(0,1fr) 35px minmax(0,1fr); gap: 20px; align-items: center; text-align: center; }
+.wedding-families span { color: #ac8a4d; letter-spacing: .15em; font-size: 11px; }
+.wedding-families h2 { font-size: 25px; margin: 17px 0 10px; color: #315b3f; }
+.wedding-families p { color: #7c866e; margin-top: 10px; line-height: 1.8; }
+.wedding-families > svg { color: #b89b60; }
+.wedding-story { text-align: center; background: #eef0df; border-radius: 20px; }
+.wedding-story p { max-width: 700px; margin: 20px auto 0; font-size: 16px; line-height: 2; white-space: pre-line; }
+.wedding-ceremonies { display: flex; justify-content: center; flex-wrap: wrap; gap: 22px; }
+.wedding-ceremonies > article { padding: 30px; min-width: 260px; flex: 1; border: 1px solid #e2dfc7; border-radius: 18px; text-align: center; background: #fffdf5; }
+.wedding-ceremonies article > svg { color: #ae9258; margin: 0 auto 13px; }
+.wedding-ceremonies h2 { font-size: 24px; margin-bottom: 20px; }
+.wedding-ceremonies strong { display: block; font-size: 18px; color: #886f3e; }
+.wedding-ceremonies p { color: #7d856d; margin-top: 10px; }
+.wedding-ceremonies h3 { margin-top: 22px; font-size: 17px; }
+.wedding-ceremonies a { display: inline-flex; align-items: center; gap: 7px; margin-top: 20px; color: #46753f; border-bottom: 1px solid #bdcca9; }
+.wedding-ceremonies small { display: block; margin-top: 17px; color: #8d947e; }
+.wedding-photo-album { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 15px; }
+.wedding-photo-album img { aspect-ratio: .85; width: 100%; object-fit: cover; border-radius: 12px; }
+.wedding-rsvp { max-width: 650px !important; text-align: center; }
+.wedding-rsvp h2 { font-size: 28px; margin: 15px 0 25px; }
+.wedding-rsvp form { padding: 28px; border: 1px solid #dfe4ce; border-radius: 18px; background: #fffdf7; text-align: left; }
+.wedding-rsvp form label { color: #71835c; }
+.wedding-rsvp form > .event-primary { width: 100%; margin-top: 23px; }
+.wedding-wishes h2 { text-align: center; font-size: 27px; margin-bottom: 23px; }
+.wedding-wishes blockquote { margin: 14px auto; max-width: 680px; padding: 23px; background: #eef1e0; border: 1px solid #e0e5cf; border-radius: 13px; white-space: pre-wrap; }
+.wedding-wishes cite { display: block; color: #a4874d; font-style: normal; font-size: 12px; margin-top: 14px; }
+.wedding-gifts { text-align: center; }
+.wedding-gifts h2 { font-size: 26px; margin-bottom: 25px; }
+.wedding-gifts > div { display: flex; justify-content: center; flex-wrap: wrap; gap: 24px; }
+.wedding-gifts article { min-width: 260px; padding: 26px; background: #fffdf7; border: 1px solid #e4dfc8; border-radius: 16px; }
+.wedding-gifts article img { display: block; width: 200px; height: 200px; object-fit: contain; margin: 17px auto; }
+.wedding-gifts h3 { margin-bottom: 17px; color: #9d824d; }
+.wedding-gifts code { display: block; font-size: 20px; color: #3f6b41; margin-top: 12px; }
+.wedding-public > footer { text-align: center; padding: 35px 24px; color: #9a9d85; font-size: 12px; border-top: 1px solid #e3e4d0; }
+.wedding-public > footer a { display: block; margin-top: 12px; color: #7d9362; }
+@media(max-width:1279px) {
+  .dashboard-stats { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .dashboard-main-grid { grid-template-columns: minmax(0,1fr); }
+  .dashboard-calendar-stack { grid-template-columns: repeat(2,minmax(0,1fr)); align-items: start; }
+}
+@media(max-width:767px) {
+  .public-site > section:not(.public-hero):not(.public-about) { padding-block: 26px; }
+  .public-about { padding-block: 28px; }
+  .public-assurances { padding-block: 5px; }
+  .event-module-heading h2 { font-size: 22px; }
+  .event-module-heading { gap: 12px; }
+  .event-module-heading p { font-size: 11px; }
+  .event-form-grid { grid-template-columns: minmax(0,1fr); gap: 0; }
+  .event-stats { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+  .event-stats article { padding: 17px 13px; }
+  .event-stats article strong { font-size: 18px; }
+  .dashboard-stats article > svg { display: none; }
+  .dashboard-stats article small { padding: 0; font-size: 10px; }
+  .dashboard-period { width: 100%; }
+  .dashboard-period label { flex: 1; }
+  .dashboard-calendar-stack { grid-template-columns: minmax(0,1fr); }
+  .event-chart-card { padding: 17px 14px; border-radius: 14px; }
+  .event-chart-card h3 { font-size: 14px; }
+  .event-calendar { padding: 13px; border-radius: 14px; }
+  .calendar-grid { gap: 2px; }
+  .calendar-grid > button { min-height: 72px; padding: 6px 3px !important; }
+  .calendar-solar { font-size: 12px; }
+  .calendar-lunar { top: 5px; right: 4px; font-size: 8px; }
+  .calendar-day-work > span { font-size: 8px; padding: 2px; }
+  .calendar-day-work small { font-size: 8px; }
+  .calendar-toolbar h3 { font-size: 14px; }
+  .calendar-toolbar > div:last-child { gap: 4px; }
+  .calendar-toolbar button { padding: 5px 6px !important; }
+  .event-table { font-size: 11px; }
+  .event-table th, .event-table td { padding: 10px; }
+  .event-filters { gap: 10px; }
+  .event-filters > label:first-child { flex-basis: 100%; }
+  .event-modal-overlay { padding: 10px; }
+  .event-modal { max-height: 95dvh; border-radius: 14px; }
+  .event-modal > header { padding: 16px 17px; }
+  .event-modal header h2 { font-size: 18px; }
+  .event-modal > form, .wedding-editor-body { padding: 18px 16px; }
+  .event-modal fieldset { margin-bottom: 17px; }
+  .event-modal footer { gap: 7px; }
+  .event-modal footer button { flex: 1; }
+  .event-modal > footer { padding: 14px 16px; }
+  .event-history li { grid-template-columns: minmax(0,1fr); gap: 2px; }
+  .equipment-toolbar, .event-inline-form { flex-wrap: wrap; }
+  .equipment-toolbar > select, .event-inline-form > input { flex-basis: 100%; }
+  .contract-totals { gap: 12px; }
+  .contract-totals strong { font-size: 15px; }
+  #dat-lich.simple-booking-section { padding: 28px 16px; }
+  .simple-booking-heading h2 { font-size: 25px; }
+  .simple-booking-heading p { font-size: 12px; }
+  .simple-booking-form { padding: 22px 18px; }
+  .event-service-options { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .event-service-options button { padding: 12px; }
+  .booking-estimates { grid-template-columns: minmax(0,1fr); padding: 13px; gap: 13px; }
+  .public-site #thiep-cuoi.wedding-service-intro { grid-template-columns: minmax(0,1fr); gap: 22px; padding: 28px 20px; }
+  .wedding-service-intro h2 { font-size: 27px !important; }
+  .wedding-service-intro p { font-size: 13px; }
+  .wedding-service-intro .event-primary { font-size: 11px; }
+  .customer-account-section h2 { font-size: 25px; }
+  .event-tabs { gap: 7px; }
+  .event-tabs button { padding: 8px 10px !important; font-size: 10px !important; }
+  .my-events > article { padding: 17px; }
+  .event-auth-card { padding: 24px 20px; }
+  .wedding-paper-hero { min-height: 600px; padding: 50px 24px; }
+  .wedding-paper-hero h1 { font-size: 37px; }
+  .wedding-families { grid-template-columns: minmax(0,1fr); gap: 30px; }
+  .wedding-families > svg { margin: auto; }
+  .wedding-public > section:not(.wedding-paper-hero) { padding: 32px 20px; }
+  .wedding-photo-album { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+  .wedding-rsvp form { padding: 22px 18px; }
+  .wedding-rsvp h2 { font-size: 25px; }
+  .wedding-gifts article { min-width: 0; width: 100%; }
+}
+@media(prefers-reduced-motion:reduce) { :is(.event-modal,.event-workspace,.event-dashboard,.wedding-public) * { transition: none !important; animation: none !important; } }

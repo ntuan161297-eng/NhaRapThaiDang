@@ -56,6 +56,16 @@ import {
   MoreHorizontal,
   User,
   UserCircle,
+  BookOpen,
+  Hammer,
+  Calculator,
+  PackagePlus,
+  PackageCheck,
+  Wrench,
+  Grid,
+  Table as TableIcon,
+  Layers as LayersIcon,
+  Sparkle,
 } from 'lucide-react';
 import { 
   UserProfile, 
@@ -69,7 +79,11 @@ import {
   TaskStatus,
   IntakeStatus,
   JobStatus,
-  UserRole
+  UserRole,
+  TableChairCombo,
+  TentFrameConfig,
+  TentBomComponent,
+  InventoryCategory,
 } from '@thai-dang/shared';
 import { 
   appStore, 
@@ -91,6 +105,12 @@ import { RBAC, ROLE_LABELS } from '@thai-dang/shared';
 import { toast, showConfirm } from '../services/notification';
 import { AdminGreetingBanner } from './AdminGreetingBanner';
 import { NotificationBell } from './NotificationBell';
+import './AdminPortal.css';
+import { EventWorkspace, EventCustomers, EventInventory } from './EventWorkspace';
+import { EventDashboard } from './EventDashboard';
+import { accountService } from '../services/accountService';
+import { AdminCustomerAccounts } from './AdminCustomerAccounts';
+import { EventAlerts } from './EventAlerts';
 
 interface AdminPortalProps {
   currentUser: UserProfile;
@@ -106,6 +126,10 @@ interface AdminPortalProps {
   articles: ArticleRecord[];
   promotions: PromotionBanner[];
   companyInfo: CompanyInfo;
+  monthEvents?: MonthEventItem[];
+  debtItems?: DebtItem[];
+  reminderTasks?: ReminderTask[];
+  warehouseAlerts?: WarehouseAlertItem[];
   onBackToCustomerSite: () => void;
   onLogout?: () => void;
 }
@@ -124,9 +148,18 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   articles,
   promotions,
   companyInfo,
+  monthEvents,
+  debtItems,
+  reminderTasks,
+  warehouseAlerts,
   onBackToCustomerSite,
   onLogout,
 }) => {
+  const currentMonthEvents = monthEvents || appStore.getMonthEvents();
+  const currentDebtItems = debtItems || appStore.getDebtItems();
+  const currentReminderTasks = reminderTasks || appStore.getReminderTasks();
+  const currentWarehouseAlerts = warehouseAlerts || appStore.getWarehouseAlerts();
+
   const handleLogout = () => {
     showConfirm({
       title: 'Đăng xuất khỏi hệ thống',
@@ -135,7 +168,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
       cancelText: 'Hủy bỏ',
       isDanger: true,
       onConfirm: () => {
-        appStore.logoutStaff();
+        void accountService.signOut();
         toast.success('Đã đăng xuất khỏi hệ thống quản trị thành công!');
         if (onLogout) {
           onLogout();
@@ -167,8 +200,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
 
   // Navigation Menu Left
   const [activeMenu, setActiveMenu] = useState<
-    'dashboard' | 'intake' | 'jobs' | 'inventory' | 'timeline' | 'calendar' | 'finance' | 'customers' | 'staff' | 'audit' | 'articles' | 'promotions' | 'settings'
-  >('dashboard');
+    'dashboard' | 'intake' | 'jobs' | 'inventory' | 'timeline' | 'calendar' | 'finance' | 'reports' | 'accounts' | 'customers' | 'staff' | 'audit' | 'articles' | 'promotions' | 'settings'
+  >((window.location.hash === '#admin/tai-khoan') ? 'accounts' : 'dashboard');
 
   // Filter & Search States
   const [intakeStatusFilter, setIntakeStatusFilter] = useState<string>('all');
@@ -219,7 +252,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   const [editingThemeId, setEditingThemeId] = useState<string | null>(null);
   const [themeName, setThemeName] = useState('');
   const [themeTitleEn, setThemeTitleEn] = useState('');
-  const [themeService, setThemeService] = useState('dam_cuoi');
+  const [themeService, setThemeService] = useState<ThemeModel['service']>('dam_cuoi');
   const [themeDesc, setThemeDesc] = useState('');
   const [themeBadge, setThemeBadge] = useState('Bộ Sưu Tập Nổi Bật Nhất');
   const [themeSpecs, setThemeSpecs] = useState('Khẩu độ rạp 6m - 18m • Đèn chùm pha lê • Thảm trải sàn cao cấp');
@@ -264,20 +297,73 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   const [timelineStart, setTimelineStart] = useState('2026-10-23T08:00');
   const [timelineEnd, setTimelineEnd] = useState('2026-10-25T18:00');
 
+  // --- QUẢN LÝ DỤNG CỤ, KHUNG RẠP & BÀN GHẾ GHÉP ---
+  const [invSubTab, setInvSubTab] = useState<'items' | 'tent_assembly' | 'combos'>('items');
+  const [invSearchQuery, setInvSearchQuery] = useState('');
+  const [invCategoryFilter, setInvCategoryFilter] = useState<string>('all');
+  const [invViewMode, setInvViewMode] = useState<'cards' | 'table'>('cards');
+
+  // Item Modal (Thêm / Sửa Dụng Cụ)
+  const [showItemModal, setShowItemModal] = useState(false);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [itemCode, setItemCode] = useState('');
+  const [itemName, setItemName] = useState('');
+  const [itemCategory, setItemCategory] = useState<InventoryCategory>('ban');
+  const [itemUnit, setItemUnit] = useState('cái');
+  const [itemImageUrl, setItemImageUrl] = useState('');
+  const [itemPurchaseDate, setItemPurchaseDate] = useState('2024-01-15');
+  const [itemPurchasePriceVND, setItemPurchasePriceVND] = useState<number>(0);
+  const [itemRentalPriceVND, setItemRentalPriceVND] = useState<number>(0);
+  const [itemTotalOwned, setItemTotalOwned] = useState<number>(10);
+  const [itemInRepair, setItemInRepair] = useState<number>(0);
+  const [itemNotes, setItemNotes] = useState('');
+
+  // Table-Chair Combo Modal (Gói Bàn Ghế Ghép & Bảng Giá)
+  const [showComboModal, setShowComboModal] = useState(false);
+  const [editingComboId, setEditingComboId] = useState<string | null>(null);
+  const [comboCode, setComboCode] = useState('');
+  const [comboName, setComboName] = useState('');
+  const [comboTableCode, setComboTableCode] = useState('BAN_TRON');
+  const [comboChairCode, setComboChairCode] = useState('GHE_NHUA_DO');
+  const [comboChairsPerTable, setComboChairsPerTable] = useState<number>(6);
+  const [comboRentalPriceVND, setComboRentalPriceVND] = useState<number>(120000);
+  const [comboImageUrl, setComboImageUrl] = useState('');
+  const [comboDescription, setComboDescription] = useState('');
+
+  // Table-Chair Simulator (Máy tính đặt bàn tiệc)
+  const [simComboCode, setSimComboCode] = useState('BAN_INOX_GHE_NHUA');
+  const [simComboSets, setSimComboSets] = useState<number>(15);
+  const [simBackupTables, setSimBackupTables] = useState<number>(2);
+  const [simExtraChairs, setSimExtraChairs] = useState<number>(6);
+
+  // Tent Frame Config & Simulation State (Máy tính ghép khung rạp)
+  const [selectedTentConfigCode, setSelectedTentConfigCode] = useState('KHUNG_RAP_6M');
+  const [simTentBayCount, setSimTentBayCount] = useState<number>(6);
+  const [showTentConfigModal, setShowTentConfigModal] = useState(false);
+  const [editingTentConfigId, setEditingTentConfigId] = useState<string | null>(null);
+  const [tentConfigCode, setTentConfigCode] = useState('');
+  const [tentConfigName, setTentConfigName] = useState('');
+  const [tentConfigBayWidth, setTentConfigBayWidth] = useState<number>(6);
+  const [tentConfigRentalPrice, setTentConfigRentalPrice] = useState<number>(350000);
+  const [tentConfigDesc, setTentConfigDesc] = useState('');
+  const [tentConfigBom, setTentConfigBom] = useState<TentBomComponent[]>([]);
+
   // Article CMS state
   const [articleCategoryFilter, setArticleCategoryFilter] = useState<string>('all');
   const [showArticleModal, setShowArticleModal] = useState(false);
   const [editingArticleId, setEditingArticleId] = useState<string | null>(null);
   const [articleTitle, setArticleTitle] = useState('');
   const [articleSlug, setArticleSlug] = useState('');
-  const [articleCategory, setArticleCategory] = useState<'xu_huong_rap' | 'kinh_nghiem_cuoi' | 'thuc_don_co' | 'gioi_thieu'>('xu_huong_rap');
+  const [articleCategory, setArticleCategory] = useState<ArticleRecord['category']>('xu_huong_rap');
   const [articleSummary, setArticleSummary] = useState('');
   const [articleContent, setArticleContent] = useState('');
   const [articleImageUrl, setArticleImageUrl] = useState('');
   const [articleAuthor, setArticleAuthor] = useState('Ban Biên Tập Thái Đăng');
   const [articleIsPublished, setArticleIsPublished] = useState(true);
 
-  // Promotion CMS state
+  // Promotion CMS state & view mode
+  const [promoViewMode, setPromoViewMode] = useState<'table' | 'cards'>('table');
+  const [promoSearchQuery, setPromoSearchQuery] = useState('');
   const [showPromoModal, setShowPromoModal] = useState(false);
   const [editingPromoId, setEditingPromoId] = useState<string | null>(null);
   const [promoTitle, setPromoTitle] = useState('');
@@ -287,6 +373,31 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   const [promoDesc, setPromoDesc] = useState('');
   const [promoBadge, setPromoBadge] = useState('');
   const [promoIsActive, setPromoIsActive] = useState(true);
+
+  // Dashboard Month Event Modal State
+  const [showEventModal, setShowEventModal] = useState(false);
+  const [editingEventId, setEditingEventId] = useState<string | null>(null);
+  const [eventDateStr, setEventDateStr] = useState('');
+  const [eventCustomerName, setEventCustomerName] = useState('');
+  const [eventServiceType, setEventServiceType] = useState('Tiệc cưới');
+  const [eventLocation, setEventLocation] = useState('');
+  const [eventStatus, setEventStatus] = useState<'da_hoan_thanh' | 'dang_thuc_hien' | 'sap_dien_ra'>('sap_dien_ra');
+
+  // Dashboard Debt Modal State
+  const [showDebtModal, setShowDebtModal] = useState(false);
+  const [debtCustomerName, setDebtCustomerName] = useState('');
+  const [debtDate, setDebtDate] = useState('');
+  const [debtAmount, setDebtAmount] = useState<number>(5000000);
+
+  // Quick reminder task input
+  const [newReminderTitle, setNewReminderTitle] = useState('');
+  const [newReminderTime, setNewReminderTime] = useState('09:00');
+
+  // Quick warehouse alert modal
+  const [showWarehouseAlertModal, setShowWarehouseAlertModal] = useState(false);
+  const [warehouseAlertTitle, setWarehouseAlertTitle] = useState('');
+  const [warehouseAlertDetail, setWarehouseAlertDetail] = useState('');
+  const [warehouseAlertSeverity, setWarehouseAlertSeverity] = useState<'danger' | 'warning'>('warning');
 
   // Company Info & Chân Trang (Footer) Settings State
   const initialComp = appStore.getCompanyInfo();
@@ -315,6 +426,32 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   const [footerCol3Text, setFooterCol3Text] = useState(() => (settingsForm.footerCol3Items || []).join('\n'));
   const [settingsSavedAlert, setSettingsSavedAlert] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isMobileSidebarOpen) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const drawer = document.getElementById('admin-mobile-navigation');
+    drawer?.querySelector<HTMLButtonElement>('button')?.focus();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsMobileSidebarOpen(false);
+      if (event.key !== 'Tab' || !drawer) return;
+      const buttons = drawer.querySelectorAll<HTMLButtonElement>('button');
+      const first = buttons[0];
+      const last = buttons[buttons.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      previousFocus?.focus();
+    };
+  }, [isMobileSidebarOpen]);
 
   // Quick Role Switcher Dropdown in Sidebar
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
@@ -827,6 +964,330 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     else toast.error(res.message);
   };
 
+  // --- HANDLERS: QUẢN LÝ DỤNG CỤ GỐC (INVENTORY ITEM) ---
+  const handleOpenAddItem = () => {
+    setEditingItemId(null);
+    setItemCode(`DC-${Date.now().toString().slice(-4)}`);
+    setItemName('');
+    setItemCategory('ban');
+    setItemUnit('cái');
+    setItemImageUrl('https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=500&q=80');
+    setItemPurchaseDate(new Date().toISOString().split('T')[0]);
+    setItemPurchasePriceVND(500000);
+    setItemRentalPriceVND(50000);
+    setItemTotalOwned(20);
+    setItemInRepair(0);
+    setItemNotes('');
+    setShowItemModal(true);
+  };
+
+  const handleOpenEditItem = (item: InventoryItem) => {
+    setEditingItemId(item.id);
+    setItemCode(item.code);
+    setItemName(item.name);
+    setItemCategory(item.category);
+    setItemUnit(item.unit);
+    setItemImageUrl(item.imageUrl || '');
+    setItemPurchaseDate(item.purchaseDate || '2023-01-01');
+    setItemPurchasePriceVND(item.purchasePriceVND || 0);
+    setItemRentalPriceVND(item.rentalPriceVND || 0);
+    setItemTotalOwned(item.totalOwnedQuantity);
+    setItemInRepair(item.inRepairQuantity);
+    setItemNotes(item.notes || '');
+    setShowItemModal(true);
+  };
+
+  const handleSaveItem = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!itemCode.trim() || !itemName.trim()) {
+      toast.error('Vui lòng nhập đầy đủ mã và tên dụng cụ!');
+      return;
+    }
+
+    if (editingItemId) {
+      const existing = catalog.find(i => i.id === editingItemId);
+      if (!existing) return;
+      const res = appStore.updateCatalogItem({
+        ...existing,
+        code: itemCode.trim().toUpperCase(),
+        name: itemName.trim(),
+        category: itemCategory,
+        unit: itemUnit.trim(),
+        imageUrl: itemImageUrl.trim(),
+        purchaseDate: itemPurchaseDate,
+        purchasePriceVND: Number(itemPurchasePriceVND) || 0,
+        rentalPriceVND: Number(itemRentalPriceVND) || 0,
+        totalOwnedQuantity: Math.max(0, Number(itemTotalOwned) || 0),
+        inRepairQuantity: Math.max(0, Number(itemInRepair) || 0),
+        notes: itemNotes.trim(),
+      });
+      if (res.success) toast.success(res.message);
+      else toast.error(res.message);
+    } else {
+      const res = appStore.addCatalogItem({
+        code: itemCode.trim().toUpperCase(),
+        name: itemName.trim(),
+        category: itemCategory,
+        unit: itemUnit.trim(),
+        imageUrl: itemImageUrl.trim(),
+        purchaseDate: itemPurchaseDate,
+        purchasePriceVND: Number(itemPurchasePriceVND) || 0,
+        rentalPriceVND: Number(itemRentalPriceVND) || 0,
+        totalOwnedQuantity: Math.max(0, Number(itemTotalOwned) || 0),
+        inRepairQuantity: Math.max(0, Number(itemInRepair) || 0),
+        scrappedQuantity: 0,
+        externalRentedQuantity: 0,
+        bufferRatio: 0.1,
+        cleaningTurnaroundHours: 2,
+        notes: itemNotes.trim(),
+      });
+      if (res.success) toast.success(res.message);
+      else toast.error(res.message);
+    }
+    setShowItemModal(false);
+  };
+
+  const handleDeleteItem = (item: InventoryItem) => {
+    showConfirm({
+      title: 'Xác nhận xóa dụng cụ',
+      message: `Bạn có chắc chắn muốn xóa "${item.name}" (${item.code}) khỏi kho thiết bị?`,
+      confirmText: 'Xác nhận xóa',
+      cancelText: 'Hủy bỏ',
+      isDanger: true,
+      onConfirm: () => {
+        const res = appStore.deleteCatalogItem(item.id);
+        if (res.success) toast.success(res.message);
+        else toast.error(res.message);
+      }
+    });
+  };
+
+  // --- HANDLERS: QUẢN LÝ GÓI BÀN GHẾ GHÉP (TABLE-CHAIR COMBOS) ---
+  const handleOpenAddCombo = () => {
+    setEditingComboId(null);
+    setComboCode(`COMBO_BG_${Date.now().toString().slice(-4)}`);
+    setComboName('Bộ Bàn Inox + Ghế Tùy Chọn');
+    setComboTableCode('BAN_TRON');
+    setComboChairCode('GHE_NHUA_DO');
+    setComboChairsPerTable(6);
+    setComboRentalPriceVND(120000);
+    setComboImageUrl('https://images.unsplash.com/photo-1580481077195-c2666a0d4c8e?w=500&q=80');
+    setComboDescription('');
+    setShowComboModal(true);
+  };
+
+  const handleOpenEditCombo = (c: TableChairCombo) => {
+    setEditingComboId(c.id);
+    setComboCode(c.code);
+    setComboName(c.name);
+    setComboTableCode(c.tableItemCode);
+    setComboChairCode(c.chairItemCode);
+    setComboChairsPerTable(c.chairsPerTable);
+    setComboRentalPriceVND(c.rentalPriceVND);
+    setComboImageUrl(c.imageUrl || '');
+    setComboDescription(c.description || '');
+    setShowComboModal(true);
+  };
+
+  const handleSaveCombo = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!comboName.trim()) {
+      toast.error('Vui lòng nhập tên gói bàn ghế ghép!');
+      return;
+    }
+    const tableItem = catalog.find(i => i.code === comboTableCode);
+    const chairItem = catalog.find(i => i.code === comboChairCode);
+
+    if (editingComboId) {
+      const res = appStore.updateTableChairCombo({
+        id: editingComboId,
+        code: comboCode.trim().toUpperCase(),
+        name: comboName.trim(),
+        tableItemCode: comboTableCode,
+        tableName: tableItem?.name || 'Bàn sự kiện',
+        chairItemCode: comboChairCode,
+        chairName: chairItem?.name || 'Ghế sự kiện',
+        chairsPerTable: Number(comboChairsPerTable) || 6,
+        rentalPriceVND: Number(comboRentalPriceVND) || 0,
+        imageUrl: comboImageUrl.trim(),
+        description: comboDescription.trim(),
+      });
+      if (res.success) toast.success(res.message);
+      else toast.error(res.message);
+    } else {
+      const res = appStore.addTableChairCombo({
+        code: comboCode.trim().toUpperCase(),
+        name: comboName.trim(),
+        tableItemCode: comboTableCode,
+        tableName: tableItem?.name || 'Bàn sự kiện',
+        chairItemCode: comboChairCode,
+        chairName: chairItem?.name || 'Ghế sự kiện',
+        chairsPerTable: Number(comboChairsPerTable) || 6,
+        rentalPriceVND: Number(comboRentalPriceVND) || 0,
+        imageUrl: comboImageUrl.trim(),
+        description: comboDescription.trim(),
+      });
+      if (res.success) toast.success(res.message);
+      else toast.error(res.message);
+    }
+    setShowComboModal(false);
+  };
+
+  const handleDeleteCombo = (id: string, name: string) => {
+    showConfirm({
+      title: 'Xác nhận xóa gói combo',
+      message: `Bạn có chắc chắn muốn xóa gói "${name}"?`,
+      confirmText: 'Xác nhận xóa',
+      cancelText: 'Hủy bỏ',
+      isDanger: true,
+      onConfirm: () => {
+        const res = appStore.deleteTableChairCombo(id);
+        if (res.success) toast.success(res.message);
+        else toast.error(res.message);
+      }
+    });
+  };
+
+  // --- HANDLERS: CẤU HÌNH KHUNG RẠP (TENT FRAME BOM) ---
+  const handleOpenEditTentConfig = (cfg: TentFrameConfig) => {
+    setEditingTentConfigId(cfg.id);
+    setTentConfigCode(cfg.code);
+    setTentConfigName(cfg.name);
+    setTentConfigBayWidth(cfg.bayWidthMeters);
+    setTentConfigRentalPrice(cfg.rentalPricePerBayVND);
+    setTentConfigDesc(cfg.description || '');
+    setTentConfigBom(JSON.parse(JSON.stringify(cfg.bomComponents)));
+    setShowTentConfigModal(true);
+  };
+
+  const handleSaveTentConfig = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTentConfigId) return;
+    const res = appStore.updateTentFrameConfig({
+      id: editingTentConfigId,
+      code: tentConfigCode,
+      name: tentConfigName.trim(),
+      bayWidthMeters: Number(tentConfigBayWidth) || 6,
+      bayLengthMeters: 3,
+      rentalPricePerBayVND: Number(tentConfigRentalPrice) || 350000,
+      description: tentConfigDesc.trim(),
+      bomComponents: tentConfigBom,
+    });
+    if (res.success) toast.success(res.message);
+    else toast.error(res.message);
+    setShowTentConfigModal(false);
+  };
+
+  // Month Events Handlers (Bảng Quản Lý Sự Kiện Tháng)
+  const handleOpenAddEvent = () => {
+    setEditingEventId(null);
+    setEventDateStr('15/10 (T5)');
+    setEventCustomerName('');
+    setEventServiceType('Tiệc cưới');
+    setEventLocation('xã Cổ Lễ, Ninh Bình');
+    setEventStatus('sap_dien_ra');
+    setShowEventModal(true);
+  };
+
+  const handleSaveEvent = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!eventCustomerName.trim() || !eventDateStr.trim()) return;
+
+    if (editingEventId) {
+      const res = appStore.updateMonthEvent(editingEventId, {
+        dateStr: eventDateStr.trim(),
+        customerName: eventCustomerName.trim(),
+        eventType: eventServiceType.trim(),
+        location: eventLocation.trim(),
+        status: eventStatus,
+      });
+      if (res.success) toast.success(res.message);
+    } else {
+      const res = appStore.addMonthEvent({
+        dateStr: eventDateStr.trim(),
+        customerName: eventCustomerName.trim(),
+        eventType: eventServiceType.trim(),
+        location: eventLocation.trim(),
+        status: eventStatus,
+      });
+      if (res.success) toast.success(res.message);
+    }
+    setShowEventModal(false);
+  };
+
+  const handleChangeEventStatus = (id: string, newStatus: 'da_hoan_thanh' | 'dang_thuc_hien' | 'sap_dien_ra') => {
+    appStore.updateMonthEvent(id, { status: newStatus });
+    toast.success('Đã cập nhật trạng thái sự kiện!');
+  };
+
+  const handleDeleteEvent = (id: string) => {
+    showConfirm({
+      title: 'Xóa sự kiện',
+      message: 'Bạn có chắc chắn muốn xóa sự kiện này khỏi lịch tháng?',
+      confirmText: 'Xác nhận xóa',
+      cancelText: 'Hủy bỏ',
+      isDanger: true,
+      onConfirm: () => {
+        const res = appStore.deleteMonthEvent(id);
+        if (res.success) toast.success(res.message);
+      }
+    });
+  };
+
+  // Debt Handlers (Bảng Quản Lý Công Nợ)
+  const handleSaveDebt = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!debtCustomerName.trim() || !debtAmount) return;
+    const res = appStore.addDebtItem({
+      customerName: debtCustomerName.trim(),
+      date: debtDate.trim() || new Date().toLocaleDateString('vi-VN').slice(0, 5),
+      amount: Number(debtAmount),
+    });
+    if (res.success) toast.success(res.message);
+    setShowDebtModal(false);
+    setDebtCustomerName('');
+  };
+
+  const handleDeleteDebt = (id: string) => {
+    showConfirm({
+      title: 'Đã thu xong / Xóa công nợ',
+      message: 'Bạn có chắc chắn khách hàng đã thanh toán xong khoản công nợ này?',
+      confirmText: 'Xác nhận xong',
+      cancelText: 'Hủy bỏ',
+      onConfirm: () => {
+        const res = appStore.deleteDebtItem(id);
+        if (res.success) toast.success('Đã ghi nhận thanh toán / xóa công nợ thành công!');
+      }
+    });
+  };
+
+  // Reminder Task Quick Add Handler (Nhắc việc hôm nay)
+  const handleQuickAddReminder = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newReminderTitle.trim()) return;
+    const res = appStore.addReminderTask(newReminderTitle.trim(), newReminderTime);
+    if (res.success) {
+      toast.success(res.message);
+      setNewReminderTitle('');
+    }
+  };
+
+  // Warehouse Alert Handlers (Cảnh báo kho)
+  const handleSaveWarehouseAlert = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!warehouseAlertTitle.trim()) return;
+    const res = appStore.addWarehouseAlert({
+      title: warehouseAlertTitle.trim(),
+      detail: warehouseAlertDetail.trim() || 'Cần kiểm tra thiết bị kho',
+      severity: warehouseAlertSeverity,
+      iconType: warehouseAlertTitle.toLowerCase().includes('bạt') ? 'tents' : 'chairs',
+    });
+    if (res.success) toast.success(res.message);
+    setShowWarehouseAlertModal(false);
+    setWarehouseAlertTitle('');
+    setWarehouseAlertDetail('');
+  };
+
   // Theme & Feng Shui CMS Handlers
   const handleOpenAddTheme = () => {
     setEditingThemeId(null);
@@ -953,152 +1414,50 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     }
   };
 
+  const menuLabels = {
+    dashboard: 'Tổng quan', intake: 'Hồ sơ tiếp nhận', calendar: 'Lịch sự kiện',
+    jobs: 'Đặt lịch / Hợp đồng', promotions: 'Ưu đãi & Khuyến mại', articles: 'Tin tức & Cẩm nang',
+    accounts: 'Tài khoản khách hàng', customers: 'Khách hàng', inventory: 'Kho dụng cụ', finance: 'Doanh thu & Công nợ', reports: 'Báo cáo',
+    staff: 'Nhân sự', settings: 'Cấu hình', timeline: 'Khả dụng thiết bị', audit: 'Nhật ký',
+  };
+
+  const navigationItems: { id: typeof activeMenu; label?: string; icon: typeof Home; count?: number }[] = [
+    { id: 'dashboard', icon: Home },
+    { id: 'calendar', icon: Calendar },
+    { id: 'jobs', icon: FileText },
+    { id: 'articles', icon: BookOpen, count: articles.length },
+    { id: 'customers', icon: Briefcase },
+    { id: 'accounts', label: 'Tài khoản khách hàng', icon: User },
+    { id: 'inventory', icon: Boxes },
+    { id: 'finance', icon: DollarSign },
+    { id: 'reports', icon: BarChart3 },
+    { id: 'settings', icon: Settings },
+  ];
+
   const renderSidebarNav = (isMobile = false) => (
-    <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-1 text-sm font-medium">
-      {/* 1. Tổng quan */}
-      <button
-        type="button"
-        onClick={() => { setActiveMenu('dashboard'); if (isMobile) setIsMobileSidebarOpen(false); }}
-        className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl transition-all cursor-pointer ${
-          activeMenu === 'dashboard'
-            ? 'bg-[#ffece7] text-[#e05638] font-bold shadow-2xs'
-            : 'text-slate-700 hover:bg-stone-100/70 hover:text-slate-900'
-        }`}
-      >
-        <Home className={`w-5 h-5 ${activeMenu === 'dashboard' ? 'text-[#e05638]' : 'text-slate-500'}`} />
-        <span>Tổng quan</span>
-      </button>
-
-      {/* 2. Lịch sự kiện */}
-      <button
-        type="button"
-        onClick={() => { setActiveMenu('calendar'); if (isMobile) setIsMobileSidebarOpen(false); }}
-        className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl transition-all cursor-pointer ${
-          activeMenu === 'calendar'
-            ? 'bg-[#ffece7] text-[#e05638] font-bold shadow-2xs'
-            : 'text-slate-700 hover:bg-stone-100/70 hover:text-slate-900'
-        }`}
-      >
-        <Calendar className={`w-5 h-5 ${activeMenu === 'calendar' ? 'text-[#e05638]' : 'text-slate-500'}`} />
-        <span>Lịch sự kiện</span>
-      </button>
-
-      {/* 3. Sự kiện / Hợp đồng */}
-      <button
-        type="button"
-        onClick={() => { setActiveMenu('jobs'); if (isMobile) setIsMobileSidebarOpen(false); }}
-        className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl transition-all cursor-pointer ${
-          activeMenu === 'jobs'
-            ? 'bg-[#ffece7] text-[#e05638] font-bold shadow-2xs'
-            : 'text-slate-700 hover:bg-stone-100/70 hover:text-slate-900'
-        }`}
-      >
-        <FileText className={`w-5 h-5 ${activeMenu === 'jobs' ? 'text-[#e05638]' : 'text-slate-500'}`} />
-        <span>Sự kiện / Hợp đồng</span>
-      </button>
-
-      {/* 4. Khách hàng */}
-      <button
-        type="button"
-        onClick={() => { setActiveMenu('customers'); if (isMobile) setIsMobileSidebarOpen(false); }}
-        className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl transition-all cursor-pointer ${
-          activeMenu === 'customers'
-            ? 'bg-[#ffece7] text-[#e05638] font-bold shadow-2xs'
-            : 'text-slate-700 hover:bg-stone-100/70 hover:text-slate-900'
-        }`}
-      >
-        <Briefcase className={`w-5 h-5 ${activeMenu === 'customers' ? 'text-[#e05638]' : 'text-slate-500'}`} />
-        <span>Khách hàng</span>
-      </button>
-
-      {/* 5. Kho dụng cụ */}
-      <button
-        type="button"
-        onClick={() => { setActiveMenu('inventory'); if (isMobile) setIsMobileSidebarOpen(false); }}
-        className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl transition-all cursor-pointer ${
-          activeMenu === 'inventory'
-            ? 'bg-[#ffece7] text-[#e05638] font-bold shadow-2xs'
-            : 'text-slate-700 hover:bg-stone-100/70 hover:text-slate-900'
-        }`}
-      >
-        <Boxes className={`w-5 h-5 ${activeMenu === 'inventory' ? 'text-[#e05638]' : 'text-slate-500'}`} />
-        <span>Kho dụng cụ</span>
-      </button>
-
-      {/* 6. Doanh thu - Chi phí */}
-      <button
-        type="button"
-        onClick={() => { setActiveMenu('finance'); if (isMobile) setIsMobileSidebarOpen(false); }}
-        className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl transition-all cursor-pointer ${
-          activeMenu === 'finance'
-            ? 'bg-[#ffece7] text-[#e05638] font-bold shadow-2xs'
-            : 'text-slate-700 hover:bg-stone-100/70 hover:text-slate-900'
-        }`}
-      >
-        <DollarSign className={`w-5 h-5 ${activeMenu === 'finance' ? 'text-[#e05638]' : 'text-slate-500'}`} />
-        <span>Doanh thu - Chi phí</span>
-      </button>
-
-      {/* 7. Công nợ */}
-      <button
-        type="button"
-        onClick={() => { setActiveMenu('finance'); if (isMobile) setIsMobileSidebarOpen(false); }}
-        className="w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl text-slate-700 hover:bg-stone-100/70 hover:text-slate-900 transition-all cursor-pointer"
-      >
-        <Coins className="w-5 h-5 text-slate-500" />
-        <span>Công nợ</span>
-      </button>
-
-      {/* 8. Nhân sự */}
-      <button
-        type="button"
-        onClick={() => { setActiveMenu('staff'); if (isMobile) setIsMobileSidebarOpen(false); }}
-        className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl transition-all cursor-pointer ${
-          activeMenu === 'staff'
-            ? 'bg-[#ffece7] text-[#e05638] font-bold shadow-2xs'
-            : 'text-slate-700 hover:bg-stone-100/70 hover:text-slate-900'
-        }`}
-      >
-        <Users className={`w-5 h-5 ${activeMenu === 'staff' ? 'text-[#e05638]' : 'text-slate-500'}`} />
-        <span>Nhân sự</span>
-      </button>
-
-      {/* 9. Báo cáo */}
-      <button
-        type="button"
-        onClick={() => { setActiveMenu('finance'); if (isMobile) setIsMobileSidebarOpen(false); }}
-        className="w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl text-slate-700 hover:bg-stone-100/70 hover:text-slate-900 transition-all cursor-pointer"
-      >
-        <BarChart3 className="w-5 h-5 text-slate-500" />
-        <span>Báo cáo</span>
-      </button>
-
-      {/* 10. Cấu hình */}
-      <button
-        type="button"
-        onClick={() => { setActiveMenu('settings'); if (isMobile) setIsMobileSidebarOpen(false); }}
-        className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl transition-all cursor-pointer ${
-          activeMenu === 'settings'
-            ? 'bg-[#ffece7] text-[#e05638] font-bold shadow-2xs'
-            : 'text-slate-700 hover:bg-stone-100/70 hover:text-slate-900'
-        }`}
-      >
-        <Settings className={`w-5 h-5 ${activeMenu === 'settings' ? 'text-[#e05638]' : 'text-slate-500'}`} />
-        <span>Cấu hình</span>
-      </button>
+    <nav className="admin-navigation" aria-label="Menu quản trị">
+      {navigationItems.map(({ id, label, icon: Icon, count }) => (
+        <button key={label || id} type="button"
+          aria-current={activeMenu === id && !label ? 'page' : undefined}
+          onClick={() => { setActiveMenu(id); if (isMobile) setIsMobileSidebarOpen(false); }}>
+          <Icon aria-hidden="true" />
+          <span>{label || menuLabels[id]}</span>
+          {!!count && <span className={`admin-nav-count admin-nav-count-${id}`}>{count}</span>}
+        </button>
+      ))}
     </nav>
   );
 
   return (
-    <div className="h-screen w-full bg-[#f4efe6] flex overflow-hidden">
+    <div className="admin-portal h-screen w-full bg-[#f4efe6] flex overflow-hidden">
       
       {/* ======================================================== */}
       {/* 1. LEFT SIDEBAR MENU (DESKTOP)                            */}
       {/* ======================================================== */}
-      <aside className="hidden lg:flex w-64 bg-[#fbfaf8] text-slate-700 flex-col shrink-0 border-r border-[#ece8df] shadow-xs select-none">
+      <aside className="admin-sidebar hidden lg:flex w-64 bg-[#fbfaf8] text-slate-700 flex-col shrink-0 border-r border-[#ece8df] shadow-xs select-none">
         
         {/* Brand Header Logo - Cố định đúng chiều cao h-[74px] thẳng hàng 100% với Top Header */}
-        <div className="h-[74px] px-4 flex items-center justify-center border-b border-[#e2d9cb] shrink-0">
+        <div className="admin-brand h-[74px] px-4 flex items-center justify-center border-b border-[#e2d9cb] shrink-0">
           <img 
             src="/logo_thai_dang.png" 
             alt="Nhà Rạp Thái Đăng" 
@@ -1110,7 +1469,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         {renderSidebarNav(false)}
 
         {/* Địa chỉ cơ sở ở chân Sidebar */}
-        <div className="p-3 mx-3 mb-4 rounded-2xl bg-[#f5f3ee] border border-[#e8e4dc] text-xs text-slate-700 flex items-start gap-2.5 shadow-2xs">
+        <div className="admin-location p-3 mx-3 mb-4 rounded-2xl bg-[#f5f3ee] border border-[#e8e4dc] text-xs text-slate-700 flex items-start gap-2.5 shadow-2xs">
           <MapPin className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
           <div className="font-medium text-slate-800 leading-snug">
             Thôn Trực Đông,<br />
@@ -1130,7 +1489,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         />
       )}
       {isMobileSidebarOpen && (
-        <aside className="fixed inset-y-0 left-0 w-72 max-w-[85vw] bg-[#fbfaf8] z-50 flex flex-col shadow-2xl lg:hidden select-none animate-slide-right">
+        <aside id="admin-mobile-navigation" role="dialog" aria-modal="true" aria-label="Điều hướng quản trị" className="admin-mobile-sidebar fixed inset-y-0 left-0 w-72 max-w-[85vw] bg-[#fbfaf8] z-50 flex flex-col shadow-2xl lg:hidden select-none animate-slide-right">
           <div className="h-[74px] px-4 border-b border-[#e2d9cb] flex items-center justify-between shrink-0">
             <img 
               src="/logo_thai_dang.png" 
@@ -1165,7 +1524,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
       <div className="flex-1 flex flex-col h-screen min-w-0 overflow-hidden">
         
         {/* TOP HEADER BAR CỐ ĐỊNH (STICKY TOP-0 - KHÔNG BỊ TRÔI KHI CUỘN, CAO ĐỘ h-[74px] THẲNG HÀNG 100% VỚI LOGO) */}
-        <header className="sticky top-0 z-30 h-[74px] bg-[#f4efe6]/95 backdrop-blur-md px-3 sm:px-6 lg:px-8 border-b border-[#e2d9cb] flex items-center justify-between gap-3 shrink-0 shadow-2xs">
+        <header className="admin-topbar sticky top-0 z-30 h-[74px] bg-[#f4efe6]/95 backdrop-blur-md px-3 sm:px-6 lg:px-8 border-b border-[#e2d9cb] flex items-center justify-between gap-3 shrink-0 shadow-2xs">
           
           {/* Bên trái: Nút Hamburger Menu trên Mobile + Breadcrumb */}
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -1175,6 +1534,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
               className="lg:hidden h-11 w-11 rounded-2xl bg-white border border-[#dcd7cd] text-slate-700 flex items-center justify-center hover:bg-stone-50 active:bg-stone-100 transition-colors shadow-2xs cursor-pointer shrink-0"
               title="Mở menu quản trị"
               aria-label="Mở menu quản trị"
+              aria-expanded={isMobileSidebarOpen}
+              aria-controls="admin-mobile-navigation"
             >
               <Menu className="w-5 h-5 text-slate-700" />
             </button>
@@ -1184,20 +1545,24 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                 <span className="hidden sm:inline">Hệ Thống Quản Trị</span>
                 <span className="hidden sm:inline text-slate-400">/</span>
                 <span className="font-bold text-[#0e4b44] uppercase tracking-wider truncate">
-                  {activeMenu === 'dashboard' ? 'Tổng quan' : activeMenu}
+                  {menuLabels[activeMenu]}
                 </span>
               </div>
               <h1 className="text-sm sm:text-lg lg:text-xl font-bold text-stone-900 mt-0.5 truncate leading-tight">
                 {activeMenu === 'dashboard' && 'Bảng Điều Khiển & Hoạt Động'}
                 {activeMenu === 'intake' && 'Hồ Sơ Tiếp Nhận & Khảo Sát'}
-                {activeMenu === 'jobs' && 'Sự Kiện & Hợp Đồng (Jobs)'}
+                {activeMenu === 'jobs' && 'Đặt Lịch & Hợp Đồng'}
                 {activeMenu === 'inventory' && 'Quản Lý Kho Thiết Bị'}
                 {activeMenu === 'timeline' && 'Kiểm Tra Khả Dụng Thiết Bị'}
                 {activeMenu === 'calendar' && 'Lịch Biểu & Điều Phối'}
-                {activeMenu === 'finance' && 'Doanh Thu, Báo Giá & Thu Cọc'}
+                {activeMenu === 'finance' && 'Doanh Thu & Công Nợ'}
+                {activeMenu === 'reports' && 'Biểu Đồ & Báo Cáo Kinh Doanh'}
                 {activeMenu === 'customers' && 'Quản Lý Khách Hàng (CRM)'}
+                {activeMenu === 'accounts' && 'Tài Khoản & Mật Khẩu'}
                 {activeMenu === 'staff' && 'Nhân Sự & Phân Quyền'}
                 {activeMenu === 'audit' && 'Nhật Ký & Kiểm Toán'}
+                {activeMenu === 'articles' && 'Tin Tức & Cẩm Nang'}
+                {activeMenu === 'promotions' && 'Ưu Đãi & Khuyến Mại'}
                 {activeMenu === 'settings' && 'Cấu Hình & Quản Trị CMS'}
               </h1>
             </div>
@@ -1207,18 +1572,13 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
           <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto">
             
             {/* 1. Chuông thông báo nhắc việc (h-11 w-11 rounded-2xl) */}
-            <NotificationBell
-              intakes={intakes}
-              jobs={jobs}
-              quotes={quotes}
-              onNavigateMenu={(menu) => setActiveMenu(menu)}
-            />
+            <EventAlerts onNavigate={(menu) => setActiveMenu(menu)} />
 
             {/* 2. Nút Về Website: Chiều cao h-11, bo góc rounded-2xl đồng nhất */}
             <button
               type="button"
               onClick={onBackToCustomerSite}
-              className="h-11 px-3 sm:px-4 rounded-2xl bg-white hover:bg-stone-50 active:bg-stone-100 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 border border-[#dcd7cd] transition-all cursor-pointer shadow-2xs hover:shadow-xs shrink-0"
+              className="admin-website-button h-11 px-3 sm:px-4 rounded-2xl bg-white hover:bg-stone-50 active:bg-stone-100 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 border border-[#dcd7cd] transition-all cursor-pointer shadow-2xs hover:shadow-xs shrink-0"
               title="Quay lại giao diện website khách hàng"
             >
               <Globe className="w-4.5 h-4.5 text-[#0e4b44]" />
@@ -1230,14 +1590,15 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
               <button
                 type="button"
                 onClick={() => setShowTopUserMenu(!showTopUserMenu)}
-                className="h-11 bg-[#0e4b44] hover:bg-[#0c403a] active:bg-[#0a3530] text-white pl-3 sm:pl-4 pr-1.5 rounded-2xl flex items-center gap-2.5 sm:gap-3 border border-[#0a3833] shadow-2xs cursor-pointer transition-all shrink-0"
                 title="Menu chức năng tài khoản"
                 aria-label="Menu chức năng tài khoản"
+                aria-expanded={showTopUserMenu}
+                className="admin-account-button h-11 bg-[#0e4b44] text-white pl-3 sm:pl-4 pr-1.5 rounded-2xl flex items-center gap-2.5 sm:gap-3 shadow-2xs cursor-pointer transition-all shrink-0"
               >
                 <div className="text-left hidden md:block">
                   <div className="text-xs font-bold truncate tracking-wide text-white flex items-center gap-1 leading-tight">
                     <span>Quản trị hệ thống</span>
-                    <span className="text-emerald-200 font-normal">({currentUser.username || 'admin'})</span>
+                    <span className="text-emerald-200 font-normal">({currentUser.email?.split('@')[0] || 'admin'})</span>
                   </div>
                   <div className="text-[11px] text-emerald-200/90 truncate font-medium leading-tight mt-0.5">
                     {currentUser.fullName}
@@ -1297,677 +1658,19 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         </header>
 
         {/* PHẦN CUỘN NỘI DUNG CHÍNH (ĐỘC LẬP BÊN DƯỚI HEADER CỐ ĐỊNH) */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+        <main className="admin-workspace flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <AdminGreetingBanner userName={currentUser.fullName || 'Admin'} roleLabel={ROLE_LABELS[currentUser.role]} />
 
         {/* --- MODULE 1: DASHBOARD (TỔNG QUAN) --- */}
-        {activeMenu === 'dashboard' && (
-          <div className="space-y-6">
-            
-            {/* Thanh tác vụ nhanh của Dashboard */}
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <p className="text-xs text-slate-500 font-medium">
-                  Tổng hợp số liệu tiến độ sự kiện, công nợ và tình hình vận hành kho hôm nay.
-                </p>
-              </div>
+        {activeMenu === 'dashboard' && (<EventDashboard onOpenBookings={() => setActiveMenu('jobs')} />)}
+        {activeMenu === 'reports' && (<EventDashboard onOpenBookings={() => setActiveMenu('jobs')} />)}
 
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    showConfirm({
-                      title: 'Khôi phục dữ liệu mẫu',
-                      message: 'Bạn có chắc chắn muốn khôi phục lại toàn bộ dữ liệu mẫu ban đầu không? Các thiết lập và dữ liệu gần nhất có thể được hoàn tác.',
-                      confirmText: 'Đồng ý khôi phục',
-                      cancelText: 'Hủy bỏ',
-                      isDanger: true,
-                      onConfirm: () => {
-                        appStore.resetToDefaultSeed();
-                        toast.success('Đã khôi phục dữ liệu mẫu ban đầu thành công!');
-                      }
-                    });
-                  }}
-                  className="p-2.5 rounded-xl bg-white border border-[#ede8de] hover:bg-amber-50 text-slate-600 hover:text-amber-800 transition-colors shadow-2xs"
-                  title="Khôi phục dữ liệu mẫu ban đầu"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                </button>
+        {activeMenu === 'intake' && (<EventWorkspace view="bookings" />)}
 
-                <button
-                  type="button"
-                  onClick={() => setActiveMenu('jobs')}
-                  className="px-5 py-2.5 rounded-xl bg-[#0e4b44] hover:bg-[#093530] text-white font-bold text-xs flex items-center gap-2 shadow-sm transition-all cursor-pointer"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Tạo sự kiện mới</span>
-                </button>
-              </div>
-            </div>
+        {activeMenu === 'jobs' && (<EventWorkspace view="all" />)}
 
-            {/* 2. 4 Stat KPI Cards (Chuẩn Ảnh 2) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              
-              {/* Card 1: Sự kiện đã nhận tháng này */}
-              <div className="bg-white rounded-2xl p-5 border border-[#ece7de] shadow-xs flex items-center justify-between relative overflow-hidden">
-                <div className="space-y-1 z-10">
-                  <span className="text-xs text-slate-500 font-medium">Sự kiện đã nhận tháng này</span>
-                  <div className="text-3xl font-extrabold text-slate-900 tracking-tight">08</div>
-                </div>
-                <div className="w-12 h-12 rounded-2xl bg-[#ffece7] text-[#e05638] flex items-center justify-center shrink-0 z-10">
-                  <Calendar className="w-6 h-6" />
-                </div>
-                <div className="absolute -bottom-2 -right-2 w-24 h-12 bg-gradient-to-t from-rose-100/40 to-transparent rounded-full blur-md" />
-              </div>
+        {activeMenu === 'inventory' && (<EventInventory />)}
 
-              {/* Card 2: Sự kiện đã nhận tháng tới */}
-              <div className="bg-white rounded-2xl p-5 border border-[#ece7de] shadow-xs flex items-center justify-between relative overflow-hidden">
-                <div className="space-y-1 z-10">
-                  <span className="text-xs text-slate-500 font-medium">Sự kiện đã nhận tháng tới</span>
-                  <div className="flex items-baseline gap-3">
-                    <div className="text-3xl font-extrabold text-slate-900 tracking-tight">12</div>
-                    <div className="flex items-end gap-1 h-5 pb-0.5">
-                      <span className="w-1.5 h-2 bg-emerald-300 rounded-xs" />
-                      <span className="w-1.5 h-3 bg-emerald-400 rounded-xs" />
-                      <span className="w-1.5 h-4 bg-emerald-500 rounded-xs" />
-                    </div>
-                  </div>
-                </div>
-                <div className="w-12 h-12 rounded-2xl bg-[#ebf8f2] text-[#10b981] flex items-center justify-center shrink-0 z-10">
-                  <CalendarDays className="w-6 h-6" />
-                </div>
-                <div className="absolute -bottom-2 -right-2 w-24 h-12 bg-gradient-to-t from-emerald-100/40 to-transparent rounded-full blur-md" />
-              </div>
-
-              {/* Card 3: Tiền đã thu tháng này */}
-              <div className="bg-white rounded-2xl p-5 border border-[#ece7de] shadow-xs flex items-center justify-between relative overflow-hidden">
-                <div className="space-y-1 z-10">
-                  <span className="text-xs text-slate-500 font-medium">Tiền đã thu tháng này</span>
-                  <div className="text-2xl font-extrabold text-slate-900 tracking-tight">35.000.000 đ</div>
-                </div>
-                <div className="w-12 h-12 rounded-2xl bg-[#fef8e7] text-[#f59e0b] flex items-center justify-center shrink-0 z-10">
-                  <Coins className="w-6 h-6" />
-                </div>
-                <div className="absolute -bottom-2 -right-2 w-24 h-12 bg-gradient-to-t from-amber-100/40 to-transparent rounded-full blur-md" />
-              </div>
-
-              {/* Card 4: Cảnh báo cần xử lý */}
-              <div className="bg-white rounded-2xl p-5 border border-[#ece7de] shadow-xs flex items-center justify-between relative overflow-hidden">
-                <div className="space-y-1 z-10">
-                  <span className="text-xs text-slate-500 font-medium">Cảnh báo cần xử lý</span>
-                  <div className="text-3xl font-extrabold text-slate-900 tracking-tight">02</div>
-                </div>
-                <div className="w-12 h-12 rounded-2xl bg-[#fef2f2] text-[#ef4444] flex items-center justify-center shrink-0 z-10">
-                  <AlertTriangle className="w-6 h-6" />
-                </div>
-                <div className="absolute -bottom-2 -right-2 w-24 h-12 bg-gradient-to-t from-rose-100/40 to-transparent rounded-full blur-md" />
-              </div>
-
-            </div>
-
-            {/* 3. Bố cục 2 Cột: Bảng Sự kiện Tháng này (Trái) & 3 Widget Cột Phải (Chuẩn Ảnh 2) */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              
-              {/* CỘT TRÁI (8/12): Lịch sự kiện tháng này (Chuẩn Ảnh 2) */}
-              <div className="lg:col-span-8 bg-white rounded-3xl border border-[#ece7de] p-6 shadow-xs space-y-4">
-                
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-stone-100 flex items-center justify-center text-slate-700">
-                      <Calendar className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h3 className="font-extrabold text-slate-900 text-base">
-                        Lịch sự kiện tháng này
-                      </h3>
-                      <p className="text-[11px] text-slate-500">
-                        Chỉ hiển thị các sự kiện đã xác nhận (đã ký hợp đồng hoặc đặt cọc).
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Nút lùi/tiến tháng */}
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700">
-                    <button className="hover:text-slate-900 cursor-pointer">&lt;</button>
-                    <span>Tháng 10 năm 2025</span>
-                    <button className="hover:text-slate-900 cursor-pointer">&gt;</button>
-                  </div>
-                </div>
-
-                {/* Bảng Danh sách Sự kiện 8 dòng Chuẩn Ảnh 2 */}
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead>
-                      <tr className="border-b border-slate-100 text-slate-400 font-bold uppercase text-[10px] tracking-wider">
-                        <th className="py-2.5 px-3">Ngày</th>
-                        <th className="py-2.5 px-3">Khách hàng</th>
-                        <th className="py-2.5 px-3">Loại sự kiện</th>
-                        <th className="py-2.5 px-3">Địa điểm</th>
-                        <th className="py-2.5 px-3">Trạng thái</th>
-                        <th className="py-2.5 px-3 text-right"></th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {[
-                        { date: '04/10 (T7)', name: 'Anh Nam', type: 'Tiệc cưới', loc: 'xã Cổ Lễ, Ninh Bình', status: 'da_hoan_thanh', statusLabel: 'Đã hoàn thành', badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-                        { date: '07/10 (T3)', name: 'Chị Hương', type: 'Lễ ăn hỏi', loc: 'TP Ninh Bình', status: 'da_hoan_thanh', statusLabel: 'Đã hoàn thành', badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-                        { date: '12/10 (CN)', name: 'Anh Tuấn', type: 'Tiệc cưới', loc: 'xã Cổ Lễ, Ninh Bình', status: 'dang_thuc_hien', statusLabel: 'Đang thực hiện', badgeColor: 'bg-blue-50 text-blue-700 border-blue-200', isToday: true },
-                        { date: '18/10 (T7)', name: 'Chị Mai', type: 'Tiệc cưới', loc: 'huyện Yên Mô', status: 'sap_dien_ra', statusLabel: 'Sắp diễn ra', badgeColor: 'bg-amber-50 text-amber-700 border-amber-200' },
-                        { date: '22/10 (T4)', name: 'Anh Dũng', type: 'Lễ ăn hỏi', loc: 'TP Hoa Lư', status: 'sap_dien_ra', statusLabel: 'Sắp diễn ra', badgeColor: 'bg-amber-50 text-amber-700 border-amber-200' },
-                        { date: '26/10 (CN)', name: 'Chị Lan', type: 'Tiệc cưới', loc: 'xã Gia Viễn', status: 'sap_dien_ra', statusLabel: 'Sắp diễn ra', badgeColor: 'bg-amber-50 text-amber-700 border-amber-200' },
-                        { date: '29/10 (T4)', name: 'Cô Thu', type: 'Tiệc cưới', loc: 'huyện Nho Quan', status: 'sap_dien_ra', statusLabel: 'Sắp diễn ra', badgeColor: 'bg-amber-50 text-amber-700 border-amber-200' },
-                        { date: '31/10 (T6)', name: 'Anh Long', type: 'Lễ ăn hỏi', loc: 'huyện Kim Sơn', status: 'sap_dien_ra', statusLabel: 'Sắp diễn ra', badgeColor: 'bg-amber-50 text-amber-700 border-amber-200' },
-                      ].map((item, idx) => (
-                        <tr 
-                          key={idx} 
-                          className={`hover:bg-stone-50/80 transition-colors ${
-                            item.isToday ? 'bg-blue-50/40 font-bold' : ''
-                          }`}
-                        >
-                          <td className="py-3 px-3 font-semibold text-slate-800 whitespace-nowrap">
-                            {item.date}
-                          </td>
-                          <td className="py-3 px-3 font-bold text-slate-900 whitespace-nowrap">
-                            {item.name}
-                          </td>
-                          <td className="py-3 px-3 text-slate-700 whitespace-nowrap">
-                            {item.type}
-                          </td>
-                          <td className="py-3 px-3 text-slate-600 whitespace-nowrap">
-                            {item.loc}
-                          </td>
-                          <td className="py-3 px-3 whitespace-nowrap">
-                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border ${item.badgeColor}`}>
-                              <span className={`w-1.5 h-1.5 rounded-full ${
-                                item.status === 'da_hoan_thanh' ? 'bg-emerald-600' : item.status === 'dang_thuc_hien' ? 'bg-blue-600' : 'bg-amber-600'
-                              }`} />
-                              <span>{item.statusLabel}</span>
-                            </span>
-                          </td>
-                          <td className="py-3 px-3 text-right text-slate-400">
-                            <button className="hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100">
-                              <MoreHorizontal className="w-4 h-4" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Footer Chú thích & Nút xem tất cả */}
-                <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
-                  <div className="text-slate-400 italic text-[11px]">
-                    ⓘ Số liệu minh hoạ phục vụ thiết kế giao diện, không phải số liệu thực tế.
-                  </div>
-                  <button
-                    onClick={() => setActiveMenu('calendar')}
-                    className="font-bold text-slate-700 hover:text-[#e05638] flex items-center gap-1 transition-colors"
-                  >
-                    <span>Xem tất cả sự kiện tháng này</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-              </div>
-
-              {/* CỘT PHẢI (4/12): 3 Widget Thống Kê & Nhắc Việc (Chuẩn Ảnh 2) */}
-              <div className="lg:col-span-4 space-y-4">
-                
-                {/* WIDGET 1: CÔNG NỢ CÒN LẠI (Chuẩn Ảnh 2) */}
-                <div className="bg-white rounded-3xl border border-[#ece7de] p-5 shadow-xs space-y-3">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                    <div className="flex items-center gap-2 font-bold text-slate-800 text-sm">
-                      <Coins className="w-4 h-4 text-amber-600" />
-                      <span>Công nợ còn lại</span>
-                    </div>
-                    <button 
-                      onClick={() => setActiveMenu('finance')}
-                      className="text-xs text-slate-500 hover:text-slate-800 font-medium flex items-center gap-0.5"
-                    >
-                      <span>Xem tất cả</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </button>
-                  </div>
-
-                  <div>
-                    <div className="text-2xl font-extrabold text-[#d93025] tracking-tight">
-                      40.000.000 đ
-                    </div>
-                    <p className="text-[11px] text-slate-500 font-medium">của 5 khách hàng</p>
-                  </div>
-
-                  <div className="space-y-2 pt-1 text-xs divide-y divide-slate-100">
-                    <div className="flex items-center justify-between pt-1">
-                      <span className="text-slate-700 flex items-center gap-1.5">
-                        <Users className="w-3.5 h-3.5 text-slate-400" />
-                        <span>Anh Tuấn (12/10)</span>
-                      </span>
-                      <strong className="text-slate-900 font-bold">20.000.000 đ</strong>
-                    </div>
-                    <div className="flex items-center justify-between pt-1.5">
-                      <span className="text-slate-700 flex items-center gap-1.5">
-                        <Users className="w-3.5 h-3.5 text-slate-400" />
-                        <span>Chị Mai (18/10)</span>
-                      </span>
-                      <strong className="text-slate-900 font-bold">8.000.000 đ</strong>
-                    </div>
-                    <div className="flex items-center justify-between pt-1.5">
-                      <span className="text-slate-700 flex items-center gap-1.5">
-                        <Users className="w-3.5 h-3.5 text-slate-400" />
-                        <span>Anh Dũng (22/10)</span>
-                      </span>
-                      <strong className="text-slate-900 font-bold">7.000.000 đ</strong>
-                    </div>
-                    <div className="flex items-center justify-between pt-1.5">
-                      <span className="text-slate-500 flex items-center gap-1.5">
-                        <span className="text-slate-400">···</span>
-                        <span>Khác (2 khách)</span>
-                      </span>
-                      <strong className="text-slate-700 font-semibold">5.000.000 đ</strong>
-                    </div>
-                  </div>
-                </div>
-
-                {/* WIDGET 2: NHẮC VIỆC HÔM NAY (Chuẩn Ảnh 2) */}
-                <div className="bg-white rounded-3xl border border-[#ece7de] p-5 shadow-xs space-y-3">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                    <div className="flex items-center gap-2 font-bold text-slate-800 text-sm">
-                      <Bell className="w-4 h-4 text-rose-500" />
-                      <span>Nhắc việc hôm nay</span>
-                    </div>
-                    <button 
-                      onClick={() => setActiveMenu('jobs')}
-                      className="text-xs text-slate-500 hover:text-slate-800 font-medium flex items-center gap-0.5"
-                    >
-                      <span>Xem tất cả</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </button>
-                  </div>
-
-                  <div className="space-y-2.5 text-xs">
-                    {[
-                      { id: 'TASK-1', time: '08:00', title: 'Liên hệ khách Anh Tuấn xác nhận giờ lắp rạp', done: true },
-                      { id: 'TASK-2', time: '10:00', title: 'Kiểm tra xe vận chuyển, xếp hàng', done: true },
-                      { id: 'TASK-3', time: '14:00', title: 'Chuẩn bị bản hợp đồng cho Chị Mai', done: false },
-                      { id: 'TASK-4', time: '16:00', title: 'Liên hệ nhà bạt dự phòng', done: false },
-                    ].map(task => (
-                      <div key={task.id} className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2.5">
-                          <input 
-                            type="checkbox" 
-                            defaultChecked={task.done} 
-                            className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer" 
-                          />
-                          <span className="font-mono text-slate-400 text-[11px] whitespace-nowrap">{task.time}</span>
-                          <span className={`text-[12px] leading-tight ${task.done ? 'text-slate-600' : 'font-semibold text-slate-900'}`}>
-                            {task.title}
-                          </span>
-                        </div>
-                        <span className="text-slate-300">···</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* WIDGET 3: CẢNH BÁO KHO (Chuẩn Ảnh 2) */}
-                <div className="bg-white rounded-3xl border border-[#ece7de] p-5 shadow-xs space-y-3">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                    <div className="flex items-center gap-2 font-bold text-slate-800 text-sm">
-                      <Boxes className="w-4 h-4 text-rose-600" />
-                      <span>Cảnh báo kho</span>
-                    </div>
-                    <button 
-                      onClick={() => setActiveMenu('inventory')}
-                      className="text-xs text-slate-500 hover:text-slate-800 font-medium flex items-center gap-0.5"
-                    >
-                      <span>Xem tất cả</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </button>
-                  </div>
-
-                  <div className="space-y-3 text-xs">
-                    {/* Cảnh báo ghế inox (Có hình ảnh thumbnail ghế inox cắt chuẩn từ Ảnh 2) */}
-                    <div className="flex items-center justify-between gap-3 p-2 rounded-2xl bg-rose-50/50 border border-rose-100">
-                      <div className="flex items-center gap-3">
-                        <img 
-                          src="/thumb_ghe_inox.png" 
-                          alt="Ghế inox" 
-                          className="w-10 h-10 object-contain rounded-lg bg-white p-1 border border-stone-200" 
-                        />
-                        <div>
-                          <div className="font-extrabold text-[#d93025] text-xs">Thiếu 20 ghế inox</div>
-                          <div className="text-[11px] text-slate-500">cho lịch ngày mai (13/10)</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0" />
-                        <span className="text-slate-400 text-xs">···</span>
-                      </div>
-                    </div>
-
-                    {/* Cảnh báo bạt trắng 10m */}
-                    <div className="flex items-center justify-between gap-3 p-2 rounded-2xl bg-amber-50/50 border border-amber-100">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xs shrink-0">
-                          BẠT
-                        </div>
-                        <div>
-                          <div className="font-bold text-slate-800 text-xs">Bạt trắng 10m: chỉ còn 1 bộ</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
-                        <span className="text-slate-400 text-xs">···</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
-        )}
-
-        {/* --- MODULE 2: HỒ SƠ TIẾP NHẬN & KHẢO SÁT --- */}
-        {activeMenu === 'intake' && (
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-white border border-[#ede8de]">
-              <div className="flex items-center gap-3 text-xs">
-                <Filter className="w-4 h-4 text-slate-500" />
-                <span className="font-bold text-slate-700">Lọc trạng thái:</span>
-                <select
-                  value={intakeStatusFilter}
-                  onChange={(e) => setIntakeStatusFilter(e.target.value)}
-                  className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white font-semibold text-xs"
-                >
-                  <option value="all">Tất cả ({intakes.length})</option>
-                  <option value="moi_gui">Mới gửi</option>
-                  <option value="dang_lien_he">Đang liên hệ</option>
-                  <option value="da_hen_khao_sat">Đã hẹn khảo sát</option>
-                  <option value="da_khao_sat">Đã khảo sát</option>
-                  <option value="cho_xac_nhan">Chờ xác nhận</option>
-                  <option value="da_xac_nhan">Đã xác nhận (Job)</option>
-                </select>
-              </div>
-
-              <div className="text-xs text-slate-500">
-                Quyền thực thi: <strong>{ROLE_LABELS[currentUser.role]}</strong>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              {intakes
-                .filter(i => intakeStatusFilter === 'all' || i.status === intakeStatusFilter)
-                .map(intake => {
-                  const dupCount = getPhoneDuplicateCount(intake.customerPhone, intake.id);
-                  return (
-                    <div key={intake.id} className="p-5 rounded-3xl bg-white border border-[#ede8de] shadow-xs space-y-3">
-                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono font-bold text-sm text-[#b8860b]">{intake.code}</span>
-                          <h4 className="font-bold text-slate-900 text-sm">{intake.customerName}</h4>
-                          <span className="text-xs text-slate-500">({intake.customerPhone})</span>
-                          {dupCount > 0 && (
-                            <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[10px] font-bold">
-                              ⚠️ Khách có {dupCount} đám khác
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                            intake.status === 'da_xac_nhan' 
-                              ? 'bg-emerald-100 text-emerald-800' 
-                              : intake.status === 'da_khao_sat'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-amber-100 text-amber-800'
-                          }`}>
-                            {intake.status.replace(/_/g, ' ')}
-                          </span>
-                          {intake.confirmedJobId && (
-                            <span className="font-mono text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-1 rounded-lg border border-indigo-200">
-                              Job: {intake.confirmedJobId}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-slate-600">
-                        <div>
-                          <strong>Địa chỉ:</strong> {intake.eventAddress}
-                          {intake.survey?.roadNote && (
-                            <div className="text-[11px] text-slate-500 italic mt-0.5">
-                              Khảo sát đường: {intake.survey.roadNote}
-                            </div>
-                          )}
-                        </div>
-                        <div>
-                          <strong>Thời gian tiệc:</strong> {new Date(intake.eventDateStart).toLocaleString('vi-VN')}
-                          <div className="text-[11px] text-amber-800 mt-0.5">
-                            Chiếm dụng kho: {new Date(intake.setupDateStart).toLocaleDateString('vi-VN')} → {new Date(intake.teardownDateEnd).toLocaleDateString('vi-VN')}
-                          </div>
-                        </div>
-                        <div>
-                          <strong>Cấu hình bàn ghế:</strong>
-                          <ul className="list-disc list-inside mt-0.5 text-slate-700">
-                            {intake.tableChairConfigs.map((cfg, idx) => (
-                              <li key={idx}>
-                                {cfg.area}: {cfg.tableCount} bàn • {cfg.tableCount * cfg.chairsPerTable} {cfg.chairType === 'ghe_inox' ? 'ghế inox' : 'ghế nhựa đỏ'}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-100 text-xs">
-                        <span className="text-slate-400">Nguồn: <strong>{intake.source}</strong></span>
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => handleOpenSurvey(intake)}
-                            className="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold"
-                          >
-                            {intake.survey ? '✏️ Sửa khảo sát' : '📐 Khảo sát mặt bằng'}
-                          </button>
-                          {intake.status !== 'da_xac_nhan' && (
-                            <button
-                              type="button"
-                              onClick={() => handleOpenConfirmModal(intake)}
-                              className="px-3.5 py-1.5 rounded-xl gold-gradient text-[#161c2b] font-bold shadow-xs flex items-center gap-1"
-                            >
-                              <span>Xác nhận Job & Giữ kho</span>
-                              <ArrowRight className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          </div>
-        )}
-
-        {/* --- MODULE 3: JOBS & 7 ĐẦU VIỆC CHUẨN --- */}
-        {activeMenu === 'jobs' && (
-          <div className="space-y-5">
-            {jobs.map(job => (
-              <div key={job.id} className="p-6 rounded-3xl bg-white border border-[#ede8de] shadow-xs space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono font-extrabold text-base text-indigo-700">{job.code}</span>
-                      <h4 className="font-bold text-slate-900 text-base">{job.customerName}</h4>
-                      <span className="text-xs text-slate-500">({job.customerPhone})</span>
-                      <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700">
-                        {job.serviceType.replace('_', ' ')}
-                      </span>
-                    </div>
-                    <div className="text-xs text-slate-500 mt-1">
-                      Địa điểm: <strong>{job.eventAddress}</strong> • Tiệc chính: {new Date(job.eventDateStart).toLocaleString('vi-VN')}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                      job.status === 'da_hoan_thanh' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'
-                    }`}>
-                      {job.status.replace(/_/g, ' ')}
-                    </span>
-                    <span className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${
-                      job.isInventoryReturned 
-                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200' 
-                        : 'bg-amber-50 text-amber-800 border-amber-200'
-                    }`}>
-                      {job.isInventoryReturned ? '✓ Đã trả đủ kho' : '⏳ Chưa kiểm tra trả kho'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* 7 Đầu Việc */}
-                <div className="space-y-2">
-                  <span className="text-xs font-bold text-slate-800 uppercase tracking-wide block">
-                    Tiến độ 7 Đầu việc chuẩn:
-                  </span>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-2">
-                    {job.tasks.map((task, idx) => {
-                      const isDone = task.status === 'hoan_thanh';
-                      return (
-                        <div
-                          key={task.id}
-                          className={`p-3 rounded-xl border text-xs flex flex-col justify-between ${
-                            isDone ? 'bg-emerald-50/70 border-emerald-200 text-emerald-950' : 'bg-slate-50 border-slate-200 text-slate-800'
-                          }`}
-                        >
-                          <div>
-                            <div className="flex items-center justify-between font-bold mb-1">
-                              <span>#{idx + 1} {task.taskType}</span>
-                              {isDone && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />}
-                            </div>
-                            <p className="text-[11px] text-slate-600 leading-tight mb-2">{task.title}</p>
-                          </div>
-                          <div className="pt-2 border-t border-slate-200/60">
-                            <span className="text-[10px] text-slate-500 block truncate">{task.assignedPersonOrTeam}</span>
-                            <div className="mt-1 flex items-center justify-between">
-                              <span className="text-[10px] font-bold uppercase">{task.status.replace(/_/g, ' ')}</span>
-                              {!isDone && (
-                                <button
-                                  type="button"
-                                  onClick={() => appStore.updateTaskStatus(job.id, task.id, 'hoan_thanh')}
-                                  className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-600 text-white font-bold hover:bg-emerald-700"
-                                >
-                                  Xong
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Hàng nút nghiệp vụ */}
-                <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-100 text-xs">
-                  <div className="text-slate-500">
-                    Snapshot định mức: {job.itemsSnapshot?.map(i => `${i.itemName} (${i.quantity} ${i.unit})`).join(', ')}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleDispatch(job.id)}
-                      className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center gap-1 shadow-xs"
-                      title="Xuất thiết bị lên xe tải (không trừ kho 2 lần)"
-                    >
-                      <Truck className="w-3.5 h-3.5" />
-                      <span>Xuất kho lên xe</span>
-                    </button>
-
-                    {!job.isInventoryReturned && (
-                      <button
-                        type="button"
-                        onClick={() => handleReturn(job.id)}
-                        className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-1 shadow-xs"
-                      >
-                        <Boxes className="w-3.5 h-3.5" />
-                        <span>Kiểm tra trả dụng cụ</span>
-                      </button>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={() => handleOpenPayment(job.id)}
-                      className="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold flex items-center gap-1"
-                    >
-                      <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>Thu tiền / Cọc</span>
-                    </button>
-
-                    {job.status !== 'da_huy' && (
-                      <button
-                        type="button"
-                        onClick={() => handleCancelJob(job.id)}
-                        className="px-3 py-1.5 rounded-xl border border-rose-200 text-rose-700 hover:bg-rose-50 font-bold"
-                      >
-                        Hủy Job
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* --- MODULE 4: KHO & THIẾT BỊ --- */}
-        {activeMenu === 'inventory' && (
-          <div className="bg-white rounded-3xl border border-[#ede8de] overflow-hidden shadow-xs">
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="font-bold text-slate-900 text-sm">Danh Mục Thiết Bị Kho & Tình Trạng Vật Lý</h3>
-              <span className="text-xs text-slate-500">Tổng {catalog.length} chủng loại</span>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
-                  <tr>
-                    <th className="py-3 px-4">Mã</th>
-                    <th className="py-3 px-4">Tên Thiết Bị</th>
-                    <th className="py-3 px-4">ĐVT</th>
-                    <th className="py-3 px-4 text-center">Tổng Sở Hữu</th>
-                    <th className="py-3 px-4 text-center">Đang Sửa Chữa</th>
-                    <th className="py-3 px-4 text-center">Đang Giữ (Held)</th>
-                    <th className="py-3 px-4 text-center">Tại Công Trình (Dispatched)</th>
-                    <th className="py-3 px-4 text-center">Sẵn Sàng Tại Kho</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {catalog.map(item => {
-                    const heldCount = reservations.filter(r => r.itemCode === item.code && r.status === 'held').reduce((s, r) => s + r.requestedQuantity, 0);
-                    const dispatchedCount = reservations.filter(r => r.itemCode === item.code && r.status === 'dispatched').reduce((s, r) => s + r.requestedQuantity, 0);
-                    const inWarehouseNow = Math.max(0, item.totalOwnedQuantity - item.inRepairQuantity - dispatchedCount);
-                    return (
-                      <tr key={item.id} className="hover:bg-slate-50">
-                        <td className="py-3 px-4 font-mono font-bold text-slate-700">{item.code}</td>
-                        <td className="py-3 px-4 font-semibold text-slate-900">{item.name}</td>
-                        <td className="py-3 px-4 text-slate-500">{item.unit}</td>
-                        <td className="py-3 px-4 text-center font-bold">{item.totalOwnedQuantity}</td>
-                        <td className="py-3 px-4 text-center text-amber-600 font-bold">{item.inRepairQuantity > 0 ? `${item.inRepairQuantity} (Đang sửa)` : '0'}</td>
-                        <td className="py-3 px-4 text-center text-blue-600 font-bold">{heldCount}</td>
-                        <td className="py-3 px-4 text-center text-indigo-600 font-bold">{dispatchedCount}</td>
-                        <td className="py-3 px-4 text-center font-bold text-emerald-700 bg-emerald-50/50">{inWarehouseNow}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* --- MODULE 5: TIMELINE AVAILABILITY CHECKER --- */}
         {activeMenu === 'timeline' && (
           <div className="p-6 rounded-3xl bg-white border border-[#ede8de] shadow-xs space-y-5">
             <div>
@@ -2047,240 +1750,13 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         )}
 
         {/* --- MODULE 6: LỊCH BIỂU --- */}
-        {activeMenu === 'calendar' && (
-          <div className="p-6 rounded-3xl bg-white border border-[#ede8de] shadow-xs space-y-4">
-            <h3 className="text-xl font-bold text-stone-900">
-              Lịch Biểu Điều Phối (Múi giờ Asia/Ho_Chi_Minh)
-            </h3>
-            <div className="space-y-3">
-              {jobs.map(job => (
-                <div key={job.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
-                  <div className="flex items-center justify-between font-bold text-slate-900">
-                    <span className="font-mono text-indigo-700">{job.code} - {job.customerName}</span>
-                    <span className="text-slate-500">{new Date(job.eventDateStart).toLocaleString('vi-VN')}</span>
-                  </div>
-                  <div className="text-slate-600">Địa chỉ: {job.eventAddress}</div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] pt-2 border-t border-slate-200">
-                    <div><strong>Chiếm dụng thiết bị:</strong> {new Date(job.equipmentUsageStart).toLocaleString('vi-VN')} → {new Date(job.equipmentUsageEnd).toLocaleString('vi-VN')}</div>
-                    <div><strong>Đội thi công:</strong> Đội thi công rạp Thái Đăng</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {activeMenu === 'calendar' && (<EventWorkspace view="calendar" />)}
 
-        {/* --- MODULE 7: TÀI CHÍNH & THU TIỀN --- */}
-        {activeMenu === 'finance' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="p-5 rounded-2xl card-luxury">
-                <span className="text-xs text-slate-500 font-bold uppercase">Tổng giá trị báo giá</span>
-                <span className="text-2xl font-bold text-stone-900 mt-1 block">
-                  {quotes.reduce((s, q) => s + q.finalAmountVND, 0).toLocaleString('vi-VN')} đ
-                </span>
-              </div>
-              <div className="p-5 rounded-2xl card-luxury">
-                <span className="text-xs text-slate-500 font-bold uppercase">Tiền cọc & Thực thu</span>
-                <span className="text-2xl font-bold text-emerald-700 mt-1 block">
-                  {payments.reduce((s, p) => s + p.amountVND, 0).toLocaleString('vi-VN')} đ
-                </span>
-              </div>
-              <div className="p-5 rounded-2xl card-luxury">
-                <span className="text-xs text-slate-500 font-bold uppercase">Công nợ còn lại</span>
-                <span className="text-2xl font-bold text-rose-700 mt-1 block">
-                  {Math.max(0, quotes.reduce((s, q) => s + q.finalAmountVND, 0) - payments.reduce((s, p) => s + p.amountVND, 0)).toLocaleString('vi-VN')} đ
-                </span>
-              </div>
-            </div>
+        {activeMenu === 'finance' && (<EventWorkspace view="finance" />)}
 
-            <div className="bg-white rounded-3xl border border-[#ede8de] p-6 shadow-xs space-y-4">
-              <h3 className="font-bold text-slate-900 text-sm">Lịch Sử Phiếu Thu & Tiền Cọc</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
-                    <tr>
-                      <th className="py-3 px-4">Số Phiếu</th>
-                      <th className="py-3 px-4">Job</th>
-                      <th className="py-3 px-4">Loại Thu</th>
-                      <th className="py-3 px-4">Phương Thức</th>
-                      <th className="py-3 px-4">Số Tiền (VNĐ)</th>
-                      <th className="py-3 px-4">Người Lập</th>
-                      <th className="py-3 px-4">Ngày Thu</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {payments.map(p => (
-                      <tr key={p.id} className="hover:bg-slate-50">
-                        <td className="py-3 px-4 font-mono font-bold text-slate-700">{p.receiptNumber}</td>
-                        <td className="py-3 px-4 font-mono text-indigo-700">{p.jobId}</td>
-                        <td className="py-3 px-4 font-semibold uppercase">{p.paymentType.replace(/_/g, ' ')}</td>
-                        <td className="py-3 px-4 text-slate-600">{p.paymentMethod === 'chuyen_khoan' ? 'Chuyển khoản' : 'Tiền mặt'}</td>
-                        <td className="py-3 px-4 font-extrabold text-emerald-600">{p.amountVND.toLocaleString('vi-VN')} đ</td>
-                        <td className="py-3 px-4 text-slate-600">{p.recordedBy}</td>
-                        <td className="py-3 px-4 text-slate-500">{new Date(p.paymentDate).toLocaleString('vi-VN')}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
+        {activeMenu === 'customers' && (<><AdminCustomerAccounts /><details className="event-customer-booking-summary"><summary>Khách có lịch đặt / hợp đồng</summary><EventCustomers /></details></>)}
+        {activeMenu === 'accounts' && <AdminCustomerAccounts />}
 
-        {/* --- MODULE 8: QUẢN LÝ KHÁCH HÀNG (CUSTOMER CRM) --- */}
-        {activeMenu === 'customers' && (
-          <div className="bg-white rounded-3xl border border-[#ede8de] p-6 shadow-xs space-y-5">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
-              <div>
-                <h3 className="text-xl font-bold text-stone-900">
-                  Danh Bạ Khách Hàng (Customer CRM)
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Quản lý thông tin liên hệ, phân loại khách VIP và lịch sử đặt tiệc.
-                </p>
-              </div>
-              <div className="relative">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-                <input
-                  type="text"
-                  placeholder="Tìm theo tên hoặc số điện thoại..."
-                  value={customerSearchQuery}
-                  onChange={(e) => setCustomerSearchQuery(e.target.value)}
-                  className="pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-800"
-                />
-              </div>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
-                  <tr>
-                    <th className="py-3 px-4">Mã KH</th>
-                    <th className="py-3 px-4">Họ và Tên</th>
-                    <th className="py-3 px-4">Số Điện Thoại</th>
-                    <th className="py-3 px-4">Email</th>
-                    <th className="py-3 px-4">Địa Chỉ</th>
-                    <th className="py-3 px-4 text-center">Số Tiệc Đã Đặt</th>
-                    <th className="py-3 px-4 text-center">Phân Loại</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {customers
-                    .filter(c => 
-                      !customerSearchQuery || 
-                      c.fullName.toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
-                      c.phone.includes(customerSearchQuery)
-                    )
-                    .map(c => (
-                      <tr key={c.id} className="hover:bg-slate-50">
-                        <td className="py-3 px-4 font-mono font-bold text-slate-700">{c.id}</td>
-                        <td className="py-3 px-4 font-semibold text-slate-900">{c.fullName}</td>
-                        <td className="py-3 px-4 font-mono text-slate-700">{c.phone}</td>
-                        <td className="py-3 px-4 text-slate-500">{c.email || '—'}</td>
-                        <td className="py-3 px-4 text-slate-600">{c.address || '—'}</td>
-                        <td className="py-3 px-4 text-center font-bold text-slate-800">{c.totalBookings}</td>
-                        <td className="py-3 px-4 text-center">
-                          {c.isVip ? (
-                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 uppercase">
-                              VIP Gold
-                            </span>
-                          ) : (
-                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 uppercase">
-                              Khách thường
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* --- MODULE 9: TÀI KHOẢN NHÂN VIÊN & PHÂN QUYỀN (STAFF & RBAC) --- */}
-        {activeMenu === 'staff' && (
-          <div className="bg-white rounded-3xl border border-[#ede8de] p-6 shadow-xs space-y-5">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
-              <div>
-                <h3 className="text-xl font-bold text-stone-900">
-                  Quản Lý Tài Khoản Quản Trị & Phân Quyền (RBAC)
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Cấp tài khoản cho các bộ phận (Chủ đơn vị, Quản lý, Tư vấn, Kho, Kế toán, Nhân viên hiện trường).
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowAddStaffModal(true)}
-                className="px-4 py-2 rounded-xl gold-gradient text-[#121722] font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md"
-              >
-                <UserPlus className="w-4 h-4" />
-                <span>Thêm Nhân Viên Mới</span>
-              </button>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
-                  <tr>
-                    <th className="py-3 px-4">Mã NV</th>
-                    <th className="py-3 px-4">Họ và Tên</th>
-                    <th className="py-3 px-4">Email</th>
-                    <th className="py-3 px-4">Số Điện Thoại</th>
-                    <th className="py-3 px-4">Vai Trò Phân Quyền</th>
-                    <th className="py-3 px-4 text-center">Trạng Thái</th>
-                    <th className="py-3 px-4 text-center">Thao Tác</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {staffMembers.map(staff => (
-                    <tr key={staff.id} className="hover:bg-slate-50">
-                      <td className="py-3 px-4 font-mono font-bold text-slate-700">{staff.id}</td>
-                      <td className="py-3 px-4 font-bold text-slate-900">{staff.fullName}</td>
-                      <td className="py-3 px-4 text-slate-600">{staff.email}</td>
-                      <td className="py-3 px-4 font-mono text-slate-700">{staff.phone || '—'}</td>
-                      <td className="py-3 px-4">
-                        <select
-                          value={staff.role}
-                          onChange={(e) => handleChangeRole(staff.id, e.target.value as UserRole)}
-                          className="px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-800"
-                        >
-                          <option value="chu_don_vi">Chủ đơn vị (Toàn quyền)</option>
-                          <option value="quan_ly">Quản lý điều hành</option>
-                          <option value="tu_van">Tư vấn & Sale</option>
-                          <option value="kho">Thủ kho & Kỹ thuật</option>
-                          <option value="ke_toan">Kế toán & Thu ngân</option>
-                          <option value="nhan_vien_thuc_hien">Nhân viên hiện trường</option>
-                        </select>
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                          staff.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
-                        }`}>
-                          {staff.isActive ? 'Đang hoạt động' : 'Tạm khóa'}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <button
-                          type="button"
-                          onClick={() => handleToggleStaff(staff.id)}
-                          className="p-1 rounded-lg hover:bg-slate-200 text-slate-600"
-                          title={staff.isActive ? 'Khóa tài khoản' : 'Mở khóa'}
-                        >
-                          {staff.isActive ? <Lock className="w-4 h-4 text-slate-500" /> : <Unlock className="w-4 h-4 text-emerald-600" />}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* --- MODULE 10: NHẬT KÝ KIỂM TOÁN (AUDIT LOGS) --- */}
         {activeMenu === 'audit' && (
           <div className="bg-white rounded-3xl border border-[#ede8de] p-6 shadow-xs space-y-4">
             <h3 className="font-bold text-slate-900 text-sm">Nhật Ký Thao Tác Hệ Thống (Audit Trail)</h3>
@@ -2356,7 +1832,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                       <div className="flex items-center gap-3 text-[11px] text-slate-400 font-medium">
                         <span>Tác giả: <strong className="text-slate-600">{art.author}</strong></span>
                         <span>•</span>
-                        <span>{art.viewCount} lượt xem</span>
+                        <span>{art.views} lượt xem</span>
                         <span>•</span>
                         <span>{new Date(art.publishedAt).toLocaleDateString('vi-VN')}</span>
                       </div>
@@ -2407,115 +1883,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         )}
 
         {/* --- MODULE 12: QUẢN TRỊ ƯU ĐÃI & KHUYẾN MẠI (CMS) --- */}
-        {activeMenu === 'promotions' && (
-          <div className="space-y-6">
-            <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-[#ede8de] shadow-xs">
-              <div>
-                <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
-                  <Tag className="w-5 h-5 text-[#b8860b]" />
-                  Quản Trị Ưu Đãi & Banner Khuyến Mại
-                </h3>
-                <p className="text-xs text-slate-500 mt-1">
-                  Cấu hình các gói ưu đãi, voucher chiết khấu tiệc cưới hiển thị trực quan trên cổng thông tin khách hàng.
-                </p>
-              </div>
-              <button
-                onClick={handleOpenAddPromo}
-                className="px-4 py-2.5 rounded-xl gold-gradient text-[#121722] font-bold text-xs flex items-center gap-2 shadow-md hover:scale-102 transition-transform"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Thêm Ưu Đãi Mới</span>
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {promotions.map((promo) => (
-                <div
-                  key={promo.id}
-                  className={`rounded-3xl p-6 border transition-all relative overflow-hidden flex flex-col justify-between shadow-xs hover:shadow-md ${
-                    promo.isActive
-                      ? 'bg-gradient-to-br from-white via-[#fffdf9] to-[#faf6ee] text-slate-800 border-[#e2d5bd]'
-                      : 'bg-slate-100/90 text-slate-500 border-slate-200 opacity-60'
-                  }`}
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                        promo.isActive ? 'bg-[#c5a059] text-white shadow-xs' : 'bg-slate-200 text-slate-600'
-                      }`}>
-                        {promo.badge || 'Khuyến mại'}
-                      </span>
-                      <span className={`text-xs font-semibold ${promo.isActive ? 'text-emerald-600' : 'text-slate-400'}`}>
-                        {promo.isActive ? '● Đang hiển thị trên web' : '○ Tạm ẩn'}
-                      </span>
-                    </div>
-
-                    <div className="flex items-baseline justify-between gap-4">
-                      <h4 className={`text-xl font-bold ${promo.isActive ? 'text-slate-900' : 'text-slate-600'}`}>
-                        {promo.title}
-                      </h4>
-                      <span className="font-bold text-lg text-[#b8860b] whitespace-nowrap">
-                        {promo.discountText}
-                      </span>
-                    </div>
-
-                    <p className={`text-xs leading-relaxed ${promo.isActive ? 'text-slate-600' : 'text-slate-500'}`}>
-                      {promo.description}
-                    </p>
-
-                    <div className="pt-2 flex flex-wrap items-center gap-3 text-xs">
-                      {promo.code && (
-                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 font-mono text-[#b8860b] font-bold">
-                          <span>MÃ:</span>
-                          <span className="tracking-wider">{promo.code}</span>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-1 text-[11px] text-slate-500">
-                        <Clock className="w-3.5 h-3.5 text-slate-400" />
-                        <span>Hạn áp dụng: {promo.validUntil}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 pt-4 border-t border-slate-200/80 flex items-center justify-between">
-                    <button
-                      onClick={() => handleTogglePromoActive(promo)}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                        promo.isActive
-                          ? 'bg-amber-100 hover:bg-amber-200 text-amber-800 border border-amber-200'
-                          : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs'
-                      }`}
-                    >
-                      {promo.isActive ? 'Tạm Ẩn' : 'Kích Hoạt'}
-                    </button>
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleOpenEditPromo(promo)}
-                        className="px-3.5 py-1.5 rounded-xl bg-[#0e4b44] hover:bg-[#155e55] text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer"
-                      >
-                        <Edit className="w-3.5 h-3.5" />
-                        <span>Chỉnh Sửa</span>
-                      </button>
-                      <button
-                        onClick={() => handleDeletePromo(promo.id)}
-                        className="p-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition-all cursor-pointer"
-                        title="Xóa khuyến mại"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* --- MODULE 10: CẤU HÌNH CMS TOÀN DIỆN & TÀI KHOẢN PHÂN QUYỀN --- */}
         {activeMenu === 'settings' && (
           <div className="space-y-6">
-            
+
             {/* Header Module Cấu hình */}
             <div className="bg-white rounded-3xl border border-[#ede8de] p-6 shadow-xs flex flex-wrap items-center justify-between gap-4">
               <div>
@@ -2540,16 +1910,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                 >
                   Mẫu rạp & Phong thủy ({cmsThemesList.length})
                 </button>
-                <button
-                  onClick={() => setSettingsTab('uu_dai')}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    settingsTab === 'uu_dai'
-                      ? 'bg-white text-[#e05638] shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Ưu đãi & Khuyến mại ({promotions.length})
-                </button>
+
                 <button
                   onClick={() => setSettingsTab('chuyen_muc')}
                   className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
@@ -2600,16 +1961,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                 >
                   Chân trang & Liên hệ
                 </button>
-                <button
-                  onClick={() => setSettingsTab('tai_khoan')}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    settingsTab === 'tai_khoan'
-                      ? 'bg-[#ffece7] text-[#e05638] shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Tài khoản & Phân quyền
-                </button>
+
               </div>
             </div>
 
@@ -2739,112 +2091,6 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
             )}
 
             {/* TAB: ƯU ĐÃI & KHUYẾN MẠI TONE TRẮNG SÁNG */}
-            {settingsTab === 'uu_dai' && (
-              <div className="bg-white rounded-3xl border border-[#ede8de] p-6 shadow-xs space-y-6">
-                <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
-                  <div>
-                    <h4 className="font-bold text-slate-900 text-base flex items-center gap-2">
-                      <Tag className="w-5 h-5 text-[#c5a059]" />
-                      <span>Cấu Hình Ưu Đãi & Khuyến Mại (Tone Trắng Sáng)</span>
-                    </h4>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Tùy chỉnh các gói khuyến mại, voucher chiết khấu tiệc cưới hiển thị đồng bộ tone sáng sang trọng trên website.
-                    </p>
-                  </div>
-                  <button
-                    onClick={handleOpenAddPromo}
-                    className="px-4 py-2.5 rounded-xl bg-[#0e4b44] hover:bg-[#155e55] text-white text-xs font-bold flex items-center gap-2 shadow-xs transition-all cursor-pointer"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>Thêm Ưu Đãi Mới</span>
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {promotions.map((promo) => (
-                    <div
-                      key={promo.id}
-                      className={`rounded-3xl p-6 border transition-all relative overflow-hidden flex flex-col justify-between shadow-xs hover:shadow-md ${
-                        promo.isActive
-                          ? 'bg-gradient-to-br from-white via-[#fffdf9] to-[#faf6ee] text-slate-800 border-[#e2d5bd]'
-                          : 'bg-slate-100/90 text-slate-500 border-slate-200 opacity-60'
-                      }`}
-                    >
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                            promo.isActive ? 'bg-[#c5a059] text-white shadow-xs' : 'bg-slate-200 text-slate-600'
-                          }`}>
-                            {promo.badge || 'Khuyến mại'}
-                          </span>
-                          <span className={`text-xs font-semibold ${promo.isActive ? 'text-emerald-600' : 'text-slate-400'}`}>
-                            {promo.isActive ? '● Đang hiển thị trên web' : '○ Tạm ẩn'}
-                          </span>
-                        </div>
-
-                        <div className="flex items-baseline justify-between gap-4">
-                          <h4 className={`text-xl font-bold ${promo.isActive ? 'text-slate-900' : 'text-slate-600'}`}>
-                            {promo.title}
-                          </h4>
-                          <span className="font-bold text-lg text-[#b8860b] whitespace-nowrap">
-                            {promo.discountText}
-                          </span>
-                        </div>
-
-                        <p className={`text-xs leading-relaxed ${promo.isActive ? 'text-slate-600' : 'text-slate-500'}`}>
-                          {promo.description}
-                        </p>
-
-                        <div className="pt-2 flex flex-wrap items-center gap-3 text-xs">
-                          {promo.code && (
-                            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 font-mono text-[#b8860b] font-bold">
-                              <span>MÃ:</span>
-                              <span className="tracking-wider">{promo.code}</span>
-                            </div>
-                          )}
-                          <div className="flex items-center gap-1 text-[11px] text-slate-500">
-                            <Clock className="w-3.5 h-3.5 text-slate-400" />
-                            <span>Hạn áp dụng: {promo.validUntil}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mt-6 pt-4 border-t border-slate-200/80 flex items-center justify-between">
-                        <button
-                          onClick={() => handleTogglePromoActive(promo)}
-                          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                            promo.isActive
-                              ? 'bg-amber-100 hover:bg-amber-200 text-amber-800 border border-amber-200'
-                              : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs'
-                          }`}
-                        >
-                          {promo.isActive ? 'Tạm Ẩn' : 'Kích Hoạt'}
-                        </button>
-
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleOpenEditPromo(promo)}
-                            className="px-3.5 py-1.5 rounded-xl bg-[#0e4b44] hover:bg-[#155e55] text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer"
-                          >
-                            <Edit className="w-3.5 h-3.5" />
-                            <span>Chỉnh Sửa</span>
-                          </button>
-                          <button
-                            onClick={() => handleDeletePromo(promo.id)}
-                            className="p-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition-all cursor-pointer"
-                            title="Xóa khuyến mại"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* TAB 1: CHUYÊN MỤC CMS (QUẢN TRỊ THANH MENU HEADER & DANH MỤC DỊCH VỤ) */}
             {settingsTab === 'chuyen_muc' && (
               <div className="bg-white rounded-3xl border border-[#ede8de] p-6 shadow-xs space-y-6">
                 <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
@@ -3130,7 +2376,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                     </p>
                   </div>
                   <a
-                    href={settingsForm.facebookFanpageUrl || settingsForm.facebookFanpage || 'https://facebook.com'}
+                    href={settingsForm.facebookFanpageUrl || 'https://facebook.com'}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="px-4 py-2 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold text-xs flex items-center gap-1.5 border border-blue-200 transition-colors"
@@ -3161,7 +2407,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                         <label className="block font-bold text-slate-700 mb-1.5">Tên thương hiệu đơn vị</label>
                         <input
                           type="text"
-                          value={settingsForm.brandName || settingsForm.companyName || ''}
+                          value={settingsForm.brandName || ''}
                           onChange={(e) => setSettingsForm({ ...settingsForm, brandName: e.target.value })}
                           className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white font-semibold focus:outline-none focus:ring-2 focus:ring-[#c5a059]"
                           required
@@ -3326,8 +2572,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                         <label className="block font-bold text-slate-700 mb-1 text-blue-700">Link Facebook Fanpage</label>
                         <input
                           type="url"
-                          value={settingsForm.facebookFanpageUrl || settingsForm.facebookFanpage || ''}
-                          onChange={(e) => setSettingsForm({ ...settingsForm, facebookFanpageUrl: e.target.value, facebookFanpage: e.target.value })}
+                          value={settingsForm.facebookFanpageUrl || ''}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, facebookFanpageUrl: e.target.value })}
                           className="w-full px-3.5 py-2 rounded-xl border border-blue-200 bg-white font-medium"
                           required
                         />
@@ -3336,8 +2582,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                         <label className="block font-bold text-slate-700 mb-1 text-cyan-700">Link / Số Zalo Official</label>
                         <input
                           type="text"
-                          value={settingsForm.zaloPhone || settingsForm.zaloChat || ''}
-                          onChange={(e) => setSettingsForm({ ...settingsForm, zaloPhone: e.target.value, zaloChat: e.target.value })}
+                          value={settingsForm.zaloPhone || ''}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, zaloPhone: e.target.value })}
                           className="w-full px-3.5 py-2 rounded-xl border border-cyan-200 bg-white font-medium"
                           required
                         />
@@ -4273,8 +3519,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                 <Sparkles className="w-5 h-5 text-[#c5a059]" />
                 <span>{editingThemeId ? 'Chỉnh Sửa Mẫu Rạp & Phong Thủy' : 'Thêm Mẫu Rạp Cưới Mới'}</span>
               </h3>
-              <button 
-                onClick={() => setShowThemeModal(false)} 
+              <button
+                onClick={() => setShowThemeModal(false)}
                 className="text-slate-400 hover:text-slate-600 cursor-pointer"
               >
                 <X className="w-5 h-5" />
@@ -4311,7 +3557,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                   <label className="block font-bold text-slate-700 mb-1">Loại sự kiện *</label>
                   <select
                     value={themeService}
-                    onChange={(e) => setThemeService(e.target.value)}
+                    onChange={(e) => setThemeService(e.target.value as ThemeModel['service'])}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-semibold bg-white"
                   >
                     <option value="dam_cuoi">Hỷ Sự / Đám Cưới</option>
@@ -4505,7 +3751,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
               <div className="space-y-3 text-xs">
                 <div className="flex items-center justify-between p-3 rounded-xl bg-stone-50 border border-stone-100">
                   <span className="text-stone-500 font-medium">Tên đăng nhập:</span>
-                  <strong className="text-stone-800 font-mono">{currentUser.username}</strong>
+                  <strong className="text-stone-800 font-mono">{currentUser.email?.split('@')[0]}</strong>
                 </div>
 
                 <div className="flex items-center justify-between p-3 rounded-xl bg-stone-50 border border-stone-100">
@@ -4564,9 +3810,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                   {editingCatId ? 'Chỉnh Sửa Chuyên Mục & Menu' : 'Thêm Chuyên Mục Mới'}
                 </h3>
               </div>
-              <button 
+              <button
                 type="button"
-                onClick={() => setShowCatModal(false)} 
+                onClick={() => setShowCatModal(false)}
                 className="text-slate-400 hover:text-slate-600 cursor-pointer p-1 rounded-lg hover:bg-slate-100"
               >
                 <X className="w-5 h-5" />
@@ -4679,6 +3925,728 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                   className="px-5 py-2.5 rounded-xl bg-[#0e4b44] hover:bg-[#155e55] text-white font-bold shadow-md hover:scale-102 transition-transform cursor-pointer"
                 >
                   {editingCatId ? 'Cập Nhật Chuyên Mục' : 'Lưu Chuyên Mục Mới'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: THÊM / SỬA SỰ KIỆN THÁNG */}
+      {showEventModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-200 text-xs">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="font-bold text-slate-900 text-base">
+                {editingEventId ? 'Chỉnh Sửa Sự Kiện' : 'Thêm Sự Kiện Tháng Mới'}
+              </h3>
+              <button onClick={() => setShowEventModal(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEvent} className="space-y-3">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Tên khách hàng / Gia đình *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ví dụ: Anh Nam / Chị Hương"
+                  value={eventCustomerName}
+                  onChange={(e) => setEventCustomerName(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Thời gian hiển thị *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ví dụ: 15/10 (T5)"
+                    value={eventDateStr}
+                    onChange={(e) => setEventDateStr(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Loại sự kiện *</label>
+                  <select
+                    value={eventServiceType}
+                    onChange={(e) => setEventServiceType(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-semibold"
+                  >
+                    <option value="Tiệc cưới">Tiệc cưới</option>
+                    <option value="Lễ ăn hỏi">Lễ ăn hỏi</option>
+                    <option value="Nhà mới">Nhà mới</option>
+                    <option value="Sự kiện khác">Sự kiện khác</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Địa điểm tổ chức *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ví dụ: xã Cổ Lễ, Ninh Bình"
+                  value={eventLocation}
+                  onChange={(e) => setEventLocation(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Trạng thái sự kiện</label>
+                <select
+                  value={eventStatus}
+                  onChange={(e) => setEventStatus(e.target.value as any)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-bold"
+                >
+                  <option value="sap_dien_ra">⏳ Sắp diễn ra</option>
+                  <option value="dang_thuc_hien">⚙ Đang thực hiện</option>
+                  <option value="da_hoan_thanh">✓ Đã hoàn thành</option>
+                </select>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowEventModal(false)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 font-bold hover:bg-slate-50 cursor-pointer"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-[#0e4b44] hover:bg-[#155e55] text-white font-bold shadow-md cursor-pointer"
+                >
+                  Lưu Sự Kiện
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: THÊM CÔNG NỢ */}
+      {showDebtModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-200 text-xs">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="font-bold text-slate-900 text-base">Ghi Nhận Khoản Công Nợ</h3>
+              <button onClick={() => setShowDebtModal(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveDebt} className="space-y-3">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Tên khách hàng nợ *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ví dụ: Anh Tuấn (xã Cổ Lễ)"
+                  value={debtCustomerName}
+                  onChange={(e) => setDebtCustomerName(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Ngày hẹn thu</label>
+                  <input
+                    type="text"
+                    placeholder="Ví dụ: 15/10"
+                    value={debtDate}
+                    onChange={(e) => setDebtDate(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Số tiền còn nợ (VNĐ) *</label>
+                  <input
+                    type="number"
+                    required
+                    step="500000"
+                    placeholder="5000000"
+                    value={debtAmount}
+                    onChange={(e) => setDebtAmount(Number(e.target.value) || 0)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold text-[#d93025]"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowDebtModal(false)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 font-bold hover:bg-slate-50 cursor-pointer"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-[#0e4b44] hover:bg-[#155e55] text-white font-bold shadow-md cursor-pointer"
+                >
+                  Lưu Công Nợ
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: THÊM CẢNH BÁO KHO */}
+      {showWarehouseAlertModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-200 text-xs">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="font-bold text-slate-900 text-base">Thêm Cảnh Báo Kho</h3>
+              <button onClick={() => setShowWarehouseAlertModal(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveWarehouseAlert} className="space-y-3">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Tiêu đề cảnh báo *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ví dụ: Thiếu 30 ghế inox"
+                  value={warehouseAlertTitle}
+                  onChange={(e) => setWarehouseAlertTitle(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Chi tiết cảnh báo</label>
+                <input
+                  type="text"
+                  placeholder="Ví dụ: Cho đơn hàng ngày mai tại Cổ Lễ"
+                  value={warehouseAlertDetail}
+                  onChange={(e) => setWarehouseAlertDetail(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Mức độ khẩn cấp</label>
+                <select
+                  value={warehouseAlertSeverity}
+                  onChange={(e) => setWarehouseAlertSeverity(e.target.value as any)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-bold"
+                >
+                  <option value="danger">🚨 Nghiêm trọng (Màu đỏ)</option>
+                  <option value="warning">⚠️ Cảnh báo vừa (Màu vàng)</option>
+                </select>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowWarehouseAlertModal(false)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 font-bold hover:bg-slate-50 cursor-pointer"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-[#0e4b44] hover:bg-[#155e55] text-white font-bold shadow-md cursor-pointer"
+                >
+                  Lưu Cảnh Báo
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================
+          MODAL 1: THÊM / SỬA DỤNG CỤ GỐC (HÌNH ẢNH, NGÀY MUA, GIÁ MUA, GIÁ THUÊ)
+      ======================================================== */}
+      {showItemModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-7 shadow-2xl space-y-4 border border-slate-200 max-h-[90vh] overflow-y-auto text-xs">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <Boxes className="w-5 h-5 text-[#0e4b44]" />
+                <h3 className="font-bold text-slate-900 text-base">
+                  {editingItemId ? 'Chỉnh Sửa Dụng Cụ Kho' : 'Nhập Đầu Mục Dụng Cụ Mới'}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowItemModal(false)}
+                className="text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveItem} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Mã dụng cụ *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ví dụ: BAN_TRON, COT_RAP..."
+                    value={itemCode}
+                    onChange={(e) => setItemCode(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono font-bold uppercase"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Phân loại *</label>
+                  <select
+                    value={itemCategory}
+                    onChange={(e) => setItemCategory(e.target.value as any)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-bold"
+                  >
+                    <option value="ban">Bàn sự kiện</option>
+                    <option value="ghe">Ghế tiệc</option>
+                    <option value="rap">Khung rạp & phụ kiện</option>
+                    <option value="am_thanh_anh_sang">Âm thanh - Ánh sáng</option>
+                    <option value="dung_cu_tiec">Bát đĩa & dụng cụ tiệc</option>
+                    <option value="vat_tu_tieu_hao">Vật tư tiêu hao</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2">
+                  <label className="block font-bold text-slate-700 mb-1">Tên dụng cụ *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ví dụ: Bàn tròn inox sự kiện 1.2m"
+                    value={itemName}
+                    onChange={(e) => setItemName(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Đơn vị tính *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="cái, bộ, cây..."
+                    value={itemUnit}
+                    onChange={(e) => setItemUnit(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold"
+                  />
+                </div>
+              </div>
+
+              {/* Hình ảnh dụng cụ */}
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Link hình ảnh dụng cụ (URL)</label>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    placeholder="https://..."
+                    value={itemImageUrl}
+                    onChange={(e) => setItemImageUrl(e.target.value)}
+                    className="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-xs"
+                  />
+                  {itemImageUrl && (
+                    <img
+                      src={itemImageUrl}
+                      alt="Preview"
+                      className="w-10 h-10 rounded-xl object-cover border border-slate-300 shrink-0"
+                    />
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-1 mt-1.5 text-[11px] text-slate-500">
+                  <span>Ảnh mẫu nhanh:</span>
+                  <button
+                    type="button"
+                    onClick={() => setItemImageUrl('https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=500&q=80')}
+                    className="text-[#0e4b44] hover:underline"
+                  >Bàn tròn</button>
+                  •
+                  <button
+                    type="button"
+                    onClick={() => setItemImageUrl('https://images.unsplash.com/photo-1503602642458-232111445657?w=500&q=80')}
+                    className="text-[#0e4b44] hover:underline"
+                  >Ghế inox</button>
+                  •
+                  <button
+                    type="button"
+                    onClick={() => setItemImageUrl('https://images.unsplash.com/photo-1580481077195-c2666a0d4c8e?w=500&q=80')}
+                    className="text-[#0e4b44] hover:underline"
+                  >Ghế nhựa đỏ</button>
+                  •
+                  <button
+                    type="button"
+                    onClick={() => setItemImageUrl('https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=500&q=80')}
+                    className="text-[#0e4b44] hover:underline"
+                  >Cột rạp</button>
+                </div>
+              </div>
+
+              {/* Ngày mua & Đơn giá */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-2xl bg-stone-50 border border-stone-200/80">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Thời điểm mua *</label>
+                  <input
+                    type="date"
+                    required
+                    value={itemPurchaseDate}
+                    onChange={(e) => setItemPurchaseDate(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-semibold"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Đơn giá mua (VND) *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1000"
+                    required
+                    placeholder="Nguyên giá đầu tư"
+                    value={itemPurchasePriceVND}
+                    onChange={(e) => setItemPurchasePriceVND(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-mono font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Giá cho thuê lẻ (VND) *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1000"
+                    required
+                    placeholder="Giá thuê 1 ngày"
+                    value={itemRentalPriceVND}
+                    onChange={(e) => setItemRentalPriceVND(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-mono font-bold text-[#e05638]"
+                  />
+                </div>
+              </div>
+
+              {/* Số lượng sở hữu và đang sửa chữa */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Tổng số lượng sở hữu *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    required
+                    value={itemTotalOwned}
+                    onChange={(e) => setItemTotalOwned(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Đang sửa chữa / bảo dưỡng</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={itemInRepair}
+                    onChange={(e) => setItemInRepair(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold text-amber-600"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Ghi chú quy cách & bảo quản</label>
+                <input
+                  type="text"
+                  placeholder="Ví dụ: Inox 201 dập hoa văn, xếp chồng gọn gàng"
+                  value={itemNotes}
+                  onChange={(e) => setItemNotes(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowItemModal(false)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 font-bold hover:bg-slate-50 cursor-pointer"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-[#0e4b44] hover:bg-[#155e55] text-white font-bold shadow-md cursor-pointer"
+                >
+                  {editingItemId ? 'Cập Nhật Dụng Cụ' : 'Lưu Dụng Cụ Vào Kho'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================
+          MODAL 2: THÊM / SỬA GÓI BÀN GHẾ GHÉP & BẢNG GIÁ COMBO
+      ======================================================== */}
+      {showComboModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl space-y-4 border border-slate-200 max-h-[90vh] overflow-y-auto text-xs">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <LayersIcon className="w-5 h-5 text-amber-600" />
+                <h3 className="font-bold text-slate-900 text-base">
+                  {editingComboId ? 'Chỉnh Sửa Gói Bàn Ghế Ghép' : 'Thêm Gói Bàn Ghế Ghép Mới'}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowComboModal(false)}
+                className="text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveCombo} className="space-y-4">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Tên gói bàn ghế ghép *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ví dụ: Bộ Bàn Inox + Ghế Nhựa Đỏ"
+                  value={comboName}
+                  onChange={(e) => setComboName(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold text-sm"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Mã combo *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="BAN_INOX_GHE_NHUA"
+                    value={comboCode}
+                    onChange={(e) => setComboCode(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono font-bold uppercase"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Đơn giá trọn bộ (VND) *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="5000"
+                    required
+                    placeholder="120000"
+                    value={comboRentalPriceVND}
+                    onChange={(e) => setComboRentalPriceVND(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono font-bold text-sm text-[#e05638]"
+                  />
+                </div>
+              </div>
+
+              {/* Lựa chọn linh kiện cấu thành: 1 Bàn + N Ghế */}
+              <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200/80 space-y-3">
+                <span className="font-bold text-slate-800 block text-xs">Cấu tạo ghép bộ (1 Bàn + N Ghế):</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-slate-600 font-medium mb-1">Chọn loại bàn gốc:</label>
+                    <select
+                      value={comboTableCode}
+                      onChange={(e) => setComboTableCode(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-bold"
+                    >
+                      {catalog.filter(i => i.category === 'ban').map(b => (
+                        <option key={b.code} value={b.code}>{b.name} ({b.code})</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-600 font-medium mb-1">Chọn loại ghế gốc:</label>
+                    <select
+                      value={comboChairCode}
+                      onChange={(e) => setComboChairCode(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-bold"
+                    >
+                      {catalog.filter(i => i.category === 'ghe').map(g => (
+                        <option key={g.code} value={g.code}>{g.name} ({g.code})</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-slate-600 font-medium mb-1">Số lượng ghế trên 1 bàn:</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="20"
+                    value={comboChairsPerTable}
+                    onChange={(e) => setComboChairsPerTable(Number(e.target.value))}
+                    className="w-32 px-3 py-2 rounded-xl border border-slate-200 bg-white font-bold text-sm"
+                  />
+                  <span className="text-[11px] text-slate-500 ml-2">(Thường 6 ghế cho mâm gia đình hoặc 10 ghế cho tiệc cưới VIP)</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Link hình ảnh đại diện</label>
+                <input
+                  type="url"
+                  placeholder="https://..."
+                  value={comboImageUrl}
+                  onChange={(e) => setComboImageUrl(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Mô tả gói bàn ghế</label>
+                <textarea
+                  rows={2}
+                  placeholder="Ví dụ: Thích hợp cho đám cưới quê hoặc liên hoan gia đình, tiết kiệm chi phí..."
+                  value={comboDescription}
+                  onChange={(e) => setComboDescription(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowComboModal(false)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 font-bold hover:bg-slate-50 cursor-pointer"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-[#0e4b44] hover:bg-[#155e55] text-white font-bold shadow-md cursor-pointer"
+                >
+                  {editingComboId ? 'Cập Nhật Gói Combo' : 'Tạo Gói Bàn Ghế'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================
+          MODAL 3: CẤU HÌNH ĐỊNH MỨC KHUNG RẠP GHÉP (TENT BOM)
+      ======================================================== */}
+      {showTentConfigModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-slate-200 max-h-[90vh] overflow-y-auto text-xs">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <Hammer className="w-5 h-5 text-purple-700" />
+                <h3 className="font-bold text-slate-900 text-base">Định Mức Chi Tiết 1 Khung Rạp (BOM)</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowTentConfigModal(false)}
+                className="text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveTentConfig} className="space-y-4">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Tên cấu hình khung rạp</label>
+                <input
+                  type="text"
+                  required
+                  value={tentConfigName}
+                  onChange={(e) => setTentConfigName(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Khẩu độ ngang (mét)</label>
+                  <input
+                    type="number"
+                    min="2"
+                    max="20"
+                    value={tentConfigBayWidth}
+                    onChange={(e) => setTentConfigBayWidth(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Đơn giá thuê 1 khung (VND)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="10000"
+                    value={tentConfigRentalPrice}
+                    onChange={(e) => setTentConfigRentalPrice(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold text-[#e05638]"
+                  />
+                </div>
+              </div>
+
+              {/* Danh sách định mức từng dụng cụ cấu thành 1 khung */}
+              <div className="space-y-2">
+                <label className="block font-bold text-slate-800">
+                  Định mức dụng cụ gốc cấu thành 1 khung ({tentConfigBayWidth}m x 3m):
+                </label>
+                <div className="space-y-2 border border-slate-200 rounded-2xl p-3 bg-stone-50">
+                  {tentConfigBom.map((comp, idx) => (
+                    <div key={comp.itemCode} className="flex items-center justify-between gap-2 p-2 bg-white rounded-xl border border-slate-200 text-xs">
+                      <div className="flex-1">
+                        <span className="font-bold text-slate-900 block">{comp.itemName}</span>
+                        <span className="font-mono text-[10px] text-slate-400">{comp.itemCode}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="number"
+                          min="1"
+                          max="20"
+                          value={comp.quantityPerBay}
+                          onChange={(e) => {
+                            const newBom = [...tentConfigBom];
+                            newBom[idx].quantityPerBay = Math.max(1, parseInt(e.target.value) || 1);
+                            setTentConfigBom(newBom);
+                          }}
+                          className="w-16 px-2 py-1 rounded-lg border border-slate-300 font-bold text-center text-xs"
+                        />
+                        <span className="font-semibold text-slate-600 text-xs w-8">{comp.unit}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Mô tả cấu hình</label>
+                <textarea
+                  rows={2}
+                  value={tentConfigDesc}
+                  onChange={(e) => setTentConfigDesc(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowTentConfigModal(false)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 font-bold hover:bg-slate-50 cursor-pointer"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-[#0e4b44] hover:bg-[#155e55] text-white font-bold shadow-md cursor-pointer"
+                >
+                  Lưu Định Mức Khung Rạp
                 </button>
               </div>
             </form>

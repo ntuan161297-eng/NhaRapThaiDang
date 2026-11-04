@@ -12,8 +12,18 @@ import {
   UserRole,
   InventoryCheckResult,
   IntakeSurvey,
+  TableChairCombo,
+  TentFrameConfig,
+  TentBomComponent,
 } from '@thai-dang/shared';
-import { ITEM_CODES, convertTableChairConfigs } from '@thai-dang/shared';
+import {
+  ITEM_CODES,
+  convertTableChairConfigs,
+  breakDownTableChairCombo,
+  calculateTentBomDemand,
+  calculateMaxAssembleableBays,
+  DEFAULT_TENT_FRAME_BOM,
+} from '@thai-dang/shared';
 import { 
   checkInventoryAvailability, 
   dispatchReservedItems, 
@@ -25,7 +35,7 @@ import {
   canSkipSurvey,
   aggregateAllIntakeDemands 
 } from '@thai-dang/shared';
-import { RBAC } from '@thai-dang/shared';
+import { RBAC, ROLE_LABELS } from '@thai-dang/shared';
 import { CONTACT_CONFIG } from '../config/contact';
 
 export interface CustomerAccount {
@@ -44,7 +54,7 @@ export interface ArticleRecord {
   id: string;
   title: string;
   slug: string;
-  category: 'kinh_nghiem_cuoi' | 'xu_huong_rap' | 'uu_dai_su_kien' | 'thuc_don_co';
+  category: 'kinh_nghiem_cuoi' | 'xu_huong_rap' | 'uu_dai_su_kien' | 'thuc_don_co' | 'gioi_thieu' | 'du_an_thuc_te';
   summary: string;
   content: string;
   imageUrl?: string;
@@ -174,7 +184,7 @@ export interface WarehouseAlertItem {
   iconType: 'chairs' | 'tents';
 }
 
-// Danh mục kho ban đầu với dữ liệu nghiệm thu thực tế
+// Danh mục kho ban đầu với dữ liệu nghiệm thu thực tế và đầu mục chi tiết
 const INITIAL_CATALOG: InventoryItem[] = [
   {
     id: 'ITEM-01',
@@ -182,12 +192,17 @@ const INITIAL_CATALOG: InventoryItem[] = [
     name: 'Bàn tròn inox sự kiện 1.2m',
     category: 'ban',
     unit: 'cái',
+    imageUrl: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=500&q=80',
+    purchaseDate: '2023-04-12',
+    purchasePriceVND: 650000,
+    rentalPriceVND: 60000,
     totalOwnedQuantity: 50,
     inRepairQuantity: 5, // 5 cái đang sửa -> Thực tế: 45
     scrappedQuantity: 0,
     externalRentedQuantity: 0,
     bufferRatio: 0.10,
     cleaningTurnaroundHours: 3,
+    notes: 'Inox 201 dập nổi hoa văn chống trơn trượt, chân xếp gọn',
   },
   {
     id: 'ITEM-02',
@@ -195,12 +210,17 @@ const INITIAL_CATALOG: InventoryItem[] = [
     name: 'Bàn dài chữ nhật đại biểu 1.6m',
     category: 'ban',
     unit: 'cái',
+    imageUrl: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=500&q=80',
+    purchaseDate: '2023-05-20',
+    purchasePriceVND: 720000,
+    rentalPriceVND: 70000,
     totalOwnedQuantity: 20,
     inRepairQuantity: 0,
     scrappedQuantity: 0,
     externalRentedQuantity: 0,
     bufferRatio: 0.10,
     cleaningTurnaroundHours: 2,
+    notes: 'Kích thước 1.6m x 0.6m, chân gập sơn tĩnh điện',
   },
   {
     id: 'ITEM-03',
@@ -208,12 +228,17 @@ const INITIAL_CATALOG: InventoryItem[] = [
     name: 'Ghế đôn inox tròn phi 22',
     category: 'ghe',
     unit: 'cái',
+    imageUrl: 'https://images.unsplash.com/photo-1503602642458-232111445657?w=500&q=80',
+    purchaseDate: '2023-06-10',
+    purchasePriceVND: 95000,
+    rentalPriceVND: 15000,
     totalOwnedQuantity: 220,
     inRepairQuantity: 0,
     scrappedQuantity: 0,
     externalRentedQuantity: 0,
     bufferRatio: 0.10,
     cleaningTurnaroundHours: 2,
+    notes: 'Ống inox phi 22 dày dặn, đệm cao su chân êm, xếp chồng 50 cái',
   },
   {
     id: 'ITEM-04',
@@ -221,12 +246,17 @@ const INITIAL_CATALOG: InventoryItem[] = [
     name: 'Ghế nhựa đỏ tựa lưng Song Long',
     category: 'ghe',
     unit: 'cái',
+    imageUrl: 'https://images.unsplash.com/photo-1580481077195-c2666a0d4c8e?w=500&q=80',
+    purchaseDate: '2023-08-15',
+    purchasePriceVND: 55000,
+    rentalPriceVND: 10000,
     totalOwnedQuantity: 120,
     inRepairQuantity: 10, // 10 cái đang sửa -> Thực tế: 110
     scrappedQuantity: 0,
     externalRentedQuantity: 0,
     bufferRatio: 0.10,
     cleaningTurnaroundHours: 2,
+    notes: 'Nhựa Song Long chính hãng dẻo dai, màu đỏ cờ tươi tắn',
   },
   {
     id: 'ITEM-05',
@@ -234,12 +264,17 @@ const INITIAL_CATALOG: InventoryItem[] = [
     name: 'Khung rạp sắt mạ kẽm khẩu độ 6m (theo khoang)',
     category: 'rap',
     unit: 'khoang',
+    imageUrl: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=500&q=80',
+    purchaseDate: '2023-02-18',
+    purchasePriceVND: 2500000,
+    rentalPriceVND: 350000,
     totalOwnedQuantity: 30,
     inRepairQuantity: 0,
     scrappedQuantity: 0,
     externalRentedQuantity: 0,
     bufferRatio: 0.05,
     cleaningTurnaroundHours: 4,
+    notes: 'Quy cách khoang 6m x 3m hoàn chỉnh',
   },
   {
     id: 'ITEM-06',
@@ -247,12 +282,17 @@ const INITIAL_CATALOG: InventoryItem[] = [
     name: 'Bạt mái che 2 da Hàn Quốc chống nóng',
     category: 'rap',
     unit: 'tấm',
+    imageUrl: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=500&q=80',
+    purchaseDate: '2023-03-05',
+    purchasePriceVND: 850000,
+    rentalPriceVND: 90000,
     totalOwnedQuantity: 30,
     inRepairQuantity: 0,
     scrappedQuantity: 0,
     externalRentedQuantity: 0,
     bufferRatio: 0.05,
     cleaningTurnaroundHours: 3,
+    notes: 'Màu trắng bạc chống xuyên nắng, may sẵn khuyên viền buộc dây dù',
   },
   {
     id: 'ITEM-07',
@@ -260,12 +300,17 @@ const INITIAL_CATALOG: InventoryItem[] = [
     name: 'Vách rèm lụa quây rạp màu trắng sữa',
     category: 'rap',
     unit: 'tấm',
+    imageUrl: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=500&q=80',
+    purchaseDate: '2023-09-12',
+    purchasePriceVND: 320000,
+    rentalPriceVND: 45000,
     totalOwnedQuantity: 60,
     inRepairQuantity: 0,
     scrappedQuantity: 0,
     externalRentedQuantity: 0,
     bufferRatio: 0.05,
     cleaningTurnaroundHours: 2,
+    notes: 'Vải voan lụa dập ly 2 lớp cản gió chống bẩn',
   },
   {
     id: 'ITEM-08',
@@ -273,12 +318,17 @@ const INITIAL_CATALOG: InventoryItem[] = [
     name: 'Đèn chùm pha lê LED cao cấp thả rạp',
     category: 'rap',
     unit: 'bộ',
+    imageUrl: 'https://images.unsplash.com/photo-1543248939-ff40856f65d4?w=500&q=80',
+    purchaseDate: '2023-11-20',
+    purchasePriceVND: 1200000,
+    rentalPriceVND: 150000,
     totalOwnedQuantity: 15,
     inRepairQuantity: 1,
     scrappedQuantity: 0,
     externalRentedQuantity: 0,
     bufferRatio: 0.10,
     cleaningTurnaroundHours: 2,
+    notes: 'Ánh sáng vàng ấm hoàng gia, công suất 45W tiết kiệm điện',
   },
   {
     id: 'ITEM-09',
@@ -286,25 +336,203 @@ const INITIAL_CATALOG: InventoryItem[] = [
     name: 'Dàn âm thanh array mini 4 sub 4 full',
     category: 'am_thanh_anh_sang',
     unit: 'bộ',
+    imageUrl: 'https://images.unsplash.com/photo-1545454675-3531b543be5d?w=500&q=80',
+    purchaseDate: '2023-07-01',
+    purchasePriceVND: 15000000,
+    rentalPriceVND: 1200000,
     totalOwnedQuantity: 5,
     inRepairQuantity: 0,
     scrappedQuantity: 0,
     externalRentedQuantity: 0,
     bufferRatio: 0.10,
     cleaningTurnaroundHours: 4,
+    notes: 'Kèm bàn mixer 8 kênh, 2 micro không dây Shure',
   },
   {
     id: 'ITEM-10',
     code: ITEM_CODES.BINH_GAS_CONG_NGHIEP,
-    name: 'Bình gas công nghiệp nấu cỗ',
+    name: 'Bình gas công nghiệp nấu cỗ (45kg)',
     category: 'vat_tu_tieu_hao',
     unit: 'kg',
+    imageUrl: 'https://images.unsplash.com/photo-1584281722572-8869b0faeeaa?w=500&q=80',
+    purchaseDate: '2024-02-15',
+    purchasePriceVND: 1400000,
+    rentalPriceVND: 350000,
     totalOwnedQuantity: 180,
     inRepairQuantity: 0,
     scrappedQuantity: 0,
     externalRentedQuantity: 0,
     bufferRatio: 0.00,
     cleaningTurnaroundHours: 0,
+    notes: 'Bình gas Petrolimex van an toàn chuẩn kiểm định PCCC',
+  },
+  {
+    id: 'ITEM-11',
+    code: ITEM_CODES.COT_RAP,
+    name: 'Cột rạp sắt mạ kẽm chịu lực 3m',
+    category: 'rap',
+    unit: 'cây',
+    imageUrl: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=500&q=80',
+    purchaseDate: '2023-02-18',
+    purchasePriceVND: 350000,
+    rentalPriceVND: 40000,
+    totalOwnedQuantity: 120,
+    inRepairQuantity: 0,
+    scrappedQuantity: 0,
+    externalRentedQuantity: 0,
+    bufferRatio: 0.05,
+    cleaningTurnaroundHours: 2,
+    notes: 'Thép ống mạ kẽm phi 48 dày 1.8mm, đế chân chữ thập bắt bu-lông vững chắc',
+  },
+  {
+    id: 'ITEM-12',
+    code: ITEM_CODES.KEO_RAP,
+    name: 'Kèo nóc rạp khẩu độ 6m',
+    category: 'rap',
+    unit: 'thanh',
+    imageUrl: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=500&q=80',
+    purchaseDate: '2023-02-18',
+    purchasePriceVND: 580000,
+    rentalPriceVND: 60000,
+    totalOwnedQuantity: 60,
+    inRepairQuantity: 0,
+    scrappedQuantity: 0,
+    externalRentedQuantity: 0,
+    bufferRatio: 0.05,
+    cleaningTurnaroundHours: 2,
+    notes: 'Kèo tam giác thép hộp chịu lực, chốt cắm ăn khớp nhanh',
+  },
+  {
+    id: 'ITEM-13',
+    code: ITEM_CODES.XA_GO_GIANG,
+    name: 'Xà gồ / Thanh giằng ngang liên kết 3m',
+    category: 'rap',
+    unit: 'thanh',
+    imageUrl: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=500&q=80',
+    purchaseDate: '2023-02-18',
+    purchasePriceVND: 180000,
+    rentalPriceVND: 20000,
+    totalOwnedQuantity: 120,
+    inRepairQuantity: 0,
+    scrappedQuantity: 0,
+    externalRentedQuantity: 0,
+    bufferRatio: 0.05,
+    cleaningTurnaroundHours: 2,
+    notes: 'Thép hộp mạ kẽm 25x50 có ngàm móc khóa hai đầu',
+  },
+  {
+    id: 'ITEM-14',
+    code: ITEM_CODES.GHE_BANQUET,
+    name: 'Ghế banquet sự kiện bọc nơ cao cấp',
+    category: 'ghe',
+    unit: 'cái',
+    imageUrl: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=500&q=80',
+    purchaseDate: '2024-01-10',
+    purchasePriceVND: 220000,
+    rentalPriceVND: 25000,
+    totalOwnedQuantity: 100,
+    inRepairQuantity: 0,
+    scrappedQuantity: 0,
+    externalRentedQuantity: 0,
+    bufferRatio: 0.10,
+    cleaningTurnaroundHours: 2,
+    notes: 'Ghế bọc nỉ dày màu đỏ đô / kem, kèm áo ghế và thắt nơ lụa vàng ánh kim',
+  },
+];
+
+// Danh sách các gói Combo Bàn Ghế ghép sẵn với đơn giá khác nhau theo yêu cầu
+export const INITIAL_TABLE_CHAIR_COMBOS: TableChairCombo[] = [
+  {
+    id: 'COMBO-01',
+    code: 'BAN_INOX_GHE_NHUA',
+    name: 'Bộ Bàn Inox + Ghế Nhựa Đỏ (Tiết kiệm)',
+    tableItemCode: 'BAN_TRON',
+    tableName: 'Bàn tròn inox sự kiện 1.2m',
+    chairItemCode: 'GHE_NHUA_DO',
+    chairName: 'Ghế nhựa đỏ Song Long có tựa',
+    chairsPerTable: 6,
+    rentalPriceVND: 120000,
+    imageUrl: 'https://images.unsplash.com/photo-1580481077195-c2666a0d4c8e?w=500&q=80',
+    description: 'Bao gồm 01 bàn tròn inox 1.2m + 06 ghế nhựa đỏ tựa lưng. Thích hợp đám cưới quê, liên hoan tiệc gia đình, tiết kiệm chi phí tối đa.',
+    isPopular: true,
+  },
+  {
+    id: 'COMBO-02',
+    code: 'BAN_INOX_GHE_INOX',
+    name: 'Bộ Bàn Inox + Ghế Đôn Inox (Đồng bộ sáng đẹp)',
+    tableItemCode: 'BAN_TRON',
+    tableName: 'Bàn tròn inox sự kiện 1.2m',
+    chairItemCode: 'GHE_INOX',
+    chairName: 'Ghế đôn inox phi 22 sáng bóng',
+    chairsPerTable: 6,
+    rentalPriceVND: 180000,
+    imageUrl: 'https://images.unsplash.com/photo-1503602642458-232111445657?w=500&q=80',
+    description: 'Bao gồm 01 bàn tròn inox 1.2m + 06 ghế đôn inox tròn phi 22. Đồng bộ 100% kim khí inox sáng bóng, sạch sẽ, chuẩn tiệc cưới lịch sự.',
+    isPopular: true,
+  },
+  {
+    id: 'COMBO-03',
+    code: 'BAN_DAI_GHE_INOX',
+    name: 'Bộ Bàn Dài Chữ Nhật + Ghế Inox (Bàn họ hàng/đại biểu)',
+    tableItemCode: 'BAN_DAI',
+    tableName: 'Bàn dài chữ nhật đại biểu 1.6m',
+    chairItemCode: 'GHE_INOX',
+    chairName: 'Ghế đôn inox phi 22 sáng bóng',
+    chairsPerTable: 6,
+    rentalPriceVND: 220000,
+    imageUrl: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=500&q=80',
+    description: 'Bao gồm 01 bàn dài 1.6m x 0.6m + 06 ghế inox. Dùng cho khu vực hai họ ngồi nói chuyện trà nước hoặc bàn tiếp tân đón khách.',
+  },
+  {
+    id: 'COMBO-04',
+    code: 'BAN_VIP_BANQUET',
+    name: 'Bộ Bàn VIP Tròn Khăn Phủ + Ghế Banquet Thắt Nơ',
+    tableItemCode: 'BAN_TRON',
+    tableName: 'Bàn tròn sự kiện 1.2m',
+    chairItemCode: 'GHE_BANQUET',
+    chairName: 'Ghế banquet bọc nỉ thắt nơ',
+    chairsPerTable: 10,
+    rentalPriceVND: 320000,
+    imageUrl: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=500&q=80',
+    description: 'Bao gồm 01 bàn tròn phủ khăn gấm cao cấp 2 lớp + 10 ghế banquet sang trọng thắt nơ hoàng gia. Phù hợp tiệc cưới VIP.',
+  },
+];
+
+// Cấu hình Khung Rạp ghép từ các dụng cụ gốc (BOM)
+export const INITIAL_TENT_FRAME_CONFIGS: TentFrameConfig[] = [
+  {
+    id: 'TENT-CFG-6M',
+    code: 'KHUNG_RAP_6M',
+    name: 'Khung rạp khẩu độ 6m (Tiêu chuẩn Thái Đăng)',
+    bayWidthMeters: 6,
+    bayLengthMeters: 3,
+    rentalPricePerBayVND: 350000,
+    imageUrl: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=500&q=80',
+    description: 'Quy cách mỗi khoang 6m ngang x 3m dài, lắp ghép từ cột phi 48 mạ kẽm, kèo nóc tam giác, giằng xà gồ chịu gió cấp 7 và bạt 2 da chống nóng.',
+    bomComponents: [
+      { itemCode: ITEM_CODES.COT_RAP, itemName: 'Cột rạp sắt mạ kẽm chịu lực 3m', quantityPerBay: 4, unit: 'cây' },
+      { itemCode: ITEM_CODES.KEO_RAP, itemName: 'Kèo nóc rạp khẩu độ 6m', quantityPerBay: 2, unit: 'thanh' },
+      { itemCode: ITEM_CODES.XA_GO_GIANG, itemName: 'Xà gồ / Thanh giằng ngang liên kết 3m', quantityPerBay: 4, unit: 'thanh' },
+      { itemCode: ITEM_CODES.BAT_MAI_KHOANG, itemName: 'Bạt mái che 2 da Hàn Quốc cách nhiệt', quantityPerBay: 1, unit: 'tấm' },
+      { itemCode: ITEM_CODES.VACH_RAP_SET, itemName: 'Vách rèm lụa quây rạp màu trắng sữa', quantityPerBay: 2, unit: 'tấm' },
+    ],
+  },
+  {
+    id: 'TENT-CFG-4M',
+    code: 'KHUNG_RAP_4M',
+    name: 'Khung rạp mini khẩu độ 4m (Ngõ phố hẹp / Sân nhỏ)',
+    bayWidthMeters: 4,
+    bayLengthMeters: 3,
+    rentalPricePerBayVND: 280000,
+    imageUrl: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=500&q=80',
+    description: 'Thiết kế gọn gàng cho địa hình ngõ sâu, mặt đường hẹp hoặc sân vườn nhỏ không vừa khẩu độ 6m.',
+    bomComponents: [
+      { itemCode: ITEM_CODES.COT_RAP, itemName: 'Cột rạp sắt mạ kẽm chịu lực 3m', quantityPerBay: 4, unit: 'cây' },
+      { itemCode: ITEM_CODES.KEO_RAP, itemName: 'Kèo nóc rạp khẩu độ 4m', quantityPerBay: 2, unit: 'thanh' },
+      { itemCode: ITEM_CODES.XA_GO_GIANG, itemName: 'Xà gồ / Thanh giằng ngang liên kết 3m', quantityPerBay: 4, unit: 'thanh' },
+      { itemCode: ITEM_CODES.BAT_MAI_KHOANG, itemName: 'Bạt mái che 2 da Hàn Quốc cách nhiệt', quantityPerBay: 1, unit: 'tấm' },
+      { itemCode: ITEM_CODES.VACH_RAP_SET, itemName: 'Vách rèm lụa quây rạp màu trắng sữa', quantityPerBay: 2, unit: 'tấm' },
+    ],
   },
 ];
 
@@ -843,7 +1071,7 @@ export const INITIAL_CMS_BANNER_SLIDES: CmsBannerSlide[] = [
     title: 'Dựng nên ngày vui trọn vẹn ♡',
     subtitle: 'Rạp đẹp, thiết bị đầy đủ, đội ngũ tận tâm.',
     locationTag: '📍 Phục vụ tại Ninh Bình',
-    imageUrl: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=80',
+    imageUrl: '/public-wedding-hero.jpg',
     ctaText1: 'ĐẶT LỊCH TƯ VẤN',
     ctaLink1: '#dat-lich',
     ctaText2: 'XEM MẪU RẠP',
@@ -1137,7 +1365,7 @@ class AppStateStore {
   private notifications: InAppNotification[] = JSON.parse(JSON.stringify(INITIAL_NOTIFICATIONS));
   private auditLogs: AuditLogEntry[] = JSON.parse(JSON.stringify(INITIAL_AUDIT_LOGS));
   private customers: CustomerAccount[] = JSON.parse(JSON.stringify(INITIAL_CUSTOMERS));
-  private staffMembers: UserProfile[] = JSON.parse(JSON.stringify(MOCK_USERS));
+  private staffMembers: (UserProfile & { username?: string; password?: string })[] = JSON.parse(JSON.stringify(MOCK_USERS));
   private articles: ArticleRecord[] = JSON.parse(JSON.stringify(INITIAL_ARTICLES));
   private promotions: PromotionBanner[] = JSON.parse(JSON.stringify(INITIAL_PROMOTIONS));
   private companyInfo: CompanyInfo = JSON.parse(JSON.stringify(INITIAL_COMPANY_INFO));
@@ -1149,6 +1377,8 @@ class AppStateStore {
   private cmsPartnerPhotos: CmsPartnerPhoto[] = JSON.parse(JSON.stringify(INITIAL_CMS_PARTNER_PHOTOS));
   private cmsBannerSlides: CmsBannerSlide[] = JSON.parse(JSON.stringify(INITIAL_CMS_BANNER_SLIDES));
   private cmsThemes: ThemeModel[] = JSON.parse(JSON.stringify(INITIAL_THEMES));
+  private tableChairCombos: TableChairCombo[] = JSON.parse(JSON.stringify(INITIAL_TABLE_CHAIR_COMBOS));
+  private tentFrameConfigs: TentFrameConfig[] = JSON.parse(JSON.stringify(INITIAL_TENT_FRAME_CONFIGS));
   private currentUser: UserProfile = MOCK_USERS[0]; // Thông tin phiên hoạt động
   private authenticatedStaff: UserProfile | null = null; // Phiên đăng nhập quản trị viên (được lưu vào localStorage)
   private authenticatedCustomer: CustomerAccount | null = null; // Phiên đăng nhập khách hàng (được lưu vào localStorage)
@@ -1174,6 +1404,16 @@ class AppStateStore {
       localStorage.setItem('td_cms_themes', JSON.stringify(this.cmsThemes));
       localStorage.setItem('td_cms_banner_slides', JSON.stringify(this.cmsBannerSlides));
       localStorage.setItem('td_cms_categories', JSON.stringify(this.cmsCategories));
+      localStorage.setItem('td_promotions', JSON.stringify(this.promotions));
+      localStorage.setItem('td_articles', JSON.stringify(this.articles));
+      localStorage.setItem('td_month_events', JSON.stringify(this.monthEvents));
+      localStorage.setItem('td_debt_items', JSON.stringify(this.debtItems));
+      localStorage.setItem('td_reminder_tasks', JSON.stringify(this.reminderTasks));
+      localStorage.setItem('td_warehouse_alerts', JSON.stringify(this.warehouseAlerts));
+      localStorage.setItem('td_cms_partner_photos', JSON.stringify(this.cmsPartnerPhotos));
+      localStorage.setItem('td_staff_members', JSON.stringify(this.staffMembers));
+      localStorage.setItem('td_table_chair_combos', JSON.stringify(this.tableChairCombos));
+      localStorage.setItem('td_tent_frame_configs', JSON.stringify(this.tentFrameConfigs));
 
       // Lưu phiên đăng nhập Quản Trị Viên (Staff Session)
       if (this.authenticatedStaff) {
@@ -1202,7 +1442,48 @@ class AppStateStore {
       const sJobs = localStorage.getItem('td_jobs');
       if (sJobs) this.jobs = JSON.parse(sJobs);
       const sCatalog = localStorage.getItem('td_catalog');
-      if (sCatalog) this.catalog = JSON.parse(sCatalog);
+      if (sCatalog) {
+        try {
+          const parsed = JSON.parse(sCatalog);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const defaultMap = new Map(INITIAL_CATALOG.map(i => [i.code, i]));
+            const merged: InventoryItem[] = parsed.map((item: InventoryItem) => {
+              const def = defaultMap.get(item.code);
+              return {
+                ...item,
+                imageUrl: item.imageUrl || def?.imageUrl,
+                purchaseDate: item.purchaseDate || def?.purchaseDate,
+                purchasePriceVND: item.purchasePriceVND ?? def?.purchasePriceVND,
+                rentalPriceVND: item.rentalPriceVND ?? def?.rentalPriceVND,
+                notes: item.notes || def?.notes,
+              };
+            });
+            for (const defItem of INITIAL_CATALOG) {
+              if (!merged.some((m: InventoryItem) => m.code === defItem.code)) {
+                merged.push(defItem);
+              }
+            }
+            this.catalog = merged;
+          }
+        } catch {}
+      }
+
+      // COMBO BÀN GHẾ & CẤU HÌNH KHUNG RẠP
+      const sCombos = localStorage.getItem('td_table_chair_combos');
+      if (sCombos) {
+        try {
+          const parsed = JSON.parse(sCombos);
+          if (Array.isArray(parsed) && parsed.length > 0) this.tableChairCombos = parsed;
+        } catch {}
+      }
+
+      const sTentConfigs = localStorage.getItem('td_tent_frame_configs');
+      if (sTentConfigs) {
+        try {
+          const parsed = JSON.parse(sTentConfigs);
+          if (Array.isArray(parsed) && parsed.length > 0) this.tentFrameConfigs = parsed;
+        } catch {}
+      }
       const sRes = localStorage.getItem('td_reservations');
       if (sRes) this.reservations = JSON.parse(sRes);
       const sQuotes = localStorage.getItem('td_quotes');
@@ -1215,6 +1496,78 @@ class AppStateStore {
       if (sLogs) this.auditLogs = JSON.parse(sLogs);
       const sCustomers = localStorage.getItem('td_customers');
       if (sCustomers) this.customers = JSON.parse(sCustomers);
+
+      // KHUYẾN MẠI & ƯU ĐÃI
+      const sPromotions = localStorage.getItem('td_promotions');
+      if (sPromotions) {
+        try {
+          const parsed = JSON.parse(sPromotions);
+          if (Array.isArray(parsed)) this.promotions = parsed;
+        } catch {}
+      }
+
+      // TIN BÀI & BÀI VIẾT CMS
+      const sArticles = localStorage.getItem('td_articles');
+      if (sArticles) {
+        try {
+          const parsed = JSON.parse(sArticles);
+          if (Array.isArray(parsed)) this.articles = parsed;
+        } catch {}
+      }
+
+      // SỰ KIỆN THÁNG (DASHBOARD)
+      const sMonthEvents = localStorage.getItem('td_month_events');
+      if (sMonthEvents) {
+        try {
+          const parsed = JSON.parse(sMonthEvents);
+          if (Array.isArray(parsed)) this.monthEvents = parsed;
+        } catch {}
+      }
+
+      // CÔNG NỢ (DASHBOARD)
+      const sDebtItems = localStorage.getItem('td_debt_items');
+      if (sDebtItems) {
+        try {
+          const parsed = JSON.parse(sDebtItems);
+          if (Array.isArray(parsed)) this.debtItems = parsed;
+        } catch {}
+      }
+
+      // NHẮC VIỆC (DASHBOARD)
+      const sReminderTasks = localStorage.getItem('td_reminder_tasks');
+      if (sReminderTasks) {
+        try {
+          const parsed = JSON.parse(sReminderTasks);
+          if (Array.isArray(parsed)) this.reminderTasks = parsed;
+        } catch {}
+      }
+
+      // CẢNH BÁO KHO (DASHBOARD)
+      const sWarehouseAlerts = localStorage.getItem('td_warehouse_alerts');
+      if (sWarehouseAlerts) {
+        try {
+          const parsed = JSON.parse(sWarehouseAlerts);
+          if (Array.isArray(parsed)) this.warehouseAlerts = parsed;
+        } catch {}
+      }
+
+      // ẢNH LIÊN KẾT CMS
+      const sPartnerPhotos = localStorage.getItem('td_cms_partner_photos');
+      if (sPartnerPhotos) {
+        try {
+          const parsed = JSON.parse(sPartnerPhotos);
+          if (Array.isArray(parsed)) this.cmsPartnerPhotos = parsed;
+        } catch {}
+      }
+
+      // TÀI KHOẢN NHÂN SỰ
+      const sStaff = localStorage.getItem('td_staff_members');
+      if (sStaff) {
+        try {
+          const parsed = JSON.parse(sStaff);
+          if (Array.isArray(parsed)) this.staffMembers = parsed;
+        } catch {}
+      }
 
       // ĐỒNG BỘ THÔNG TIN ĐƠN VỊ & CHÂN TRANG
       const sComp = localStorage.getItem('td_company_info');
@@ -1304,6 +1657,8 @@ class AppStateStore {
     this.cmsPartnerPhotos = JSON.parse(JSON.stringify(INITIAL_CMS_PARTNER_PHOTOS));
     this.cmsBannerSlides = JSON.parse(JSON.stringify(INITIAL_CMS_BANNER_SLIDES));
     this.cmsThemes = JSON.parse(JSON.stringify(INITIAL_THEMES));
+    this.tableChairCombos = JSON.parse(JSON.stringify(INITIAL_TABLE_CHAIR_COMBOS));
+    this.tentFrameConfigs = JSON.parse(JSON.stringify(INITIAL_TENT_FRAME_CONFIGS));
     this.saveToLocalStorage();
     this.notify();
   }
@@ -1327,6 +1682,162 @@ class AppStateStore {
   public getIntakes(): IntakeRecord[] { return [...this.intakes]; }
   public getJobs(): JobRecord[] { return [...this.jobs]; }
   public getCatalog(): InventoryItem[] { return [...this.catalog]; }
+
+  public addCatalogItem(item: Omit<InventoryItem, 'id'>): { success: boolean; item?: InventoryItem; message: string } {
+    const cleanCode = item.code.trim().toUpperCase();
+    const existing = this.catalog.find(c => c.code.trim().toUpperCase() === cleanCode);
+    if (existing) {
+      return { success: false, message: `Mã dụng cụ "${cleanCode}" đã tồn tại! Vui lòng chọn mã khác.` };
+    }
+    const newItem: InventoryItem = {
+      ...item,
+      id: `ITEM-${Date.now()}`,
+      code: cleanCode,
+      name: item.name.trim(),
+    };
+    this.catalog.push(newItem);
+    this.notify();
+    return { success: true, item: newItem, message: `Thêm dụng cụ "${newItem.name}" vào kho thành công!` };
+  }
+
+  public updateCatalogItem(item: InventoryItem): { success: boolean; message: string } {
+    const idx = this.catalog.findIndex(c => c.id === item.id);
+    if (idx === -1) {
+      return { success: false, message: 'Không tìm thấy dụng cụ cần cập nhật!' };
+    }
+    this.catalog[idx] = { ...item };
+    this.notify();
+    return { success: true, message: `Cập nhật thông tin dụng cụ "${item.name}" thành công!` };
+  }
+
+  public deleteCatalogItem(id: string): { success: boolean; message: string } {
+    const idx = this.catalog.findIndex(c => c.id === id);
+    if (idx === -1) {
+      return { success: false, message: 'Không tìm thấy dụng cụ cần xóa!' };
+    }
+    const item = this.catalog[idx];
+    const isReserved = this.reservations.some(r => r.itemCode === item.code && (r.status === 'held' || r.status === 'dispatched'));
+    if (isReserved) {
+      return { success: false, message: `Dụng cụ "${item.name}" đang được sử dụng hoặc giữ lịch cho sự kiện, không thể xóa!` };
+    }
+    this.catalog.splice(idx, 1);
+    this.notify();
+    return { success: true, message: `Đã xóa dụng cụ "${item.name}" khỏi danh mục kho!` };
+  }
+
+  // --- QUẢN LÝ GÓI BÀN GHẾ GHÉP & BẢNG GIÁ COMBO ---
+  public getTableChairCombos(): TableChairCombo[] { return [...this.tableChairCombos]; }
+
+  public addTableChairCombo(combo: Omit<TableChairCombo, 'id'>): { success: boolean; combo?: TableChairCombo; message: string } {
+    const newCombo: TableChairCombo = {
+      ...combo,
+      id: `COMBO-${Date.now()}`,
+      code: combo.code.trim().toUpperCase(),
+      name: combo.name.trim(),
+    };
+    this.tableChairCombos.push(newCombo);
+    this.notify();
+    return { success: true, combo: newCombo, message: `Tạo gói bàn ghế ghép "${newCombo.name}" thành công!` };
+  }
+
+  public updateTableChairCombo(combo: TableChairCombo): { success: boolean; message: string } {
+    const idx = this.tableChairCombos.findIndex(c => c.id === combo.id);
+    if (idx === -1) {
+      return { success: false, message: 'Không tìm thấy gói combo cần sửa!' };
+    }
+    this.tableChairCombos[idx] = { ...combo };
+    this.notify();
+    return { success: true, message: `Cập nhật gói combo "${combo.name}" thành công!` };
+  }
+
+  public deleteTableChairCombo(id: string): { success: boolean; message: string } {
+    const idx = this.tableChairCombos.findIndex(c => c.id === id);
+    if (idx === -1) {
+      return { success: false, message: 'Không tìm thấy gói combo cần xóa!' };
+    }
+    const name = this.tableChairCombos[idx].name;
+    this.tableChairCombos.splice(idx, 1);
+    this.notify();
+    return { success: true, message: `Đã xóa gói combo "${name}"!` };
+  }
+
+  // Bóc tách & tính giá đơn hàng bàn ghế ghép
+  public breakdownTableChairOrder(comboId: string, setCount: number, backupTables = 0, extraChairs = 0) {
+    const combo = this.tableChairCombos.find(c => c.id === comboId);
+    if (!combo) return null;
+    return breakDownTableChairCombo(combo, setCount, backupTables, extraChairs);
+  }
+
+  // --- QUẢN LÝ CẤU HÌNH KHUNG RẠP GHÉP (BOM) ---
+  public getTentFrameConfigs(): TentFrameConfig[] { return [...this.tentFrameConfigs]; }
+
+  public addTentFrameConfig(cfg: Omit<TentFrameConfig, 'id'>): { success: boolean; config?: TentFrameConfig; message: string } {
+    const newCfg: TentFrameConfig = {
+      ...cfg,
+      id: `TENT-CFG-${Date.now()}`,
+      code: cfg.code.trim().toUpperCase(),
+      name: cfg.name.trim(),
+    };
+    this.tentFrameConfigs.push(newCfg);
+    this.notify();
+    return { success: true, config: newCfg, message: `Tạo cấu hình khung rạp ghép "${newCfg.name}" thành công!` };
+  }
+
+  public updateTentFrameConfig(cfg: TentFrameConfig): { success: boolean; message: string } {
+    const idx = this.tentFrameConfigs.findIndex(c => c.id === cfg.id);
+    if (idx === -1) {
+      return { success: false, message: 'Không tìm thấy cấu hình khung rạp!' };
+    }
+    this.tentFrameConfigs[idx] = { ...cfg };
+    this.notify();
+    return { success: true, message: `Cập nhật định mức linh kiện khung rạp "${cfg.name}" thành công!` };
+  }
+
+  public deleteTentFrameConfig(id: string): { success: boolean; message: string } {
+    const idx = this.tentFrameConfigs.findIndex(c => c.id === id);
+    if (idx === -1) {
+      return { success: false, message: 'Không tìm thấy cấu hình khung rạp!' };
+    }
+    const name = this.tentFrameConfigs[idx].name;
+    this.tentFrameConfigs.splice(idx, 1);
+    this.notify();
+    return { success: true, message: `Đã xóa cấu hình khung rạp "${name}"!` };
+  }
+
+  // Máy tính tính năng lực ghép khung rạp tối đa từ tồn kho thực tế và xác định nút thắt cổ chai
+  public calculateTentAssemblyCapacity(configId?: string) {
+    const config = (configId ? this.tentFrameConfigs.find(c => c.id === configId) : null) || this.tentFrameConfigs[0];
+    if (!config) return null;
+
+    const inventorySnapshot = this.catalog.map(item => {
+      const dispatched = this.reservations
+        .filter(r => r.itemCode === item.code && r.status === 'dispatched')
+        .reduce((sum, r) => sum + r.requestedQuantity, 0);
+      const available = Math.max(0, item.totalOwnedQuantity - item.inRepairQuantity - dispatched);
+      return {
+        code: item.code,
+        name: item.name,
+        available,
+      };
+    });
+
+    return {
+      config,
+      ...calculateMaxAssembleableBays(inventorySnapshot, config.bomComponents),
+    };
+  }
+
+  // Bóc tách dụng cụ cần xuất khi thi công N khung rạp
+  public breakdownTentOrder(configId: string, bayCount: number) {
+    const config = this.tentFrameConfigs.find(c => c.id === configId) || this.tentFrameConfigs[0];
+    if (!config) return null;
+    return {
+      config,
+      bayCount,
+      totalRentalPriceVND: bayCount * config.rentalPricePerBayVND,
+      demands: calculateTentBomDemand(bayCount, config.bomComponents),
+    };
+  }
   public getReservations(): InventoryReservation[] { return [...this.reservations]; }
   public getQuotes(): QuoteRecord[] { return [...this.quotes]; }
   public getPayments(): PaymentReceipt[] { return [...this.payments]; }
@@ -1336,24 +1847,80 @@ class AppStateStore {
   public getArticles(): ArticleRecord[] { return [...this.articles]; }
   public getPromotions(): PromotionBanner[] { return [...this.promotions]; }
   public getCompanyInfo(): CompanyInfo { return { ...this.companyInfo }; }
-  public updateCompanyInfo(updates: Partial<CompanyInfo>) {
-    this.companyInfo = { ...this.companyInfo, ...updates };
-    this.saveToLocalStorage();
-    this.notify();
-    return { success: true, message: 'Đã lưu cấu hình thông tin chân trang và thương hiệu thành công!' };
-  }
   public getStaffMembers(): (UserProfile & { username?: string; password?: string })[] { return [...this.staffMembers]; }
   public getAuthenticatedStaff(): UserProfile | null { return this.authenticatedStaff; }
   public getAuthenticatedCustomer(): CustomerAccount | null { return this.authenticatedCustomer; }
 
-  // Dashboard Getters
+  // Dashboard Getters & Management
   public getMonthEvents(): MonthEventItem[] { return [...this.monthEvents]; }
+  public addMonthEvent(event: Omit<MonthEventItem, 'id'>) {
+    const newEv: MonthEventItem = { ...event, id: `EV-${Date.now()}` };
+    this.monthEvents.unshift(newEv);
+    this.notify();
+    return { success: true, event: newEv, message: 'Thêm sự kiện mới thành công!' };
+  }
+  public updateMonthEvent(id: string, updates: Partial<MonthEventItem>) {
+    this.monthEvents = this.monthEvents.map(e => e.id === id ? { ...e, ...updates } : e);
+    this.notify();
+    return { success: true, message: 'Cập nhật sự kiện thành công!' };
+  }
+  public deleteMonthEvent(id: string) {
+    this.monthEvents = this.monthEvents.filter(e => e.id !== id);
+    this.notify();
+    return { success: true, message: 'Đã xóa sự kiện!' };
+  }
+
   public getDebtItems(): DebtItem[] { return [...this.debtItems]; }
+  public addDebtItem(debt: Omit<DebtItem, 'id'>) {
+    const newDebt: DebtItem = { ...debt, id: `DEBT-${Date.now()}` };
+    this.debtItems.unshift(newDebt);
+    this.notify();
+    return { success: true, debt: newDebt, message: 'Thêm mục công nợ thành công!' };
+  }
+  public updateDebtItem(id: string, updates: Partial<DebtItem>) {
+    this.debtItems = this.debtItems.map(d => d.id === id ? { ...d, ...updates } : d);
+    this.notify();
+    return { success: true, message: 'Cập nhật công nợ thành công!' };
+  }
+  public deleteDebtItem(id: string) {
+    this.debtItems = this.debtItems.filter(d => d.id !== id);
+    this.notify();
+    return { success: true, message: 'Đã xóa mục công nợ!' };
+  }
+
   public getReminderTasks(): ReminderTask[] { return [...this.reminderTasks]; }
-  public getWarehouseAlerts(): WarehouseAlertItem[] { return [...this.warehouseAlerts]; }
   public toggleReminderTask(id: string) {
     this.reminderTasks = this.reminderTasks.map(t => t.id === id ? { ...t, isDone: !t.isDone } : t);
     this.notify();
+  }
+  public addReminderTask(title: string, time: string = '08:00') {
+    const newTask: ReminderTask = {
+      id: `REM-${Date.now()}`,
+      title: title.trim(),
+      time,
+      isDone: false,
+    };
+    this.reminderTasks.push(newTask);
+    this.notify();
+    return { success: true, task: newTask, message: 'Thêm lời nhắc việc thành công!' };
+  }
+  public deleteReminderTask(id: string) {
+    this.reminderTasks = this.reminderTasks.filter(t => t.id !== id);
+    this.notify();
+    return { success: true, message: 'Đã xóa lời nhắc việc!' };
+  }
+
+  public getWarehouseAlerts(): WarehouseAlertItem[] { return [...this.warehouseAlerts]; }
+  public addWarehouseAlert(alert: Omit<WarehouseAlertItem, 'id'>) {
+    const newAlert: WarehouseAlertItem = { ...alert, id: `WHA-${Date.now()}` };
+    this.warehouseAlerts.unshift(newAlert);
+    this.notify();
+    return { success: true, alert: newAlert, message: 'Thêm cảnh báo kho thành công!' };
+  }
+  public dismissWarehouseAlert(id: string) {
+    this.warehouseAlerts = this.warehouseAlerts.filter(a => a.id !== id);
+    this.notify();
+    return { success: true, message: 'Đã đóng cảnh báo!' };
   }
 
   // CMS Getters & Setters

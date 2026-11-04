@@ -1,5 +1,5 @@
 // packages/shared/src/tentCateringRules.ts
-import type { TentConfigItem, CateringConfigItem, ConvertedItemDemand } from './types.ts';
+import type { TentConfigItem, CateringConfigItem, ConvertedItemDemand, TentBomComponent } from './types.ts';
 import { ITEM_CODES } from './tableChairRules.ts';
 
 export const CATERING_ITEM_CODES = {
@@ -10,6 +10,121 @@ export const CATERING_ITEM_CODES = {
   LY_COI_UONG_BIA: 'LY_COI_UONG_BIA',
   NOI_LALU_GAS: 'NOI_LALU_GAS',
 } as const;
+
+/**
+ * Định mức linh kiện BOM tiêu chuẩn để dựng 1 Khung/Khoang rạp (khẩu độ 6m x 3m).
+ * Khung rạp tính theo số lượng khung ghép thành từ các dụng cụ gốc:
+ * - 4 Cột rạp
+ * - 2 Kèo rạp nóc
+ * - 4 Thanh giằng xà gồ
+ * - 1 Tấm bạt mái che
+ * - 2 Tấm vách rèm lụa
+ */
+export const DEFAULT_TENT_FRAME_BOM: TentBomComponent[] = [
+  {
+    itemCode: ITEM_CODES.COT_RAP,
+    itemName: 'Cột rạp sắt mạ kẽm chịu lực 3m',
+    quantityPerBay: 4,
+    unit: 'cây',
+  },
+  {
+    itemCode: ITEM_CODES.KEO_RAP,
+    itemName: 'Kèo nóc rạp khẩu độ 6m',
+    quantityPerBay: 2,
+    unit: 'thanh',
+  },
+  {
+    itemCode: ITEM_CODES.XA_GO_GIANG,
+    itemName: 'Xà gồ / Thanh giằng ngang liên kết 3m',
+    quantityPerBay: 4,
+    unit: 'thanh',
+  },
+  {
+    itemCode: ITEM_CODES.BAT_MAI_KHOANG,
+    itemName: 'Bạt mái che 2 da Hàn Quốc cách nhiệt',
+    quantityPerBay: 1,
+    unit: 'tấm',
+  },
+  {
+    itemCode: ITEM_CODES.VACH_RAP_SET,
+    itemName: 'Vách rèm lụa quây rạp màu trắng sữa',
+    quantityPerBay: 2,
+    unit: 'tấm',
+  },
+];
+
+/**
+ * Quy đổi N khung rạp thành danh sách chi tiết các dụng cụ gốc cấu thành theo BOM.
+ */
+export function calculateTentBomDemand(
+  bayCount: number,
+  customBom: TentBomComponent[] = DEFAULT_TENT_FRAME_BOM
+): ConvertedItemDemand[] {
+  const count = Math.max(0, bayCount);
+  return customBom.map(component => ({
+    itemCode: component.itemCode,
+    itemName: component.itemName,
+    quantity: component.quantityPerBay * count,
+    unit: component.unit,
+  }));
+}
+
+/**
+ * Tính số lượng Khung rạp ghép tối đa có thể dựng được dựa trên tồn kho thực tế,
+ * và chỉ ra chi tiết dụng cụ nào đang là "nút thắt cổ chai" (bottleneck).
+ */
+export function calculateMaxAssembleableBays(
+  inventory: Array<{ code: string; available: number; name?: string }>,
+  bom: TentBomComponent[] = DEFAULT_TENT_FRAME_BOM
+): {
+  maxBays: number;
+  bottleneckItem: string;
+  details: Array<{
+    itemCode: string;
+    itemName: string;
+    available: number;
+    neededPerBay: number;
+    maxSupportedBays: number;
+    unit: string;
+  }>;
+} {
+  let minBays = Infinity;
+  let bottleneck = '';
+  const details: Array<{
+    itemCode: string;
+    itemName: string;
+    available: number;
+    neededPerBay: number;
+    maxSupportedBays: number;
+    unit: string;
+  }> = [];
+
+  for (const comp of bom) {
+    const inv = inventory.find(i => i.code === comp.itemCode);
+    const avail = inv ? Math.max(0, inv.available) : 0;
+    const supported = comp.quantityPerBay > 0 ? Math.floor(avail / comp.quantityPerBay) : 0;
+
+    details.push({
+      itemCode: comp.itemCode,
+      itemName: comp.itemName,
+      available: avail,
+      neededPerBay: comp.quantityPerBay,
+      maxSupportedBays: supported,
+      unit: comp.unit,
+    });
+
+    if (supported < minBays) {
+      minBays = supported;
+      bottleneck = comp.itemName;
+    }
+  }
+
+  return {
+    maxBays: minBays === Infinity ? 0 : minBays,
+    bottleneckItem: bottleneck || 'Không xác định',
+    details,
+  };
+}
 
 /**
  * Quy đổi rạp thành các thành phần kết cấu theo số khoang.

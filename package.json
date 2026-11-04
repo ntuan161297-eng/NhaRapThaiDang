@@ -7,10 +7,12 @@
     "apps/*"
   ],
   "scripts": {
-    "test": "node --experimental-strip-types packages/shared/test/business-rules.test.ts",
+    "test": "node --experimental-strip-types packages/shared/test/business-rules.test.ts && node --experimental-strip-types packages/shared/test/event-workflow.test.ts",
     "dev": "npm run dev --workspace=web",
     "build": "npm run build --workspace=web && node scripts/copy-dist.js",
-    "preview": "npm run preview --workspace=web"
+    "preview": "npm run preview --workspace=web",
+    "test:db": "node --test apps/web/test/event-database.test.mjs",
+    "test:accounts": "node --test apps/web/test/customer-password-edge.test.mjs"
   },
   "keywords": [
     "thai-dang",

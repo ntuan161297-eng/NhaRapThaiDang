@@ -1,0 +1,22 @@
+{
+  "tool": "Built-in imagegen",
+  "export": "Generated PNGs exported to JPEG quality 86 for web delivery; original images retained in the imagegen output directory.",
+  "assets": [
+    {
+      "path": "apps/web/public/public-wedding-hero.jpg",
+      "prompt": "Use case: photorealistic-natural. Asset: premium wedding marquee photograph for a Vietnamese wedding tent and event services website, wide landscape 3:2. A beautiful intimate ivory wedding tent in a lush Vietnamese garden at warm golden hour, elegant champagne fabric canopy, warm string lights, white flowers and pale peach roses, clean white chairs and round reception tables, tasteful wooden flooring and natural green trees. Camera looking into the tent from the garden, inviting path from lower left, intricate floral arch near the right. Spacious, refined, realistic event photography with natural materials and gentle filmic warmth. Palette: warm cream, forest green, soft champagne gold. No people. Absolutely no text, no branding, no logos, no watermark, no webpage UI or buttons. The scene should crop well into either a wide hero banner or a landscape about-section image. High quality authentic editorial photography, not a synthetic glossy rendering."
+    },
+    {
+      "path": "apps/web/public/public-engagement.jpg",
+      "prompt": "Use case: photorealistic-natural. Asset: landscape 3:2 editorial photograph for a Vietnamese event services website, engagement ceremony service card. A tasteful Vietnamese le an hoi ceremonial family reception at home: elegant deep red and ivory floral backdrop, delicate gold ornamental panels WITHOUT letters, low arrangement of red roses and orchids, traditional polished wooden tea table with a fine porcelain tea set and covered ceremonial gift trays, cream and champagne silk drapery, warmly lit, uncluttered, refined and authentic. No people, NO text, no calligraphy, NO double happiness glyphs, no brands, no logos, no website UI, no watermark. Warm premium wedding editorial photography, colors forest green, soft ivory, muted crimson, champagne gold. Show the whole ceremony setting, not a closeup. This is an illustrative service image, not documentation of a real business event."
+    },
+    {
+      "path": "apps/web/public/public-housewarming.jpg",
+      "prompt": "Use case: photorealistic-natural. Asset: landscape 3:2 editorial photograph for a Vietnamese event services website, housewarming celebration service card. Welcoming tan gia family banquet in the courtyard of a tasteful Vietnamese contemporary home. An elegant ivory canopy dressed with muted terracotta and peach flowers, round reception tables with clean ivory linens, simple polished silver seating, warm hanging lights, a few green potted plants. A minimal floral welcome backdrop with NO text. Bright warm natural daylight, inviting and intimate, authentic event photography, refined ivory, sage, peach, champagne gold palette. No people. NO letters, no calligraphy, no text, no logos, no website UI, no watermark. Wide view that shows the reception space clearly. This is an illustrative service image, not documentation of a real business event."
+    },
+    {
+      "path": "apps/web/public/public-invitation.jpg",
+      "prompt": "Use case: product-mockup. Asset: landscape 3:2 photograph for a Vietnamese wedding services website, digital wedding invitation service card. Elegant wedding stationery flat lay on warm ivory linen: blank cream invitation cards with subtle embossed floral borders, a champagne-gold wax seal, a blush rose and small olive-green leaves, one contemporary smartphone lying next to the stationery displaying a beautiful cream floral invitation layout with a small photo area and fine decorative gold lines but absolutely NO readable text. Refined, natural, minimal and romantic premium editorial product photography, soft daylight, warm ivory, champagne gold, sage green. No people. NO words, no letters, no branding, no logos, no watermark, no actual QR code. The composition must crop into a service card. This is an illustrative concept for an upcoming digital invitation service."
+    }
+  ]
+}

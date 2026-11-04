@@ -1,11 +1,15 @@
 // packages/shared/src/tableChairRules.ts
-import type { TableChairConfigItem, ConvertedItemDemand } from './types.ts';
+import type { TableChairConfigItem, ConvertedItemDemand, TableChairCombo } from './types.ts';
 
 export const ITEM_CODES = {
   BAN_TRON: 'BAN_TRON',
   BAN_DAI: 'BAN_DAI',
   GHE_INOX: 'GHE_INOX',
   GHE_NHUA_DO: 'GHE_NHUA_DO',
+  GHE_BANQUET: 'GHE_BANQUET',
+  COT_RAP: 'COT_RAP',
+  KEO_RAP: 'KEO_RAP',
+  XA_GO_GIANG: 'XA_GO_GIANG',
   KHUNG_RAP_KHOANG: 'KHUNG_RAP_KHOANG',
   BAT_MAI_KHOANG: 'BAT_MAI_KHOANG',
   VACH_RAP_SET: 'VACH_RAP_SET',
@@ -56,4 +60,50 @@ export function convertTableChairConfigs(configs: TableChairConfigItem[]): Conve
   }
 
   return result;
+}
+
+/**
+ * Quy đổi gói combo bàn ghế thành tổng tiền thuê và bóc tách số lượng bàn, ghế gốc cần xuất kho.
+ * Giải quyết bài toán:
+ * - Bàn inox + Ghế nhựa đỏ = Đơn giá A
+ * - Bàn inox + Ghế inox = Đơn giá B
+ */
+export function breakDownTableChairCombo(
+  combo: TableChairCombo,
+  setCount: number,
+  backupTables = 0,
+  extraChairs = 0
+): {
+  totalRentalPriceVND: number;
+  tablesNeeded: { itemCode: string; itemName: string; quantity: number; unit: string };
+  chairsNeeded: { itemCode: string; itemName: string; quantity: number; unit: string };
+  demands: ConvertedItemDemand[];
+} {
+  const totalRentalPriceVND = Math.max(0, setCount) * combo.rentalPriceVND;
+  const tableQty = Math.max(0, setCount) + Math.max(0, backupTables);
+  const chairQty = (Math.max(0, setCount) * combo.chairsPerTable) + Math.max(0, extraChairs);
+
+  const tablesNeeded = {
+    itemCode: combo.tableItemCode,
+    itemName: combo.tableName,
+    quantity: tableQty,
+    unit: 'cái',
+  };
+
+  const chairsNeeded = {
+    itemCode: combo.chairItemCode,
+    itemName: combo.chairName,
+    quantity: chairQty,
+    unit: 'cái',
+  };
+
+  return {
+    totalRentalPriceVND,
+    tablesNeeded,
+    chairsNeeded,
+    demands: [
+      { itemCode: tablesNeeded.itemCode, itemName: tablesNeeded.itemName, quantity: tablesNeeded.quantity, unit: 'cái' },
+      { itemCode: chairsNeeded.itemCode, itemName: chairsNeeded.itemName, quantity: chairsNeeded.quantity, unit: 'cái' },
+    ],
+  };
 }

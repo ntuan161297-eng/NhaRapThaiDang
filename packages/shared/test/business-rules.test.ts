@@ -9,7 +9,8 @@ import type {
   IntakeRecord,
   JobRecord,
 } from '../src/types.ts';
-import { convertTableChairConfigs, ITEM_CODES } from '../src/tableChairRules.ts';
+import { convertTableChairConfigs, breakDownTableChairCombo, ITEM_CODES } from '../src/tableChairRules.ts';
+import { calculateTentBomDemand, calculateMaxAssembleableBays, DEFAULT_TENT_FRAME_BOM } from '../src/tentCateringRules.ts';
 import {
   checkInventoryAvailability,
   dispatchReservedItems,
@@ -292,4 +293,73 @@ test('QUY TẮC 7: Phân quyền RBAC bảo vệ dữ liệu', () => {
   assert.equal(RBAC.canDispatchInventory('kho'), true);
   assert.equal(RBAC.canDispatchInventory('quan_ly'), true);
   assert.equal(RBAC.canDispatchInventory('tu_van'), false);
+});
+
+test('QUY TẮC 8: Khung rạp ghép từ các chi tiết dụng cụ (BOM) & tính năng lực kho tối đa', () => {
+  // 1. Tính nhu cầu cho 5 khoang rạp
+  const demands = calculateTentBomDemand(5, DEFAULT_TENT_FRAME_BOM);
+  const cot = demands.find(d => d.itemCode === 'COT_RAP');
+  const keo = demands.find(d => d.itemCode === 'KEO_RAP');
+  const giang = demands.find(d => d.itemCode === 'XA_GO_GIANG');
+  const bat = demands.find(d => d.itemCode === 'BAT_MAI_KHOANG');
+
+  assert.equal(cot?.quantity, 20, '5 khung x 4 cột = 20 cột rạp');
+  assert.equal(keo?.quantity, 10, '5 khung x 2 kèo = 10 kèo rạp');
+  assert.equal(giang?.quantity, 20, '5 khung x 4 giằng = 20 thanh giằng');
+  assert.equal(bat?.quantity, 5, '5 khung x 1 bạt = 5 tấm bạt nóc');
+
+  // 2. Tính năng lực lắp ghép tối đa từ kho vật tư
+  const mockWarehouse = [
+    { code: 'COT_RAP', available: 40 },       // 40 cột / 4 = 10 khung
+    { code: 'KEO_RAP', available: 14 },       // 14 kèo / 2 = 7 khung (Bottleneck!)
+    { code: 'XA_GO_GIANG', available: 50 },   // 50 giằng / 4 = 12 khung
+    { code: 'BAT_MAI_KHOANG', available: 15 },// 15 bạt / 1 = 15 khung
+    { code: 'VACH_RAP_SET', available: 30 },  // 30 vách / 2 = 15 khung
+  ];
+
+  const assemblyResult = calculateMaxAssembleableBays(mockWarehouse, DEFAULT_TENT_FRAME_BOM);
+  assert.equal(assemblyResult.maxBays, 7, 'Kho chỉ ghép được tối đa 7 khung hoàn chỉnh vì thiếu kèo rạp');
+  assert.ok(assemblyResult.bottleneckItem.includes('Kèo nóc'), 'Điểm nghẽn phải là Kèo nóc rạp');
+});
+
+test('QUY TẮC 9: Bàn ghế ghép từ Bàn + Ghế với đơn giá Combo khác nhau và bóc tách kho', () => {
+  // Combo 1: Bàn inox + Ghế nhựa đỏ (120.000đ/bộ, 6 ghế/bàn)
+  const comboInoxNhua = {
+    id: 'COMBO-01',
+    code: 'BAN_INOX_GHE_NHUA',
+    name: 'Bộ bàn tròn inox + 6 Ghế nhựa đỏ',
+    tableItemCode: 'BAN_TRON',
+    tableName: 'Bàn tròn inox 1.2m',
+    chairItemCode: 'GHE_NHUA_DO',
+    chairName: 'Ghế nhựa đỏ Song Long',
+    chairsPerTable: 6,
+    rentalPriceVND: 120000,
+  };
+
+  // Combo 2: Bàn inox + Ghế inox (180.000đ/bộ, 6 ghế/bàn)
+  const comboInoxInox = {
+    id: 'COMBO-02',
+    code: 'BAN_INOX_GHE_INOX',
+    name: 'Bộ bàn tròn inox + 6 Ghế đôn inox',
+    tableItemCode: 'BAN_TRON',
+    tableName: 'Bàn tròn inox 1.2m',
+    chairItemCode: 'GHE_INOX',
+    chairName: 'Ghế đôn inox tròn',
+    chairsPerTable: 6,
+    rentalPriceVND: 180000,
+  };
+
+  // Khách thuê 10 bộ Bàn inox + Ghế nhựa đỏ (có thêm 1 bàn dự phòng, 5 ghế lẻ)
+  const order1 = breakDownTableChairCombo(comboInoxNhua, 10, 1, 5);
+  assert.equal(order1.totalRentalPriceVND, 1200000, '10 bộ x 120.000 = 1.200.000đ');
+  assert.equal(order1.tablesNeeded.quantity, 11, '10 bàn + 1 dự phòng = 11 bàn inox');
+  assert.equal(order1.chairsNeeded.itemCode, 'GHE_NHUA_DO', 'Ghế xuất phải là GHE_NHUA_DO');
+  assert.equal(order1.chairsNeeded.quantity, 65, '10 x 6 + 5 lẻ = 65 ghế nhựa');
+
+  // Khách thuê 10 bộ Bàn inox + Ghế inox (không dự phòng)
+  const order2 = breakDownTableChairCombo(comboInoxInox, 10, 0, 0);
+  assert.equal(order2.totalRentalPriceVND, 1800000, '10 bộ x 180.000 = 1.800.000đ (khác giá với ghế nhựa)');
+  assert.equal(order2.tablesNeeded.quantity, 10, '10 bàn inox');
+  assert.equal(order2.chairsNeeded.itemCode, 'GHE_INOX', 'Ghế xuất phải là GHE_INOX');
+  assert.equal(order2.chairsNeeded.quantity, 60, '10 x 6 = 60 ghế inox');
 });
