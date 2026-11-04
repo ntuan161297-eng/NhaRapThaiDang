@@ -80,4 +80,4 @@ Khách mời mở liên kết `/#thiep/<slug>` không cần đăng nhập. Một
 - Kiểm tra upload ảnh và QR. Nếu lỗi quyền/RPC, kiểm tra migration, auth và thông báo lỗi; ứng dụng không tự chuyển về dữ liệu mẫu khi cloud lỗi.
 - Đăng ký một tài khoản chưa đặt lịch, kiểm tra tài khoản xuất hiện trong quản trị; cấp lại mật khẩu, xác nhận mật khẩu cũ không đăng nhập được và mật khẩu mới dùng được.
 
-Kiểm thử mã nguồn: `npm test`, `npm run test:db`, `npm run test:accounts`, `node apps/web/node_modules/typescript/bin/tsc --project apps/web/tsconfig.json --noEmit`, `npm run build`. `test:db` thực thi toàn bộ migration/RLS trên PostgreSQL cục bộ bằng PGlite; `test:accounts` kiểm tra handler Edge Function bằng dịch vụ Auth mô phỏng. Chưa thay thế kiểm tra Auth/email/Storage hoặc đặt lại mật khẩu trên dự án Supabase thật.
+Kiểm thử mã nguồn: `npm test`, `npm run test:db`, `npm run test:accounts`, `npm run typecheck`, `npm run build`. `test:db` thực thi toàn bộ migration/RLS trên PostgreSQL cục bộ bằng PGlite; `test:accounts` kiểm tra handler Edge Function bằng dịch vụ Auth mô phỏng. Chưa thay thế kiểm tra Auth/email/Storage hoặc đặt lại mật khẩu trên dự án Supabase thật.
